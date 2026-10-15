@@ -1,0 +1,133 @@
+
+.history-page {
+    min-height: 100vh;
+    padding: 30px;
+    background: #f5f7fb;
+    color: #1e293b;
+}
+
+.history-header {
+    margin-bottom: 28px;
+}
+
+.history-header h1 {
+    margin-bottom: 8px;
+    font-size: 30px;
+    color: #172554;
+}
+
+.history-header p {
+    color: #64748b;
+}
+
+.history-list {
+    display: grid;
+    gap: 22px;
+}
+
+.history-card {
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.history-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.history-card-header h2 {
+    margin: 0;
+    font-size: 21px;
+    color: #1d4ed8;
+}
+
+.history-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 13px;
+}
+
+.history-date {
+    margin: 16px 0;
+    color: #64748b;
+    font-size: 14px;
+}
+
+.history-score {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #eff6ff;
+    border-radius: 10px;
+}
+
+.history-score strong {
+    font-size: 24px;
+    color: #1d4ed8;
+}
+
+.history-feedback,
+.history-answers {
+    margin-top: 22px;
+}
+
+.history-feedback h3,
+.history-answers h3 {
+    color: #172554;
+}
+
+.history-answer {
+    margin-top: 14px;
+    padding: 18px;
+    background: #f8fafc;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+}
+
+.history-answer h4 {
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.history-answer p {
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.history-empty {
+    padding: 45px 20px;
+    text-align: center;
+    background: #ffffff;
+    border-radius: 14px;
+}
+
+.history-empty p {
+    color: #64748b;
+}
+
+.history-error {
+    color: #b91c1c;
+}
+
+@media (max-width: 600px) {
+    .history-page {
+        padding: 18px;
+    }
+
+    .history-card {
+        padding: 18px;
+    }
+
+    .history-header h1 {
+        font-size: 25px;
+    }
+}

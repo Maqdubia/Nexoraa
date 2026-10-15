@@ -1,0 +1,133 @@
+/* =========================
+   GLOBAL
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    font-family: "Inter", "Segoe UI", Arial, sans-serif;
+    background-color:orange;
+    background-size:cover;
+    height:100vh;
+
+    color:orange;
+}
+
+
+/* =========================
+   DASHBOARD LAYOUT
+========================= */
+
+.app-layout {
+    display: flex;
+    width: 100vw;
+    min-height: 100vh;
+    background-color:orange;
+    background-size: cover;
+}
+
+
+/* =========================
+   MAIN CONTENT
+========================= */
+
+.main-content {
+    flex: 1;
+    min-width: 0;
+    min-height: 100vh;
+
+    margin-left: 260px;
+
+    padding: 32px 36px;
+
+    background-color:orange;
+}
+
+
+/* =========================
+   COMMON PAGE
+========================= */
+
+.page {
+    width: 100vh;
+    width: 100vw;
+    margin: 0 auto;
+}
+
+
+/* =========================
+   COMMON CARD
+========================= */
+
+.card {
+    background: orange;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+
+/* =========================
+   COMMON BUTTON
+========================= */
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.btn-primary {
+    background:orange;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #4338ca;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+
+    .main-content {
+        margin-left: 0;
+        padding: 25px 20px;
+    }
+
+    .app-layout {
+        flex-direction: column;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .main-content {
+        padding: 20px 15px;
+    }
+}
+
+

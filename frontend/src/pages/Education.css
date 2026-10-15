@@ -1,0 +1,163 @@
+
+.education-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    padding: 50px 20px;
+}
+
+.education-container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.education-header {
+    margin-bottom: 30px;
+}
+
+.education-header h1 {
+    color: #2563eb;
+}
+
+.education-header h2 {
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.education-header p {
+    color: #6b7280;
+}
+
+.education-form {
+    background: white;
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.education-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.education-input {
+    margin-bottom: 20px;
+}
+
+.education-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.education-input input,
+.education-input textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+}
+
+.education-input input:focus,
+.education-input textarea:focus {
+    border-color: #2563eb;
+}
+
+.education-input textarea {
+    resize: vertical;
+}
+
+.add-button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.add-button:hover {
+    background: #1d4ed8;
+}
+
+.education-message {
+    text-align: center;
+    margin: 20px 0;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.education-list {
+    margin-top: 35px;
+}
+
+.education-list > h2 {
+    color: #111827;
+}
+
+.education-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: white;
+    padding: 25px;
+    margin-top: 15px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+}
+
+.education-item h3 {
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.education-item h4 {
+    margin: 0 0 8px;
+    color: #2563eb;
+}
+
+.education-item p {
+    color: #6b7280;
+}
+
+.delete-button {
+    padding: 9px 15px;
+    border: none;
+    border-radius: 7px;
+    background: #dc2626;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-button:hover {
+    background: #b91c1c;
+}
+
+.empty-text {
+    color: #6b7280;
+}
+
+@media (max-width: 650px) {
+
+    .education-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .education-form {
+        padding: 25px;
+    }
+
+    .education-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+}

@@ -1,0 +1,444 @@
+
+/* Sidebar container */
+.sidebar {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Keep logo visible at the top */
+.sidebar-logo {
+    flex-shrink: 0;
+}
+
+/* Make the menu scrollable */
+.sidebar-menu {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: #64748b transparent;
+}
+
+/* Scrollbar for Chrome and Edge */
+.sidebar-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-menu::-webkit-scrollbar-thumb {
+    background: #64748b;
+    border-radius: 10px;
+}
+
+.sidebar-menu::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Keep Logout visible at the bottom */
+.sidebar-bottom {
+    flex-shrink: 0;
+    margin-top: auto;
+}
+
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width:auto;
+    
+
+    background: #ffffff;
+
+    border-right: 1px solid #e5e7eb;
+
+    padding: 24px 16px;
+
+    display: flex;
+    flex-direction: column;
+
+    z-index: 1000;
+}
+
+/* =====================================
+   LOGO
+===================================== */
+
+.sidebar-logo {
+    padding: 5px 12px 24px;
+
+    border-bottom: 1px solid #eef2f7;
+
+    margin-bottom: 20px;
+}
+
+.sidebar-logo h2 {
+    margin: 0;
+
+    font-size: 24px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.5px;
+
+    color: #4f46e5;
+}
+
+.sidebar-logo p {
+    margin: 5px 0 0;
+
+    font-size: 12px;
+
+    color: #94a3b8;
+}
+
+/* =====================================
+   MENU
+===================================== */
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.sidebar-menu a {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    color: #64748b;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    transition: all 0.2s ease;
+}
+
+.sidebar-menu a span:first-child {
+    width: 22px;
+
+    text-align: center;
+
+    font-size: 16px;
+}
+
+.sidebar-menu a:hover {
+    background: #f5f7ff;
+
+    color: #4f46e5;
+
+    transform: translateX(2px);
+}
+
+.sidebar-menu a.active {
+    background: #eef2ff;
+
+    color: #4f46e5;
+
+    font-weight: 600;
+}
+
+/* =====================================
+   BOTTOM
+===================================== */
+
+.sidebar-bottom {
+    margin-top: auto;
+
+    padding-top: 15px;
+
+    border-top: 1px solid #eef2f7;
+}
+
+/* =====================================
+   LOGOUT
+===================================== */
+
+.logout-btn {
+    width: 100%;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition: all 0.2s ease;
+}
+
+.logout-btn span:first-child {
+    width: 22px;
+
+    text-align: center;
+
+    font-size: 16px;
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+
+    color: #dc2626;
+}
+
+/* =====================================
+   MOBILE
+===================================== */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        position: relative;
+
+        width: 100%;
+
+        height: auto;
+
+        border-right: none;
+
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sidebar-menu {
+        flex-direction: row;
+
+        flex-wrap: wrap;
+    }
+
+    .sidebar-menu a {
+        flex: 1;
+        min-width: 130px;
+    }
+
+    .sidebar-bottom {
+        margin-top: 15px;
+    }
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 260px;
+    height: 100vh;
+
+    background: #ffffff;
+
+    border-right: 1px solid #e5e7eb;
+
+    padding: 24px 16px;
+
+    display: flex;
+    flex-direction: column;
+
+    z-index: 1000;
+}
+
+
+/* =========================
+   LOGO
+========================= */
+
+.sidebar-logo {
+    padding: 4px 12px 24px;
+
+    border-bottom: 1px solid #eef2f7;
+
+    margin-bottom: 20px;
+}
+
+.sidebar-logo h2 {
+    margin: 0;
+
+    color: #4f46e5;
+
+    font-size: 23px;
+    font-weight: 800;
+
+    letter-spacing: 1px;
+}
+
+.sidebar-logo p {
+    margin-top: 5px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.sidebar-menu a {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border-radius: 9px;
+
+    color: #64748b;
+
+    text-decoration: none;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    transition: 0.2s ease;
+}
+
+.sidebar-menu a:hover {
+    background: #f5f7ff;
+    color: #4f46e5;
+}
+
+.sidebar-menu a.active {
+    background: #eef2ff;
+    color: #4f46e5;
+
+    font-weight: 600;
+}
+
+.sidebar-menu a span:first-child {
+    width: 22px;
+
+    text-align: center;
+
+    font-size: 16px;
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+.sidebar-bottom {
+    margin-top: auto;
+
+    padding-top: 15px;
+
+    border-top: 1px solid #eef2f7;
+}
+
+.logout-btn {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px 14px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+
+    text-align: left;
+
+    transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.logout-btn span:first-child {
+    width: 22px;
+
+    text-align: center;
+
+    font-size: 16px;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        position: relative;
+
+        width: 100%;
+        height: auto;
+
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sidebar-menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-menu a {
+        flex: 1;
+        min-width: 130px;
+    }
+
+    .sidebar-bottom {
+        margin-top: 15px;
+    }
+}

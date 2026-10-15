@@ -1,0 +1,68 @@
+
+.applications-container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 24px;
+    color: #1f2937;
+}
+
+.applications-container h1 {
+    margin-bottom: 8px;
+    font-size: 30px;
+}
+
+.applications-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.application-card,
+.empty-applications {
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.application-card h2 {
+    margin: 0 0 16px;
+    font-size: 21px;
+}
+
+.application-card p {
+    margin: 12px 0;
+    line-height: 1.5;
+}
+
+.application-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.application-status.shortlisted,
+.application-status.selected {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.application-status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.error-message {
+    color: #b91c1c;
+    margin-top: 20px;
+}
+
+.empty-applications {
+    margin-top: 24px;
+}

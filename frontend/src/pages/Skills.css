@@ -1,0 +1,130 @@
+.skills-page {
+    min-height: 100vh;
+    background: #f4f7fb;
+    padding: 50px 20px;
+}
+
+.skills-container {
+    max-width: 850px;
+    margin: auto;
+}
+
+.skills-header {
+    margin-bottom: 30px;
+}
+
+.skills-header h1 {
+    color: #2563eb;
+}
+
+.skills-header h2 {
+    color: #111827;
+    margin-bottom: 8px;
+}
+
+.skills-header p {
+    color: #6b7280;
+}
+
+.skills-form {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.skill-input {
+    margin-bottom: 20px;
+}
+
+.skill-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+}
+
+.skill-input input,
+.skill-input select {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+}
+
+.skill-input input:focus,
+.skill-input select:focus {
+    border-color: #2563eb;
+}
+
+.add-skill-button {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.add-skill-button:hover {
+    background: #1d4ed8;
+}
+
+.skills-message {
+    text-align: center;
+    margin: 20px 0;
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.skills-list {
+    margin-top: 35px;
+}
+
+.skills-list h2 {
+    color: #111827;
+}
+
+.skill-card {
+    background: white;
+    padding: 20px;
+    margin-top: 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+}
+
+.skill-card h3 {
+    margin: 0 0 8px;
+    color: #111827;
+}
+
+.skill-card span {
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.delete-skill-button {
+    padding: 9px 15px;
+    border: none;
+    border-radius: 7px;
+    background: #dc2626;
+    color: white;
+    cursor: pointer;
+}
+
+.delete-skill-button:hover {
+    background: #b91c1c;
+}
+
+.empty-skills {
+    color: #6b7280;
+}
