@@ -16,11 +16,23 @@ load_dotenv(BASE_DIR / ".env")
 # SECURITY
 # =========================================================
 
-SECRET_KEY = "django-insecure-_*o4rc*w(d(j8tc8k)uziwunq%!rl83raxo@87(g(t0$&*r+*!"
+SECRET_KEY = os.getenv(
+    "DJANGO_SECRET_KEY",
+    "local-development-key-change-before-deployment"
+)
 
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in (
+    "true", "1", "yes"
+)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "localhost,127.0.0.1"
+    ).split(",")
+    if host.strip()
+]
 
 
 # =========================================================
@@ -76,7 +88,7 @@ WSGI_APPLICATION = "nexora.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR.parent / "frontend" / "dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -96,14 +108,13 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "nexora",
-        "USER": "root",
-        "PASSWORD": "nalu1234",
-        "HOST": "localhost",
-        "PORT": "3306",
+        "NAME": os.getenv("DB_NAME", "nexora"),
+        "USER": os.getenv("DB_USER", "root"),
+        "PASSWORD": os.getenv("DB_PASSWORD", ""),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "3306"),
     }
 }
-
 
 # =========================================================
 # PASSWORD VALIDATION
@@ -142,8 +153,17 @@ USE_TZ = True
 # STATIC FILES
 # =========================================================
 
-STATIC_URL = "static/"
+# =========================================================
+# STATIC FILES
+# =========================================================
 
+STATIC_URL = "/static/"
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+STATICFILES_DIRS = [
+    BASE_DIR.parent / "frontend" / "dist",
+]
 
 # =========================================================
 # DEFAULT PRIMARY KEY

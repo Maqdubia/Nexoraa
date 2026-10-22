@@ -3,7 +3,7 @@
 import { useState } from "react";
 import "./AIInterview.css";
 
-const API_BASE = "http://127.0.0.1:8000/api/interviews";
+const API_BASE = "/api/interviews";
 
 const TOTAL_QUESTIONS = 5;
 

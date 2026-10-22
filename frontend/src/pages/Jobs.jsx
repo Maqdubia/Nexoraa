@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import "./Jobs.css";
 
-const API_URL = "http://127.0.0.1:8000/api/jobs/";
+const API_URL = "/api/jobs/";
 
 function Jobs() {
     const [jobs, setJobs] = useState([]);

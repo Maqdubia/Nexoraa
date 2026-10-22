@@ -7,7 +7,7 @@ import axios from "axios";
 
 // Authentication, profile, education, skills, experience, and skill gap
 const API = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/auth/",
+    baseURL: "/api/auth/",
     headers: {
         "Content-Type": "application/json",
     },
@@ -15,12 +15,12 @@ const API = axios.create({
 
 // Resume APIs
 const RESUME_API = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/resumes/",
+    baseURL: "/api/resumes/",
 });
 
 // Jobs and applications APIs
 const JOBS_API = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/jobs/",
+    baseURL: "/api/jobs/",
     headers: {
         "Content-Type": "application/json",
     },
@@ -28,12 +28,11 @@ const JOBS_API = axios.create({
 
 // Interview practice APIs
 const INTERVIEW_API = axios.create({
-    baseURL: "http://127.0.0.1:8000/api/interviews/",
+    baseURL: "/api/interviews/",
     headers: {
         "Content-Type": "application/json",
     },
 });
-
 
 // =========================
 // AUTHENTICATION
@@ -285,18 +284,15 @@ export const getMyApplications = async () => {
     return response.data;
 };
 
-
- // =========================
- // AI INTERVIEW PRACTICE
- // =========================
+// =========================
+// AI INTERVIEW PRACTICE
+// =========================
 
 export const getInterviews = async () => {
     const token = localStorage.getItem("access_token");
 
     const response = await INTERVIEW_API.get("", {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
     });
 
     return response.data;
@@ -312,9 +308,7 @@ export const createInterview = async (interviewType) => {
             total_questions: 5,
         },
         {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
         }
     );
 
@@ -325,9 +319,7 @@ export const getInterviewDetails = async (interviewId) => {
     const token = localStorage.getItem("access_token");
 
     const response = await INTERVIEW_API.get(`${interviewId}/`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
     });
 
     return response.data;
@@ -339,8 +331,8 @@ export const submitInterviewAnswer = async (
     answer
 ) => {
     const token =
-    localStorage.getItem("access_token") ||
-    localStorage.getItem("access");                                 
+        localStorage.getItem("access_token") ||
+        localStorage.getItem("access");
 
     const response = await INTERVIEW_API.post(
         `${interviewId}/answers/`,
@@ -349,17 +341,14 @@ export const submitInterviewAnswer = async (
             answer,
         },
         {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            headers: { Authorization: `Bearer ${token}` },
         }
     );
 
     return response.data;
 };
 
-
-
+// =========================
 // AI INTERVIEW HISTORY
 // =========================
 
@@ -369,9 +358,7 @@ export const getInterviewHistory = async () => {
         localStorage.getItem("access");
 
     const response = await INTERVIEW_API.get("history/", {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
     });
 
     return response.data;

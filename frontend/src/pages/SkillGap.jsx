@@ -4,9 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { getResumes, createSkillGap } from "../services/api";
 import "./SkillGap.css";
 
-const JOB_MATCHES_URL = "http://127.0.0.1:8000/api/jobs/matches/";
-const RECOMMENDATIONS_URL =
-    "http://127.0.0.1:8000/api/jobs/recommendations/";
+const JOB_MATCHES_URL = "/api/jobs/matches/";
+const RECOMMENDATIONS_URL = "/api/jobs/recommendations/";
 
 function SkillGap() {
     const navigate = useNavigate();
