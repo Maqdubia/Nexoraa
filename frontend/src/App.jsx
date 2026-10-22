@@ -2,7 +2,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
+import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import Education from "./pages/Education";
 import Skills from "./pages/Skills";
@@ -12,10 +14,8 @@ import ResumeAnalysis from "./pages/ResumeAnalysis";
 import Jobs from "./pages/Jobs";
 import SkillGap from "./pages/SkillGap";
 import MyApplications from "./pages/MyApplications";
-
 import AIInterview from "./pages/AIInterview";
 import InterviewHistory from "./pages/InterviewHistory";
-import Dashboard from "./pages/Dashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Sidebar from "./components/Sidebar";
@@ -40,23 +40,40 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Public pages */}
+                {/* Public Pages */}
                 <Route
                     path="/"
                     element={<Navigate to="/login" replace />}
                 />
 
+               
+<Route
+    path="/login"
+    element={<Login />}
+/>
+
+<Route
+    path="/forgot-password"
+    element={<ForgotPassword />}
+/>
+
+<Route
+    path="/register"
+    element={<Register />}
+/>
+
+
+                {/* Dashboard - First Protected Page */}
                 <Route
-                    path="/login"
-                    element={<Login />}
+                    path="/dashboard"
+                    element={
+                        <ProtectedPage>
+                            <Dashboard />
+                        </ProtectedPage>
+                    }
                 />
 
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
-
-                {/* Protected pages */}
+                {/* Profile */}
                 <Route
                     path="/profile"
                     element={
@@ -66,6 +83,7 @@ function App() {
                     }
                 />
 
+                {/* Education */}
                 <Route
                     path="/education"
                     element={
@@ -75,6 +93,7 @@ function App() {
                     }
                 />
 
+                {/* Skills */}
                 <Route
                     path="/skills"
                     element={
@@ -84,6 +103,7 @@ function App() {
                     }
                 />
 
+                {/* Experience */}
                 <Route
                     path="/experience"
                     element={
@@ -93,6 +113,7 @@ function App() {
                     }
                 />
 
+                {/* Resume */}
                 <Route
                     path="/resume"
                     element={
@@ -102,6 +123,7 @@ function App() {
                     }
                 />
 
+                {/* Resume Analysis */}
                 <Route
                     path="/resume/:id/analysis"
                     element={
@@ -111,6 +133,7 @@ function App() {
                     }
                 />
 
+                {/* Jobs */}
                 <Route
                     path="/jobs"
                     element={
@@ -120,6 +143,7 @@ function App() {
                     }
                 />
 
+                {/* Skill Gap */}
                 <Route
                     path="/skill-gap"
                     element={
@@ -129,6 +153,7 @@ function App() {
                     }
                 />
 
+                {/* My Applications */}
                 <Route
                     path="/my-applications"
                     element={
@@ -138,43 +163,30 @@ function App() {
                     }
                 />
 
-                {/* AI Interview Practice */}
-              
-{/* AI Interview Practice */}
-<Route
-    path="/ai-interview"
-    element={
-        <ProtectedPage>
-            <AIInterview />
-        </ProtectedPage>
-    }
+                {/* AI Interview */}
+                <Route
+                    path="/ai-interview"
+                    element={
+                        <ProtectedPage>
+                            <AIInterview />
+                        </ProtectedPage>
+                    }
+                />
 
-/>
+                {/* Interview History */}
+                <Route
+                    path="/interview-history"
+                    element={
+                        <ProtectedPage>
+                            <InterviewHistory />
+                        </ProtectedPage>
+                    }
+                />
 
-
-{/* AI Interview History */}
-<Route
-    path="/interview-history"
-    element={
-        <ProtectedPage>
-            <InterviewHistory />
-        </ProtectedPage>
-    }
-/>
-       
-       
-       <Route
-    path="/dashboard"
-    element={
-        <ProtectedPage>
-            <Dashboard />
-        </ProtectedPage>
-    }
-/>
                 {/* Unknown URL */}
                 <Route
                     path="*"
-                    element={<Navigate to="/profile" replace />}
+                    element={<Navigate to="/dashboard" replace />}
                 />
             </Routes>
         </BrowserRouter>

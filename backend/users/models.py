@@ -196,3 +196,38 @@ class SkillGap(models.Model):
 
     def __str__(self):
         return f"Skill Gap - {self.user.username}"
+
+
+# =========================================
+# PASSWORD RESET OTP
+# =========================================
+
+class PasswordResetOTP(models.Model):
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="password_reset_otp"
+    )
+
+    otp_hash = models.CharField(max_length=128)
+
+    expires_at = models.DateTimeField()
+
+    attempts = models.PositiveSmallIntegerField(default=0)
+
+    reset_token_hash = models.CharField(
+        max_length=128,
+        blank=True,
+        default=""
+    )
+
+    reset_token_expires_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Password reset for {self.user.username}"

@@ -12,7 +12,7 @@ from users.resume_analyzer import analyze_resume
 
 
 # =========================================
-# RESUME
+# RESUME LIST AND UPLOAD
 # =========================================
 
 class ResumeListCreateView(generics.ListCreateAPIView):
@@ -27,6 +27,7 @@ class ResumeListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
 
+        # Save uploaded resume
         resume = serializer.save(
             user=self.request.user
         )
@@ -40,17 +41,25 @@ class ResumeListCreateView(generics.ListCreateAPIView):
         resume.resume_text = analysis["text"]
         resume.resume_score = analysis["score"]
         resume.extracted_skills = analysis["skills"]
-
         resume.save()
 
-        # Create ResumeAnalysis record
-        ResumeAnalysis.objects.create(
+        # Save complete analysis results
+        ResumeAnalysis.objects.update_or_create(
             resume=resume,
-            email=analysis["email"],
-            phone=analysis["phone"],
-            skills=analysis["skills"],
-            score=analysis["score"],
-            text_length=analysis["text_length"]
+            defaults={
+                "email": analysis["email"],
+                "phone": analysis["phone"],
+                "skills": analysis["skills"],
+                "score": analysis["score"],
+                "text_length": analysis["text_length"],
+                "education": analysis.get("education", []),
+                "certifications": analysis.get("certifications", []),
+                "sections_found": analysis.get("sections_found", []),
+                "section_text": analysis.get("section_text", {}),
+                "score_details": analysis.get("score_details", {}),
+                "content_analysis": analysis.get("content_analysis", {}),
+                "recommendations": analysis.get("recommendations", []),
+            }
         )
 
 

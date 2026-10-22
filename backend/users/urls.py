@@ -1,6 +1,4 @@
 
-
-
 from django.urls import path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -17,6 +15,9 @@ from .views import (
     ExperienceListCreateView,
     ExperienceDetailView,
     SkillGapView,
+    forgot_password,
+    verify_reset_otp,
+    reset_password,
 )
 
 
@@ -44,6 +45,27 @@ urlpatterns = [
         name="refresh",
     ),
 
+    # =========================================
+    # FORGOT PASSWORD / OTP RESET
+    # =========================================
+
+    path(
+        "forgot-password/",
+        forgot_password,
+        name="forgot-password",
+    ),
+
+    path(
+        "verify-reset-otp/",
+        verify_reset_otp,
+        name="verify-reset-otp",
+    ),
+
+    path(
+        "reset-password/",
+        reset_password,
+        name="reset-password",
+    ),
 
     # =========================================
     # PROFILE
@@ -54,7 +76,6 @@ urlpatterns = [
         ProfileView.as_view(),
         name="profile",
     ),
-
 
     # =========================================
     # EDUCATION
@@ -72,7 +93,6 @@ urlpatterns = [
         name="education-detail",
     ),
 
-
     # =========================================
     # SKILLS
     # =========================================
@@ -89,7 +109,6 @@ urlpatterns = [
         name="skill-detail",
     ),
 
-
     # =========================================
     # EXPERIENCE
     # =========================================
@@ -105,7 +124,6 @@ urlpatterns = [
         ExperienceDetailView.as_view(),
         name="experience-detail",
     ),
-
 
     # =========================================
     # SKILL GAP

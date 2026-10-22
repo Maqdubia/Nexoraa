@@ -1,3 +1,4 @@
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -83,6 +84,41 @@ class ResumeAnalysis(models.Model):
 
     text_length = models.IntegerField(
         default=0
+    )
+
+    education = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    certifications = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    sections_found = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    section_text = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    score_details = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    content_analysis = models.JSONField(
+        default=dict,
+        blank=True
+    )
+
+    recommendations = models.JSONField(
+        default=list,
+        blank=True
     )
 
     analyzed_at = models.DateTimeField(

@@ -32,7 +32,7 @@ function Login() {
       setMessage({ text: "Login successful! Redirecting...", type: "success" });
 
       setTimeout(() => {
-        navigate("/profile");
+       navigate("/dashboard");
       }, 600);
     } catch (error) {
       console.error(error);
@@ -87,6 +87,25 @@ function Login() {
               required
             />
           </div>
+          
+<div style={{ textAlign: "right", marginBottom: "16px" }}>
+  <button
+    type="button"
+    onClick={() => navigate("/forgot-password")}
+    style={{
+      background: "none",
+      border: "none",
+      color: "#6366f1",
+      cursor: "pointer",
+      fontSize: "14px",
+      fontWeight: "600",
+      padding: "4px 0",
+    }}
+  >
+    Forgot Password?
+  </button>
+</div>
+
 
           <button
             type="submit"

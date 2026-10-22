@@ -268,14 +268,18 @@ function Education() {
                         </button>
                     </form>
 
-                    {message && (
-                        <p
-                            className="education-message"
-                            role="status"
-                        >
-                            {message}
-                        </p>
-                    )}
+               {message && (
+    <p
+        className={`education-message ${
+            message.toLowerCase().includes("successfully")
+                ? "success"
+                : "error"
+        }`}
+        role="status"
+    >
+        {message}
+    </p>
+)}
 
                     <div className="education-list">
                         <h2>Your Education</h2>

@@ -1,63 +1,59 @@
+
 /* ========================================
-   PROFILE PAGE
+   PROFILE PAGE - RESPONSIVE STYLING
 ======================================== */
 
 .profile-page {
     width: 100%;
-    max-width: 100%;
+    max-width: 1100px;
+    min-width: 0;
     margin: 0 auto;
     padding-bottom: 40px;
 }
 
-
-/* ========================================
-   HEADER
-======================================== */
+/* HEADER */
 
 .profile-title {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-
+    gap: 20px;
     margin-bottom: 28px;
+    min-width: 0;
+}
+
+.profile-title > div:first-child {
+    min-width: 0;
 }
 
 .profile-title h1 {
-    font-size: 30px;
-    font-weight: 700;
-    color: #111827;
-
     margin: 0;
+    color: #111827;
+    font-size: clamp(24px, 3vw, 30px);
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
 }
 
 .profile-title p {
     margin-top: 8px;
-
     color: #6b7280;
     font-size: 14px;
-
-    line-height: 1.6;
+    line-height: 1.7;
 }
 
-
-/* ========================================
-   PROFILE STATUS
-======================================== */
+/* PROFILE STATUS */
 
 .profile-status {
-    display: flex;
+    display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     gap: 8px;
-
     padding: 8px 14px;
-
     background: #ffffff;
-
     border: 1px solid #e5e7eb;
     border-radius: 20px;
-
     color: #475569;
-
     font-size: 13px;
     font-weight: 600;
 }
@@ -65,336 +61,233 @@
 .status-dot {
     width: 8px;
     height: 8px;
-
+    flex-shrink: 0;
     border-radius: 50%;
-
     background: #22c55e;
 }
 
-
-/* ========================================
-   MAIN PROFILE CARD
-======================================== */
+/* MAIN PROFILE CARD */
 
 .profile-card {
     width: 100%;
-
+    min-width: 0;
     background: #ffffff;
-
     border: 1px solid #e5e7eb;
     border-radius: 16px;
-
     overflow: hidden;
-
     box-shadow:
         0 4px 6px rgba(15, 23, 42, 0.03),
         0 10px 25px rgba(15, 23, 42, 0.04);
 }
 
-
-/* ========================================
-   PROFILE HEADER
-======================================== */
+/* PROFILE HEADER */
 
 .profile-card-header {
     display: flex;
     align-items: center;
-
     gap: 20px;
-
+    min-width: 0;
     padding: 30px 32px;
-
     background: #f8faff;
-
     border-bottom: 1px solid #e8ecf3;
 }
 
-
-/* ========================================
-   AVATAR
-======================================== */
+/* AVATAR */
 
 .profile-avatar {
     width: 76px;
     height: 76px;
-
     min-width: 76px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     border-radius: 50%;
-
     background: #4f46e5;
-
     color: #ffffff;
-
     font-size: 28px;
     font-weight: 700;
-
     box-shadow: 0 6px 15px rgba(79, 70, 229, 0.22);
 }
 
+/* USER INFORMATION */
 
-/* ========================================
-   USER INFORMATION
-======================================== */
+.profile-user-info {
+    min-width: 0;
+}
 
 .profile-user-info h2 {
     margin: 0;
-
     color: #111827;
-
     font-size: 21px;
     font-weight: 700;
+    overflow-wrap: anywhere;
 }
 
 .profile-user-info p {
     margin: 7px 0 0;
-
     color: #64748b;
-
     font-size: 13px;
-
-    line-height: 1.5;
+    line-height: 1.7;
 }
 
-
-/* ========================================
-   PROFILE SECTION
-======================================== */
+/* PROFILE SECTIONS */
 
 .profile-section {
+    min-width: 0;
     padding: 30px 32px;
-
     border-bottom: 1px solid #eef2f7;
 }
 
-
-/* ========================================
-   SECTION HEADING
-======================================== */
+/* SECTION HEADING */
 
 .section-heading {
     display: flex;
     align-items: center;
-
     gap: 13px;
-
+    min-width: 0;
     margin-bottom: 25px;
 }
 
 .section-icon {
     width: 40px;
     height: 40px;
-
+    min-width: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     background: #eef2ff;
-
     border-radius: 10px;
-
     font-size: 17px;
+}
+
+.section-heading > div:last-child {
+    min-width: 0;
 }
 
 .section-heading h3 {
     margin: 0;
-
     color: #1e293b;
-
     font-size: 17px;
     font-weight: 650;
+    overflow-wrap: anywhere;
 }
 
 .section-heading p {
     margin: 4px 0 0;
-
     color: #94a3b8;
-
     font-size: 12px;
+    line-height: 1.6;
 }
 
-
-/* ========================================
-   INPUT GRID
-======================================== */
+/* INPUT GRID */
 
 .profile-grid {
     display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 22px 24px;
+    min-width: 0;
 }
 
-
-/* ========================================
-   INPUT GROUP
-======================================== */
+/* INPUT GROUP */
 
 .profile-input {
     display: flex;
-
     flex-direction: column;
-
     width: 100%;
+    min-width: 0;
 }
 
 .profile-input label {
     margin-bottom: 8px;
-
     color: #374151;
-
     font-size: 13px;
     font-weight: 600;
 }
 
-
-/* ========================================
-   INPUTS
-======================================== */
+/* INPUTS */
 
 .profile-input input,
 .profile-input textarea {
+    display: block;
     width: 100%;
-
+    min-width: 0;
+    max-width: 100%;
     border: 1px solid #d9dee8;
     border-radius: 9px;
-
     background: #ffffff;
-
     color: #1e293b;
-
     font-family: inherit;
-
     font-size: 14px;
-
     outline: none;
-
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .profile-input input {
     height: 46px;
-
     padding: 0 14px;
 }
 
 .profile-input textarea {
-    padding: 13px 14px;
-
-    resize: vertical;
-
     min-height: 145px;
-
-    line-height: 1.6;
+    padding: 13px 14px;
+    resize: vertical;
+    line-height: 1.7;
 }
-
-
-/* ========================================
-   PLACEHOLDER
-======================================== */
 
 .profile-input input::placeholder,
 .profile-input textarea::placeholder {
     color: #a1aab8;
+    opacity: 1;
 }
-
-
-/* ========================================
-   FOCUS
-======================================== */
 
 .profile-input input:focus,
 .profile-input textarea:focus {
     border-color: #6366f1;
-
-    background: #ffffff;
-
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
 }
-
-
-/* ========================================
-   HOVER
-======================================== */
 
 .profile-input input:hover,
 .profile-input textarea:hover {
     border-color: #b8c0ce;
 }
 
-
-/* ========================================
-   HELPER TEXT
-======================================== */
-
 .profile-input small {
     margin-top: 7px;
-
-    color: #94a3b8;
-
-    font-size: 11px;
-
-    line-height: 1.5;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
-
-/* ========================================
-   ACTION AREA
-======================================== */
+/* ACTION AREA */
 
 .profile-actions {
     display: flex;
-
     justify-content: flex-end;
-
     padding: 22px 32px;
-
     background: #fafbfc;
 }
 
-
-/* ========================================
-   SAVE BUTTON
-======================================== */
+/* SAVE BUTTON */
 
 .save-button {
     min-width: 145px;
-
-    height: 44px;
-
-    padding: 0 22px;
-
+    min-height: 44px;
+    max-width: 100%;
+    padding: 10px 22px;
     border: none;
-
     border-radius: 9px;
-
     background: #4f46e5;
-
     color: #ffffff;
-
     font-family: inherit;
-
     font-size: 14px;
     font-weight: 600;
-
     cursor: pointer;
-
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .save-button:hover {
     background: #4338ca;
-
     transform: translateY(-1px);
-
     box-shadow: 0 5px 12px rgba(79, 70, 229, 0.20);
 }
 
@@ -402,104 +295,201 @@
     transform: translateY(0);
 }
 
+.save-button:focus-visible {
+    outline: 3px solid rgba(99, 102, 241, 0.35);
+    outline-offset: 3px;
+}
 
-/* ========================================
-   MESSAGE
-======================================== */
+/* SUCCESS / ERROR MESSAGE */
 
 .profile-message {
-    padding: 14px 32px;
-
     margin: 0;
-
+    padding: 14px 32px;
     font-size: 13px;
-
     font-weight: 500;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .profile-message.success {
     background: #f0fdf4;
-
     color: #15803d;
-
     border-top: 1px solid #dcfce7;
 }
 
 .profile-message.error {
     background: #fef2f2;
-
     color: #dc2626;
-
     border-top: 1px solid #fee2e2;
 }
 
-
-/* ========================================
-   TABLET
-======================================== */
+/* TABLET */
 
 @media (max-width: 850px) {
-
     .profile-page {
         max-width: 100%;
     }
 
+    .profile-section {
+        padding: 26px 24px;
+    }
+
+    .profile-card-header {
+        padding: 26px 24px;
+    }
+
+    .profile-actions {
+        padding: 20px 24px;
+    }
+
+    .profile-message {
+        padding: 14px 24px;
+    }
+
     .profile-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
     }
 }
 
-
-/* ========================================
-   MOBILE
-======================================== */
+/* MOBILE */
 
 @media (max-width: 600px) {
-
     .profile-page {
-        padding-bottom: 25px;
+        padding-bottom: 24px;
     }
 
     .profile-title {
         flex-direction: column;
-
-        gap: 15px;
+        align-items: stretch;
+        gap: 12px;
+        margin-bottom: 20px;
     }
 
     .profile-title h1 {
         font-size: 25px;
     }
 
+    .profile-status {
+        align-self: flex-start;
+    }
+
+    .profile-card {
+        border-radius: 12px;
+    }
+
     .profile-card-header {
-        padding: 24px 20px;
-    }
-
-    .profile-section {
-        padding: 24px 20px;
-    }
-
-    .profile-actions {
-        padding: 18px 20px;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 22px 16px;
     }
 
     .profile-avatar {
-        width: 60px;
-        height: 60px;
-
-        min-width: 60px;
-
-        font-size: 23px;
+        width: 56px;
+        height: 56px;
+        min-width: 56px;
+        font-size: 22px;
     }
 
     .profile-user-info h2 {
         font-size: 18px;
     }
 
-    .save-button {
-        width: 100%;
+    .profile-user-info p {
+        font-size: 12px;
+    }
+
+    .profile-section {
+        padding: 22px 16px;
+    }
+
+    .section-heading {
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        font-size: 15px;
+    }
+
+    .section-heading h3 {
+        font-size: 16px;
+    }
+
+    .profile-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    .profile-input input {
+        height: 46px;
+    }
+
+    .profile-input textarea {
+        min-height: 130px;
     }
 
     .profile-actions {
-        justify-content: stretch;
+        padding: 16px;
+    }
+
+    .save-button {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+    }
+
+    .profile-message {
+        padding: 14px 16px;
+    }
+}
+
+/* VERY SMALL PHONES */
+
+@media (max-width: 360px) {
+    .profile-title h1 {
+        font-size: 23px;
+    }
+
+    .profile-card-header {
+        gap: 10px;
+        padding: 18px 12px;
+    }
+
+    .profile-avatar {
+        width: 46px;
+        height: 46px;
+        min-width: 46px;
+        font-size: 19px;
+    }
+
+    .profile-section {
+        padding: 18px 12px;
+    }
+
+    .profile-actions {
+        padding: 12px;
+    }
+
+    .profile-message {
+        padding: 12px;
+    }
+
+    .profile-input input,
+    .profile-input textarea {
+        font-size: 13px;
+    }
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+    .save-button,
+    .profile-input input,
+    .profile-input textarea {
+        transition: none;
     }
 }

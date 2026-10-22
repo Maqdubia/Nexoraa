@@ -1,3 +1,4 @@
+
 from rest_framework import serializers
 
 from .models import Resume, ResumeAnalysis
@@ -50,6 +51,13 @@ class ResumeAnalysisSerializer(serializers.ModelSerializer):
             "skills",
             "score",
             "text_length",
+            "education",
+            "certifications",
+            "sections_found",
+            "section_text",
+            "score_details",
+            "content_analysis",
+            "recommendations",
             "analyzed_at",
         ]
 

@@ -1,7 +1,20 @@
 
+import logging
+import secrets
+from datetime import timedelta
 
-from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+
+from rest_framework import generics, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 
 from .models import (
     UserProfile,
@@ -9,6 +22,7 @@ from .models import (
     Skill,
     Experience,
     SkillGap,
+    PasswordResetOTP,
 )
 
 from .serializers import (
@@ -19,6 +33,9 @@ from .serializers import (
     ExperienceSerializer,
     SkillGapSerializer,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 # =========================================
@@ -52,8 +69,8 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 # EDUCATION
 # =========================================
 
-
 class EducationListCreateView(generics.ListCreateAPIView):
+
     serializer_class = EducationSerializer
     permission_classes = [IsAuthenticated]
 
@@ -64,18 +81,13 @@ class EducationListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class EducationDetailView(
-    generics.RetrieveUpdateDestroyAPIView
-):
+class EducationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = EducationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-
-        return Education.objects.filter(
-            user=self.request.user
-        )
+        return Education.objects.filter(user=self.request.user)
 
 
 # =========================================
@@ -83,6 +95,7 @@ class EducationDetailView(
 # =========================================
 
 class SkillListCreateView(generics.ListCreateAPIView):
+
     serializer_class = SkillSerializer
     permission_classes = [IsAuthenticated]
 
@@ -93,18 +106,13 @@ class SkillListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class SkillDetailView(
-    generics.RetrieveUpdateDestroyAPIView
-):
+class SkillDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = SkillSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-
-        return Skill.objects.filter(
-            user=self.request.user
-        )
+        return Skill.objects.filter(user=self.request.user)
 
 
 # =========================================
@@ -112,6 +120,7 @@ class SkillDetailView(
 # =========================================
 
 class ExperienceListCreateView(generics.ListCreateAPIView):
+
     serializer_class = ExperienceSerializer
     permission_classes = [IsAuthenticated]
 
@@ -121,18 +130,14 @@ class ExperienceListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-class ExperienceDetailView(
-    generics.RetrieveUpdateDestroyAPIView
-):
+
+class ExperienceDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = ExperienceSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-
-        return Experience.objects.filter(
-            user=self.request.user
-        )
+        return Experience.objects.filter(user=self.request.user)
 
 
 # =========================================
@@ -147,52 +152,251 @@ class SkillGapView(generics.CreateAPIView):
     def perform_create(self, serializer):
 
         resume = serializer.validated_data["resume"]
+        required_skills = serializer.validated_data["required_skills"]
 
-        required_skills = serializer.validated_data[
-            "required_skills"
-        ]
-
-        # Get skills extracted from the resume
         user_skills = resume.extracted_skills or []
 
-        # Convert user skills to lowercase
         user_skills_lower = [
             skill.lower()
             for skill in user_skills
         ]
 
-        # Find missing skills
-        missing_skills = []
+        missing_skills = [
+            skill
+            for skill in required_skills
+            if skill.lower() not in user_skills_lower
+        ]
 
-        for skill in required_skills:
-
-            if skill.lower() not in user_skills_lower:
-                missing_skills.append(skill)
-
-        # Calculate match percentage
-        if len(required_skills) > 0:
-
-            matched_skills = (
-                len(required_skills)
-                - len(missing_skills)
-            )
-
+        if required_skills:
+            matched_skills = len(required_skills) - len(missing_skills)
             match_percentage = (
-                matched_skills
-                / len(required_skills)
+                matched_skills / len(required_skills)
             ) * 100
-
         else:
-
             match_percentage = 0
 
-        # Save Skill Gap
         serializer.save(
             user=self.request.user,
             user_skills=user_skills,
             missing_skills=missing_skills,
-            match_percentage=round(
-                match_percentage,
-                2
-            ),
+            match_percentage=round(match_percentage, 2),
         )
+
+
+# =========================================
+# FORGOT PASSWORD - SEND OTP EMAIL
+# =========================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def forgot_password(request):
+
+    email = request.data.get("email", "").strip()
+
+    if not email:
+        return Response(
+            {"detail": "Email address is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+
+    # Use the same response whether the email exists or not.
+    generic_response = {
+        "detail": "If an account exists for this email, an OTP will be sent."
+    }
+
+    if not user:
+        return Response(generic_response, status=status.HTTP_200_OK)
+
+    otp = f"{secrets.randbelow(1000000):06d}"
+    now = timezone.now()
+
+    # Save only a hash of the OTP.
+    record, created = PasswordResetOTP.objects.get_or_create(
+        user=user,
+        defaults={
+            "otp_hash": make_password(otp),
+            "expires_at": now + timedelta(minutes=5),
+        },
+    )
+
+    record.otp_hash = make_password(otp)
+    record.expires_at = now + timedelta(minutes=5)
+    record.attempts = 0
+    record.reset_token_hash = ""
+    record.reset_token_expires_at = None
+    record.save()
+
+    try:
+        send_mail(
+            subject="Nexora Password Reset OTP",
+            message=(
+                f"Hello {user.username},\n\n"
+                f"Your Nexora password reset OTP is: {otp}\n\n"
+                "This OTP expires in 5 minutes.\n"
+                "Do not share this code with anyone.\n\n"
+                "If you did not request a password reset, ignore this email."
+            ),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+
+    except Exception:
+        logger.exception("Failed to send Nexora password reset email.")
+
+        # Invalidate the OTP if email delivery failed.
+        record.delete()
+
+        return Response(
+            {"detail": "Email delivery failed. Please check the email configuration."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    return Response(generic_response, status=status.HTTP_200_OK)
+
+
+# =========================================
+# VERIFY PASSWORD RESET OTP
+# =========================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def verify_reset_otp(request):
+
+    email = request.data.get("email", "").strip()
+    otp = str(request.data.get("otp", "")).strip()
+
+    if not email or len(otp) != 6 or not otp.isdigit():
+        return Response(
+            {"detail": "Enter a valid six-digit OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+
+    if not user:
+        return Response(
+            {"detail": "Invalid or expired OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        record = user.password_reset_otp
+    except PasswordResetOTP.DoesNotExist:
+        return Response(
+            {"detail": "Invalid or expired OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if record.expires_at <= timezone.now():
+        record.delete()
+        return Response(
+            {"detail": "OTP expired. Please request a new OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if record.attempts >= 5:
+        return Response(
+            {"detail": "Too many attempts. Please request a new OTP."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    if not check_password(otp, record.otp_hash):
+        record.attempts += 1
+        record.save(update_fields=["attempts"])
+
+        return Response(
+            {"detail": "Invalid or expired OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # OTP is valid. Create a temporary reset token.
+    reset_token = secrets.token_urlsafe(32)
+
+    record.reset_token_hash = make_password(reset_token)
+    record.reset_token_expires_at = timezone.now() + timedelta(minutes=10)
+    record.otp_hash = ""
+    record.save(
+        update_fields=[
+            "reset_token_hash",
+            "reset_token_expires_at",
+            "otp_hash",
+        ]
+    )
+
+    return Response(
+        {
+            "detail": "OTP verified successfully.",
+            "reset_token": reset_token,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+# =========================================
+# RESET PASSWORD
+# =========================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def reset_password(request):
+
+    email = request.data.get("email", "").strip()
+    reset_token = request.data.get("reset_token", "")
+    new_password = request.data.get("new_password", "")
+
+    if not email or not reset_token or not new_password:
+        return Response(
+            {"detail": "Email, reset token, and new password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+
+    if not user:
+        return Response(
+            {"detail": "Invalid or expired password reset session."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        record = user.password_reset_otp
+    except PasswordResetOTP.DoesNotExist:
+        return Response(
+            {"detail": "Invalid or expired password reset session."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if (
+        not record.reset_token_hash
+        or not record.reset_token_expires_at
+        or record.reset_token_expires_at <= timezone.now()
+        or not check_password(reset_token, record.reset_token_hash)
+    ):
+        return Response(
+            {"detail": "Invalid or expired password reset session."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        validate_password(new_password, user=user)
+    except ValidationError as exc:
+        return Response(
+            {"detail": list(exc.messages)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user.set_password(new_password)
+    user.save(update_fields=["password"])
+
+    # Invalidate the reset token after a successful password change.
+    record.delete()
+
+    return Response(
+        {
+            "detail": "Password reset successful. Please log in with your new password."
+        },
+        status=status.HTTP_200_OK,
+    )
