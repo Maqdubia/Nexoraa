@@ -105,14 +105,26 @@ TEMPLATES = [
 # DATABASE - MYSQL
 # =========================================================
 
+
+DB_HOST = os.getenv("DB_HOST", "localhost")
+
+DB_OPTIONS = {}
+
+# Use Aiven's CA certificate for the hosted MySQL database.
+if DB_HOST not in ("localhost", "127.0.0.1"):
+    DB_OPTIONS["ssl"] = {
+        "ca": str(BASE_DIR / "certs" / "ca.pem")
+    }
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.getenv("DB_NAME", "nexora"),
         "USER": os.getenv("DB_USER", "root"),
         "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
+        "HOST": DB_HOST,
         "PORT": os.getenv("DB_PORT", "3306"),
+        "OPTIONS": DB_OPTIONS,
     }
 }
 
