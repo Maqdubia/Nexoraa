@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -r /app/backend/requirements.txt
 COPY backend/ /app/backend/
 
 # Copy the built React frontend
-COPY --from=frontend-build /app/frontend/dist/ /app/frontend/dist/
+RUN ls -la /app/frontend/dist && ls -la /app/frontend/dist/assets
 
 WORKDIR /app/backend
 
