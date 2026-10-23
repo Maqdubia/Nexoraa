@@ -1,15 +1,15 @@
 
 :root {
-  --primary: #5B6E58;
-  --primary-hover: #43563F;
-  --primary-light: #E8ECDD;
-  --text-main: #1D291C;
-  --text-muted: #77766C;
-  --bg-gradient: #FDFBF7;
-  --surface: #FFFEFA;
-  --border: #E7E0D7;
+  --primary: #3A4726;
+  --primary-hover: #1C2418;
+  --primary-light: #CFD6C8;
+  --text-main: #1C2418;
+  --text-muted: #626858;
+  --bg-gradient: #F7F7F2;
+  --surface: #FFFFFF;
+  --border: #DDE1D6;
   --radius: 16px;
-  --shadow: 0 12px 36px rgba(29, 41, 28, 0.07);
+  --shadow: 0 12px 36px rgba(28, 36, 24, 0.07);
 }
 
 .auth-page {
@@ -84,7 +84,7 @@
   border: 1px solid var(--border);
   border-radius: 9px;
   outline: none;
-  background: #FDFBF7;
+  background: var(--bg-gradient);
   color: var(--text-main);
   font-size: 14px;
   transition: border-color 180ms ease, box-shadow 180ms ease,
@@ -92,13 +92,13 @@
 }
 
 .input-group input::placeholder {
-  color: #A09C91;
+  color: #777D6D;
 }
 
 .input-group input:focus {
-  border-color: var(--primary);
-  background: #FFFEFA;
-  box-shadow: 0 0 0 3px rgba(91, 110, 88, 0.13);
+  border-color: #7F8D63;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(127, 141, 99, 0.18);
 }
 
 .auth-button {
@@ -150,15 +150,15 @@
 }
 
 .message-banner.success {
-  border-color: #D5DFC9;
-  background: #EEF2E8;
-  color: #43563F;
+  border-color: #BFCAB1;
+  background: #EDF0E6;
+  color: #3A4726;
 }
 
 .message {
-  border-color: #D5DFC9;
-  background: #EEF2E8;
-  color: #43563F;
+  border-color: #BFCAB1;
+  background: #EDF0E6;
+  color: #3A4726;
 }
 
 .divider {
@@ -194,7 +194,7 @@
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 9px;
-  background: #F4EFEB;
+  background: var(--primary-light);
   color: var(--text-main);
   font-size: 14px;
   font-weight: 600;
@@ -203,12 +203,12 @@
 }
 
 .secondary-button:hover {
-  border-color: #C2A684;
-  background: #EDE5DB;
+  border-color: #7F8D63;
+  background: #E2E7DC;
 }
 
 .auth-page button:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid #7F8D63;
   outline-offset: 3px;
 }
 
