@@ -363,3 +363,28 @@ export const getInterviewHistory = async () => {
 
     return response.data;
 };
+
+export const requestPasswordResetOTP = async (email) => {
+    const response = await API.post("forgot-password/", {
+        email,
+    });
+    return response.data;
+};
+
+export const verifyPasswordResetOTP = async (email, otp) => {
+    const response = await API.post("verify-reset-otp/", {
+        email,
+        otp,
+    });
+    return response.data;
+};
+
+export const resetPassword = async (email, resetToken, newPassword) => {
+    const response = await API.post("reset-password/", {
+        email,
+        reset_token: resetToken,
+        new_password: newPassword,
+    });
+    return response.data;
+};
+
