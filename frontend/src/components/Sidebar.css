@@ -13,7 +13,7 @@
     background: #F4EFEB;
     border-right: 1px solid #E7E0D7;
     box-sizing: border-box;
-    transition: transform 220ms ease, visibility 220ms ease;
+    transition: width 220ms ease, transform 220ms ease, visibility 220ms ease;
 }
 
 .sidebar * {
@@ -25,6 +25,7 @@
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
+    min-width: 0;
     padding: 4px 8px 23px;
     margin-bottom: 20px;
     border-bottom: 1px solid #E3DCD2;
@@ -38,6 +39,7 @@
     justify-content: center;
     width: 36px;
     height: 36px;
+    flex: 0 0 36px;
     border-radius: 50%;
     background: #E7EBDD;
     color: #5B6E58;
@@ -47,6 +49,9 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .sidebar-brand-text strong {
@@ -81,6 +86,7 @@
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
+    min-width: 0;
     min-height: 43px;
     padding: 10px 11px;
     border: 1px solid transparent;
@@ -89,7 +95,13 @@
     text-decoration: none;
     font-size: 13px;
     font-weight: 500;
+    white-space: nowrap;
     transition: background 160ms ease, color 160ms ease;
+}
+
+.sidebar-menu a span {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-menu a .line-icon {
@@ -138,7 +150,13 @@
     cursor: pointer;
 }
 
+.logout-btn span {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .logout-btn .line-icon {
+    flex-shrink: 0;
     color: #5B6E58;
 }
 
@@ -159,13 +177,53 @@
     outline-offset: 3px;
 }
 
+/* Desktop collapsed state — activated by a future toggle button */
 @media (min-width: 901px) {
     .sidebar {
         transform: translateX(0);
         visibility: visible;
     }
+
+    .sidebar.sidebar-collapsed {
+        width: 76px;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-logo {
+        justify-content: center;
+        padding-right: 0;
+        padding-left: 0;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-brand-text {
+        display: none;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-menu a {
+        justify-content: center;
+        gap: 0;
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-menu a span,
+    .sidebar.sidebar-collapsed .logout-btn span {
+        display: none;
+    }
+
+    .sidebar.sidebar-collapsed .sidebar-menu a.active {
+        box-shadow: inset 0 -3px 0 #5B6E58;
+    }
+
+    .sidebar.sidebar-collapsed .logout-btn {
+        justify-content: center;
+        padding-right: 6px;
+        padding-left: 6px;
+    }
 }
 
+/* Mobile slide-in drawer */
 @media (max-width: 900px) {
     .sidebar {
         width: min(82vw, 310px);
