@@ -1,7 +1,7 @@
 
 import { useCallback, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import VerifyResetOTP from "./pages/VerifyResetOTP";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Register from "./pages/Register";
@@ -81,7 +81,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/register" element={<Register />} />
-
+                <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
                 <Route path="/dashboard" element={<ProtectedRoute><ProtectedPage><Dashboard /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProtectedPage><Profile /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/education" element={<ProtectedRoute><ProtectedPage><Education /></ProtectedPage></ProtectedRoute>} />
