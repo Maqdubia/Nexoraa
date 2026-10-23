@@ -57,20 +57,24 @@ SECTION_ALIASES = {
     ],
     "skills": [
         "skills", "technical skills", "core competencies",
-        "technologies"
+        "technologies", "technical expertise"
     ],
     "experience": [
         "experience", "work experience", "professional experience",
-        "employment history", "internship"
+        "employment history", "internship", "internships",
+        "work history"
     ],
     "education": [
-        "education", "academic background", "qualifications"
+        "education", "academic background", "qualifications",
+        "educational background"
     ],
     "projects": [
-        "projects", "personal projects", "academic projects"
+        "projects", "personal projects", "academic projects",
+        "key projects", "project experience"
     ],
     "certifications": [
-        "certifications", "certificates", "courses"
+        "certifications", "certificates", "courses",
+        "licenses and certifications"
     ],
 }
 
@@ -81,11 +85,7 @@ SECTION_ALIASES = {
 
 def extract_pdf_text(file_path):
     reader = PdfReader(str(file_path))
-
-    return "\n".join(
-        page.extract_text() or ""
-        for page in reader.pages
-    )
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 
 # =========================
@@ -100,7 +100,6 @@ def extract_docx_text(file_path):
         if paragraph.text.strip():
             parts.append(paragraph.text)
 
-    # Many resume templates store information in tables.
     for table in document.tables:
         for row in table.rows:
             values = [
@@ -128,12 +127,15 @@ def extract_resume_text(file_path):
         raise ValueError("Only PDF and DOCX resume files are allowed.")
 
     if file_path.suffix.lower() == ".pdf":
-        text = extract_pdf_text(str(file_path))
+        text = extract_pdf_text(file_path)
     else:
-        text = extract_docx_text(str(file_path))
+        text = extract_docx_text(file_path)
 
     if not text or not text.strip():
-        raise ValueError("No readable text found in the resume.")
+        raise ValueError(
+            "No readable text found in the resume. "
+            "The PDF may be scanned or image-based."
+        )
 
     return text
 
@@ -294,13 +296,13 @@ def analyze_content(text, sections):
 
 
 # =========================
-# RESUME SCORE
+# RESUME SCORE — MAXIMUM 100
 # =========================
 
 def calculate_resume_score(email, phone, skills, sections, content):
     breakdown = {
         "contact_information": (
-            (10 if email else 0) + (10 if phone else 0)
+            (5 if email else 0) + (5 if phone else 0)
         ),
         "technical_skills": min(20, len(skills) * 2),
         "resume_sections": min(20, content["section_count"] * 4),
@@ -316,8 +318,7 @@ def calculate_resume_score(email, phone, skills, sections, content):
         "readable_content": 10,
     }
 
-    # Normalize the weighted checklist to a maximum of 100.
-    raw_maximum = 10 + 20 + 20 + 20 + 20 + 10
+    raw_maximum = 100
     score = round(sum(breakdown.values()) / raw_maximum * 100)
 
     return {
@@ -325,14 +326,14 @@ def calculate_resume_score(email, phone, skills, sections, content):
         "max": 100,
         "breakdown": breakdown,
         "note": (
-            "This is a rule-based estimate, not an official ATS score "
-            "or a guarantee of job selection."
+            "This is a rule-based resume checklist, not an official ATS "
+            "score or a guarantee of job selection."
         ),
     }
 
 
 # =========================
-# IMPROVEMENT RECOMMENDATIONS
+# RESUME-SPECIFIC RECOMMENDATIONS
 # =========================
 
 def generate_recommendations(
@@ -351,27 +352,38 @@ def generate_recommendations(
         })
 
     def lines_for(section_name):
+        value = sections.get(section_name, "")
+        if isinstance(value, list):
+            lines = value
+        else:
+            lines = str(value or "").splitlines()
+
         return [
             line.strip(" \t•-*")
-            for line in sections.get(section_name, "").splitlines()
+            for line in lines
             if line.strip()
         ]
+
+    def excerpt(line, limit=160):
+        line = re.sub(r"\s+", " ", line).strip()
+        if len(line) > limit:
+            return line[:limit - 3].rstrip() + "..."
+        return line
 
     # Contact
     if not email:
         add(
-            "High",
-            "Contact",
-            "No email address was detected in the extracted resume text. "
-            "Check that your email is visible and selectable in the PDF or DOCX."
+            "High", "Contact",
+            "No email address was detected in the extracted text. "
+            "Check the contact details and confirm that the email is "
+            "selectable text rather than an image."
         )
 
     if not phone:
         add(
-            "High",
-            "Contact",
-            "No supported phone number was detected. Verify the number and "
-            "check whether text extraction preserved it correctly."
+            "High", "Contact",
+            "No supported phone number was detected. Check the number "
+            "and verify that PDF/DOCX extraction preserved it correctly."
         )
 
     # Skills
@@ -379,28 +391,23 @@ def generate_recommendations(
 
     if not skill_lines:
         add(
-            "High",
-            "Skills",
-            "No clearly labelled Skills section was detected. Add a "
-            "Technical Skills section if your skills are currently scattered "
-            "throughout the resume."
+            "High", "Skills",
+            "No clearly labelled Skills section was detected. If your "
+            "skills appear elsewhere, use a clear Technical Skills heading."
         )
     elif not skills:
         add(
-            "Medium",
-            "Skills",
-            "A Skills section exists, but no skills from the current "
-            "recognition dictionary were detected. Review the extracted "
-            "text and expand the dictionary for relevant technologies."
+            "Medium", "Skills",
+            "A Skills section was detected, but the current skill dictionary "
+            "did not recognize any listed skills. Review the extracted text "
+            "and extend the dictionary for relevant technologies."
         )
     elif len(skills) < 5:
         add(
-            "Low",
-            "Skills",
-            "The analyzer recognized only "
-            + ", ".join(skills)
-            + ". Verify whether other skills already present in your resume "
-            "were missed. Do not add skills you do not possess."
+            "Low", "Skills",
+            "The analyzer recognized: " + ", ".join(skills) + ". "
+            "Check whether other skills already written in your resume "
+            "were missed. Add only skills you genuinely possess."
         )
 
     # Projects
@@ -408,11 +415,10 @@ def generate_recommendations(
 
     if not project_lines:
         add(
-            "High",
-            "Projects",
-            "No Projects section was detected. If you have academic, personal, "
-            "or professional projects, describe the problem, your contribution, "
-            "the technologies used, and the outcome."
+            "High", "Projects",
+            "No Projects section was detected. If you have relevant projects, "
+            "describe the problem, your contribution, the technologies used, "
+            "and the result. If the section exists, check its heading."
         )
     else:
         short_projects = [
@@ -422,11 +428,31 @@ def generate_recommendations(
 
         if short_projects:
             add(
-                "Medium",
-                "Projects",
-                "These project entries may need more detail: "
-                + "; ".join(short_projects[:2])
-                + ". Explain what you implemented and what the project achieved."
+                "Medium", "Projects",
+                "These short project entries may need more detail: "
+                + "; ".join(excerpt(line, 90) for line in short_projects[:2])
+                + ". Explain what you built and the outcome."
+            )
+
+        project_action_lines = [
+            line for line in project_lines
+            if len(line.split()) >= 5
+            and not re.search(
+                r"\b(built|developed|created|designed|implemented|"
+                r"automated|improved|optimized|delivered|deployed|"
+                r"integrated|tested|analyzed|managed)\b",
+                line,
+                re.I,
+            )
+        ]
+
+        if project_action_lines:
+            add(
+                "Low", "Project descriptions",
+                "Review this project line for a clearer description of your "
+                "own contribution: "
+                + excerpt(project_action_lines[0])
+                + ". Use an accurate action verb where appropriate."
             )
 
     # Experience
@@ -434,83 +460,101 @@ def generate_recommendations(
 
     if not experience_lines and not content.get("has_experience_terms"):
         add(
-            "Medium",
-            "Experience",
+            "Medium", "Experience",
             "No Experience section or common experience terms were detected. "
             "If applicable, include internships, training, employment, or "
-            "relevant practical work. Freshers can emphasize projects instead."
+            "practical work. Freshers can emphasize academic and personal projects."
+        )
+    elif experience_lines:
+        action_pattern = re.compile(
+            r"\b(built|developed|created|designed|implemented|automated|"
+            r"improved|optimized|delivered|deployed|integrated|reduced|"
+            r"increased|maintained|tested|analyzed|resolved|managed|launched)\b",
+            re.I,
         )
 
-    action_pattern = re.compile(
-        r"\b(built|developed|created|designed|implemented|automated|"
-        r"improved|optimized|delivered|deployed|integrated|reduced|"
-        r"increased|maintained|tested|analyzed|resolved|managed|launched)\b",
-        re.I,
-    )
+        weak_lines = [
+            line for line in experience_lines
+            if len(line.split()) >= 5 and not action_pattern.search(line)
+        ]
 
-    weak_lines = [
-        line for line in experience_lines
-        if len(line.split()) >= 5 and not action_pattern.search(line)
-    ]
-
-    if weak_lines:
-        add(
-            "Medium",
-            "Experience",
-            "Consider rewriting these lines to make your contribution clearer: "
-            + "; ".join(weak_lines[:2])
-            + ". Use an accurate action verb and explain the outcome."
-        )
+        if weak_lines:
+            add(
+                "Medium", "Experience",
+                "Consider clarifying your contribution in this line: "
+                + excerpt(weak_lines[0])
+                + ". Explain what you did and the result, without inventing details."
+            )
 
     # Education
     education_lines = lines_for("education")
 
     if not education_lines:
         add(
-            "Medium",
-            "Education",
+            "Medium", "Education",
             "No Education section was detected. Check the heading and ensure "
             "your qualification and institution are represented in selectable text."
         )
+    else:
+        education_text = "\n".join(education_lines)
+
+        if not re.search(
+            r"\b(19|20)\d{2}\b", education_text
+        ):
+            add(
+                "Low", "Education",
+                "No four-digit year was detected in the Education section. "
+                "Include a graduation year or expected graduation year if relevant."
+            )
 
     # Achievements
     if content.get("quantified_achievement_count", 0) == 0:
         add(
-            "Low",
-            "Achievements",
-            "No measurable achievement was detected by the current rules. "
-            "Where truthful, add project outcomes, scale, or verified results. "
-            "Do not invent metrics."
+            "Low", "Achievements",
+            "No supported measurable result was detected by the current rules. "
+            "Where truthful, include verified outcomes, scale, or impact. "
+            "Do not invent numbers."
         )
 
     if content.get("action_verb_count", 0) < 3:
         add(
-            "Low",
-            "Bullet points",
-            "The analyzer found few recognized action verbs. Review your "
-            "project and experience descriptions to make your own contributions "
-            "clear and specific."
+            "Low", "Bullet points",
+            "Few recognized action verbs were found. Review project and "
+            "experience descriptions to make your individual contributions clear."
         )
 
+    # Extraction quality
     if len(text.strip()) < 700:
         add(
-            "Medium",
-            "Text extraction",
-            "Only "
-            + str(len(text.strip()))
-            + " characters were extracted. Compare this with the original "
-            "resume to check whether PDF or DOCX content was missed."
+            "Medium", "Text extraction",
+            "Only " + str(len(text.strip()))
+            + " characters were extracted. Compare the extracted text with "
+            "the original file to check whether content was missed."
         )
 
-    if not recommendations:
-        add(
-            "Low",
-            "Final review",
-            "No issues were identified by these basic checks. Compare the resume "
-            "with your target job description to identify role-specific gaps."
-        )
+    # Remove duplicate recommendations
+    unique = []
+    seen = set()
 
-    return recommendations
+    for item in recommendations:
+        key = (item["area"], item["advice"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+
+    if not unique:
+        unique.append({
+            "priority": "Low",
+            "area": "Final review",
+            "advice": (
+                "No obvious issues were identified by these basic checks. "
+                "Compare the resume with the target job description for "
+                "role-specific gaps."
+            ),
+        })
+
+    return unique
+
 
 # =========================
 # MAIN RESUME ANALYSIS
@@ -536,15 +580,12 @@ def analyze_resume(file_path):
     ][:15]
 
     return {
-        # Preserve the original return keys.
         "email": email,
         "phone": phone,
         "skills": skills,
         "score": score_details["overall"],
         "text_length": len(text),
         "text": text,
-
-        # Additional analysis fields.
         "score_details": score_details,
         "sections_found": content["sections_found"],
         "section_text": sections,
