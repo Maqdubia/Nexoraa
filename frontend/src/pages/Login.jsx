@@ -55,7 +55,7 @@ function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="brand-header">
-          <div className="logo-icon">✨</div>
+          
           <h1 className="logo">Nexora</h1>
         </div>
 
