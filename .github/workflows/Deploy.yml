@@ -1,1 +1,17 @@
 
+name: Deploy Nexora
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Confirm workflow
+        run: echo "Nexora workflow is running successfully"
