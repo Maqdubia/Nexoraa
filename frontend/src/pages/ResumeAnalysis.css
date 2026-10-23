@@ -1,434 +1,79 @@
 
-/* ========================================
-   NEXORA RESUME ANALYSIS
-   Modern Premium Dashboard
-======================================== */
+/* ==========================================
+   NEXORA — RESUME ANALYSIS THEME
+   ========================================== */
 
 .analysis-page {
-    min-height: 100vh;
-    padding: 36px 28px 60px;
-    background:
-        radial-gradient(ellipse at top left, rgba(99, 102, 241, 0.10), transparent 38%),
-        linear-gradient(135deg, #f8faff 0%, #f1f5ff 48%, #f8fafc 100%);
-    color: #172033;
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
-    box-sizing: border-box;
-}
-
-.analysis-page *,
-.analysis-page *::before,
-.analysis-page *::after {
-    box-sizing: border-box;
+  background: #f8f6ef !important;
+  color: #29291f;
+  font-family: Inter, "Segoe UI", sans-serif;
 }
 
 .analysis-container {
-    width: 100%;
-    max-width: 1180px;
-    margin: 0 auto;
-}
-
-/* Header */
-
-.analysis-header {
-    margin-bottom: 30px;
+  max-width: 1180px;
 }
 
 .analysis-header h1 {
-    margin: 0 0 10px;
-    color: #172554;
-    font-size: clamp(28px, 4vw, 38px);
-    font-weight: 800;
-    letter-spacing: -1.2px;
+  color: #29291f !important;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: -0.6px;
 }
 
 .analysis-header p {
-    margin: 0;
-    color: #64748b;
-    font-size: 15px;
-    line-height: 1.7;
+  color: #77766c;
 }
-
-/* Score card */
 
 .score-card {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    margin-bottom: 28px;
-    padding: 32px;
-    border: 1px solid rgba(255, 255, 255, 0.24);
-    border-radius: 24px;
-    background: linear-gradient(120deg, #4338ca 0%, #6366f1 55%, #8b5cf6 100%);
-    color: #ffffff;
-    box-shadow: 0 18px 45px rgba(79, 70, 229, 0.20);
+  background: #e9ecd9 !important;
+  color: #29291f !important;
+  border: 1px solid #e0e3d2;
+  border-radius: 12px;
+  box-shadow: none;
 }
 
-.score-card::before,
-.score-card::after {
-    position: absolute;
-    z-index: -1;
-    content: "";
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.09);
-    pointer-events: none;
+.score-card h1,
+.score-card h2,
+.score-card h3,
+.score-card p {
+  color: #29291f;
 }
 
-.score-card::before {
-    width: 230px;
-    height: 230px;
-    top: -120px;
-    right: 8%;
+.analysis-page .score-card::before,
+.analysis-page .score-card::after {
+  display: none;
 }
 
-.score-card::after {
-    width: 170px;
-    height: 170px;
-    right: -45px;
-    bottom: -100px;
+.analysis-page .analysis-container > div {
+  border-radius: 10px;
 }
 
-.score-card h2 {
-    margin: 0 0 12px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.4px;
+.analysis-page button {
+  border-radius: 7px;
 }
 
-.score {
-    display: flex;
-    align-items: baseline;
-    gap: 7px;
-    color: #ffffff;
-    font-size: clamp(48px, 8vw, 66px);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -2px;
-    font-variant-numeric: tabular-nums;
+.analysis-page input,
+.analysis-page textarea,
+.analysis-page select {
+  background: #fffefa;
+  border: 1px solid #e7e3d8;
+  color: #29291f;
 }
 
-.score span {
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: 0;
+.analysis-page .analysis-header {
+  margin-bottom: 24px;
 }
-
-.score-card > p {
-    margin: 14px 0 0;
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 14px;
-    line-height: 1.6;
-}
-
-/* Main information grid */
-
-.analysis-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
-    margin-bottom: 22px;
-}
-
-/* General cards */
-
-.analysis-card {
-    min-width: 0;
-    margin-bottom: 22px;
-    padding: 25px;
-    border: 1px solid #e5eaf5;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.94);
-    box-shadow: 0 6px 24px rgba(30, 41, 59, 0.045);
-    transition:
-        transform 180ms ease,
-        box-shadow 180ms ease,
-        border-color 180ms ease;
-    overflow-wrap: anywhere;
-}
-
-.analysis-grid .analysis-card {
-    margin-bottom: 0;
-}
-
-.analysis-card:hover {
-    transform: translateY(-2px);
-    border-color: #c7d2fe;
-    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.08);
-}
-
-.analysis-card h2 {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 22px;
-    color: #1e293b;
-    font-size: 18px;
-    font-weight: 750;
-    letter-spacing: -0.35px;
-    line-height: 1.4;
-}
-
-.analysis-card h2::before {
-    width: 4px;
-    min-width: 4px;
-    height: 21px;
-    border-radius: 8px;
-    background: linear-gradient(180deg, #6366f1, #8b5cf6);
-    content: "";
-}
-
-/* Detail rows */
-
-.analysis-item {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 18px;
-    padding: 13px 0;
-    border-bottom: 1px solid #eef2f7;
-}
-
-.analysis-item:first-child {
-    padding-top: 0;
-}
-
-.analysis-item:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.analysis-item strong {
-    flex: 0 0 42%;
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.7;
-    text-transform: capitalize;
-}
-
-.analysis-item > span,
-.analysis-item > div {
-    min-width: 0;
-    color: #1e293b;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.7;
-    text-align: right;
-}
-
-/* Skills */
-
-.skills-analysis {
-    margin-bottom: 22px;
-}
-
-.skill-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.skill-tag {
-    display: inline-flex;
-    align-items: center;
-    padding: 9px 14px;
-    border: 1px solid #dbe4ff;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #eef2ff, #f5f3ff);
-    color: #4338ca;
-    font-size: 13px;
-    font-weight: 650;
-    line-height: 1.4;
-    transition:
-        background 180ms ease,
-        transform 180ms ease;
-}
-
-.skill-tag:hover {
-    transform: translateY(-2px);
-    background: #e0e7ff;
-}
-
-/* Lists and structured analysis data */
-
-.analysis-card ul {
-    display: grid;
-    gap: 11px;
-    margin: 0;
-    padding-left: 22px;
-    color: #475569;
-    font-size: 14px;
-    line-height: 1.8;
-}
-
-.analysis-card li::marker {
-    color: #6366f1;
-}
-
-.analysis-card .analysis-item ul {
-    text-align: left;
-}
-
-.analysis-card .analysis-item ul li {
-    margin-bottom: 4px;
-}
-
-.analysis-card p {
-    margin: 0;
-    color: #64748b;
-    font-size: 14px;
-    line-height: 1.8;
-}
-
-/* Recommendations */
-
-.recommendations-list {
-    list-style: none;
-    padding: 0 !important;
-    counter-reset: recommendation;
-}
-
-.recommendations-list > li {
-    position: relative;
-    padding: 15px 17px 15px 45px;
-    border: 1px solid #e5e7ff;
-    border-radius: 13px;
-    background: #f8faff;
-    color: #334155;
-    line-height: 1.75;
-    counter-increment: recommendation;
-}
-
-.recommendations-list > li::before {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    display: grid;
-    width: 22px;
-    height: 22px;
-    place-items: center;
-    border-radius: 7px;
-    background: #e0e7ff;
-    color: #4338ca;
-    content: counter(recommendation);
-    font-size: 12px;
-    font-weight: 800;
-}
-
-/* Loading and error states */
-
-.analysis-loading,
-.analysis-error {
-    padding: 22px;
-    border: 1px solid #e2e8f0;
-    border-radius: 15px;
-    background: #ffffff;
-    color: #475569;
-    font-size: 15px;
-    line-height: 1.7;
-    text-align: center;
-}
-
-.analysis-error {
-    border-color: #fecaca;
-    background: #fff7f7;
-    color: #b91c1c;
-}
-
-/* Responsive tablet */
 
 @media (max-width: 768px) {
-    .analysis-page {
-        padding: 25px 18px 42px;
-    }
+  .analysis-page {
+    padding: 22px 14px 40px;
+  }
 
-    .analysis-grid {
-        grid-template-columns: 1fr;
-        gap: 18px;
-        margin-bottom: 18px;
-    }
+  .score-card {
+    padding: 22px;
+  }
 
-    .analysis-card {
-        padding: 21px;
-        margin-bottom: 18px;
-        border-radius: 17px;
-    }
-
-    .score-card {
-        padding: 27px;
-        border-radius: 20px;
-    }
-}
-
-/* Responsive mobile */
-
-@media (max-width: 480px) {
-    .analysis-page {
-        padding: 20px 12px 32px;
-    }
-
-    .analysis-header {
-        margin-bottom: 22px;
-    }
-
-    .analysis-header h1 {
-        font-size: 28px;
-    }
-
-    .score-card {
-        padding: 23px;
-        margin-bottom: 20px;
-    }
-
-    .score {
-        font-size: 52px;
-    }
-
-    .analysis-card {
-        padding: 18px;
-    }
-
-    .analysis-card h2 {
-        font-size: 16px;
-        margin-bottom: 18px;
-    }
-
-    .analysis-item {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .analysis-item strong {
-        flex-basis: auto;
-    }
-
-    .analysis-item > span,
-    .analysis-item > div {
-        width: 100%;
-        text-align: left;
-    }
-
-    .skill-tags {
-        gap: 8px;
-    }
-
-    .skill-tag {
-        padding: 8px 11px;
-        font-size: 12px;
-    }
-}
-
-/* Accessibility */
-
-@media (prefers-reduced-motion: reduce) {
-    .analysis-card,
-    .skill-tag {
-        transition: none;
-    }
-
-    .analysis-card:hover,
-    .skill-tag:hover {
-        transform: none;
-    }
+  .analysis-header h1 {
+    font-size: 30px;
+  }
 }
