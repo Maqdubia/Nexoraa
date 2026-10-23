@@ -214,7 +214,7 @@ def extract_sections(text):
             continue
 
         heading = re.sub(r"^[\s:|•\-]+", "", line.lower())
-        heading = re.sub(r"[\s:|•\-]+$", "", heading)
+        heading = re.sub(r"[\s:|•\-.,]+$", "", heading).strip()
 
         if heading in lookup:
             current = lookup[heading]
