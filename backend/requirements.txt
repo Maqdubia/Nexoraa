@@ -1,4 +1,4 @@
-﻿aiohappyeyeballs==2.6.1
+aiohappyeyeballs==2.6.1
 aiohttp==3.13.5
 aiosignal==1.4.0
 alembic==1.18.4
@@ -110,7 +110,7 @@ pillow==12.2.0
 pinecone==9.0.0
 propcache==0.5.2
 proto-plus==1.28.0
-protobuf==5.29.6
+protobuf>=6.33.5,<7
 psycopg2-binary==2.9.12
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
@@ -121,9 +121,7 @@ pydantic-settings==2.14.1
 pydantic_core==2.46.3
 Pygments==2.20.0
 PyJWT==2.15.0
-
 PyMuPDF>=1.26.0
-
 pyparsing==3.3.2
 pypdf==6.11.0
 PyPika==0.51.1
