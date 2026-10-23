@@ -63,7 +63,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-
+"whitenoise.middleware.WhiteNoiseMiddleware",
 # =========================================================
 # URL / WSGI
 # =========================================================
