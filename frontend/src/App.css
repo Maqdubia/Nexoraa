@@ -1,283 +1,97 @@
 
-/* =========================
-   GLOBAL RESET
-========================= */
+/* ==========================================
+   NEXORA — IVORY & SAGE DESIGN OVERRIDES
+   ========================================== */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+  --nexora-bg: #f8f6ef;
+  --nexora-sidebar: #f1efe5;
+  --nexora-card: #fffefa;
+  --nexora-sage: #626b49;
+  --nexora-sage-light: #e9ecd9;
+  --nexora-text: #29291f;
+  --nexora-muted: #77766c;
+  --nexora-border: #e7e3d8;
+  --nexora-shadow: 0 3px 12px rgba(55, 50, 35, 0.035);
 }
 
 html {
-    width: 100%;
-    min-height: 100%;
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
+  background: var(--nexora-bg);
 }
 
 body {
-    width: 100%;
-    min-height: 100vh;
-    font-family: "Inter", "Segoe UI", Arial, sans-serif;
-    background: #f5f7fb;
-    color: #1f2937;
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
+  background: var(--nexora-bg) !important;
+  color: var(--nexora-text);
+  font-family: Inter, "Segoe UI", sans-serif;
 }
 
-#root {
-    width: 100%;
-    min-height: 100vh;
+.app-layout {
+  background: var(--nexora-bg) !important;
+  color: var(--nexora-text);
 }
 
-/* Prevent wide content from breaking the layout */
-
-img,
-video,
-canvas,
-svg {
-    max-width: 100%;
+.main-content {
+  background: var(--nexora-bg) !important;
+  color: var(--nexora-text);
+  padding: 28px;
 }
 
+.page {
+  color: var(--nexora-text);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--nexora-text);
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: -0.45px;
+}
+
+p {
+  line-height: 1.7;
+}
+
+button,
 input,
 textarea,
-select,
+select {
+  border-radius: 8px;
+}
+
 button {
-    font: inherit;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+button:hover {
+  filter: brightness(0.97);
 }
 
 input,
 textarea,
 select {
-    max-width: 100%;
+  color: var(--nexora-text);
+  background: var(--nexora-card);
+  border-color: var(--nexora-border);
 }
 
-button {
-    cursor: pointer;
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid rgba(98, 107, 73, 0.22);
+  border-color: var(--nexora-sage);
 }
 
 a {
-    color: inherit;
+  color: var(--nexora-sage);
 }
 
-/* =========================
-   MAIN APPLICATION LAYOUT
-========================= */
-
-.app-layout {
-    display: flex;
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 18px 14px;
     width: 100%;
-    min-height: 100vh;
-    background: #f5f7fb;
-}
-
-/* =========================
-   MAIN CONTENT
-   Desktop sidebar width: 260px
-========================= */
-
-.main-content {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: auto;
-    min-height: 100vh;
-    margin-left: 260px;
-    padding: 32px;
-    background: #f5f7fb;
-    overflow-wrap: anywhere;
-}
-
-/* =========================
-   COMMON PAGE
-========================= */
-
-.page {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    margin: 0 auto;
-}
-
-/* Keep common content containers responsive */
-
-.container,
-.page-container {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-}
-
-/* =========================
-   COMMON CARD
-========================= */
-
-.card {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    padding: 24px;
-    background: #ffffff;
-    color: #1f2937;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
-}
-
-/* =========================
-   COMMON BUTTONS
-========================= */
-
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    max-width: 100%;
-    padding: 11px 18px;
-    border: none;
-    border-radius: 9px;
-    font-family: inherit;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.btn-primary {
-    background: #5b4bdb;
-    color: #ffffff;
-}
-
-.btn-primary:hover {
-    background: #4736c5;
-    transform: translateY(-1px);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-/* =========================
-   RESPONSIVE TABLES
-========================= */
-
-table {
-    max-width: 100%;
-    border-collapse: collapse;
-}
-
-.table-container,
-.table-responsive {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* =========================
-   TABLET
-========================= */
-
-@media (max-width: 1100px) {
-    .main-content {
-        padding: 26px 22px;
-    }
-
-    .card {
-        padding: 20px;
-    }
-}
-
-/* =========================
-   MOBILE / RESPONSIVE SIDEBAR
-   Sidebar CSS should also switch
-   to its mobile layout at 900px.
-========================= */
-
-@media (max-width: 900px) {
-    .app-layout {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .main-content {
-        flex: 1 1 auto;
-        width: 100%;
-        min-width: 0;
-        min-height: auto;
-        margin-left: 0;
-        padding: 24px 20px;
-    }
-
-    .page {
-        width: 100%;
-    }
-}
-
-/* =========================
-   SMALL MOBILE
-========================= */
-
-@media (max-width: 600px) {
-    body {
-        font-size: 14px;
-    }
-
-    .main-content {
-        padding: 18px 14px;
-    }
-
-    .card {
-        padding: 16px;
-        border-radius: 12px;
-    }
-
-    .btn {
-        max-width: 100%;
-        padding: 10px 14px;
-    }
-
-    input,
-    textarea,
-    select {
-        width: 100%;
-        min-width: 0;
-    }
-}
-
-/* =========================
-   VERY SMALL SCREENS
-========================= */
-
-@media (max-width: 360px) {
-    .main-content {
-        padding: 14px 10px;
-    }
-
-    .card {
-        padding: 12px;
-    }
-}
-
-/* =========================
-   ACCESSIBILITY
-========================= */
-
-:focus-visible {
-    outline: 3px solid rgba(91, 75, 219, 0.4);
-    outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-    }
+  }
 }
