@@ -1,0 +1,437 @@
+
+:root {
+  --nx-ivory: #FDFBF7;
+  --nx-beige: #F4EFEB;
+  --nx-card: #FFFEFA;
+  --nx-forest: #163D29;
+  --nx-forest-mid: #376B43;
+  --nx-sage: #5B6E58;
+  --nx-sage-light: #E8ECDD;
+  --nx-sage-pale: #F0F2E8;
+  --nx-tan: #C2A684;
+  --nx-text: #292B25;
+  --nx-muted: #77766C;
+  --nx-border: #E7E0D7;
+  --nx-danger: #914B3D;
+  --nx-danger-bg: #FAEFEB;
+  --nx-success: #43563F;
+  --nx-success-bg: #EEF2E8;
+  --nx-radius: 14px;
+  --nx-shadow: 0 5px 20px rgba(29, 41, 28, 0.055);
+}
+
+html,
+body,
+#root {
+  background: var(--nx-ivory);
+}
+
+body {
+  color: var(--nx-text);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.app-layout {
+  background: var(--nx-ivory);
+}
+
+.main-content {
+  min-width: 0;
+  background: var(--nx-ivory);
+  color: var(--nx-text);
+}
+
+/* Typography */
+
+.main-content h1,
+.main-content h2,
+.main-content h3,
+.main-content h4 {
+  color: var(--nx-forest);
+}
+
+.main-content p {
+  color: inherit;
+}
+
+.main-content small,
+.main-content .subtitle,
+.main-content .muted,
+.main-content .text-muted {
+  color: var(--nx-muted);
+}
+
+/* Dashboard hero: forest green transitioning into beige */
+
+.dashboard-welcome {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgba(91, 110, 88, 0.16);
+  border-radius: 18px;
+  background: linear-gradient(
+    112deg,
+    #163D29 0%,
+    #376B43 27%,
+    #78966C 48%,
+    #C7D4AF 70%,
+    #E8ECDD 84%,
+    #F4EFEB 100%
+  );
+  color: #FFFFFF;
+  box-shadow: var(--nx-shadow);
+}
+
+.dashboard-welcome h1,
+.dashboard-welcome h2,
+.dashboard-welcome h3,
+.dashboard-welcome p,
+.dashboard-welcome .dashboard-welcome-copy,
+.dashboard-welcome .dashboard-welcome-mark {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-welcome h1,
+.dashboard-welcome h2,
+.dashboard-welcome h3 {
+  color: #FFFFFF;
+}
+
+.dashboard-welcome p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.dashboard-welcome-mark {
+  color: #FFFFFF;
+}
+
+/* Cards and panels */
+
+.dashboard-card,
+.dashboard-action-card,
+.profile-card,
+.resume-card,
+.resume-upload-card,
+.experience-card,
+.application-card,
+.interview-card,
+.interview-question-card,
+.question-card,
+.history-card,
+.job-card,
+.job-match-card,
+.match-card,
+.skill-card,
+.score-card,
+.analysis-card,
+.skills-result-card,
+.skill-gap-form-card,
+.improvement-card {
+  border-color: var(--nx-border);
+  border-radius: var(--nx-radius);
+  background: var(--nx-card);
+  box-shadow: var(--nx-shadow);
+}
+
+.dashboard-card,
+.dashboard-action-card,
+.profile-card,
+.resume-card,
+.experience-card,
+.application-card,
+.interview-card,
+.history-card,
+.job-card,
+.job-match-card,
+.match-card,
+.skill-card,
+.analysis-card,
+.improvement-card {
+  color: var(--nx-text);
+}
+
+/* Shared buttons */
+
+.main-content button,
+.auth-page button {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.main-content button:not(:disabled):not(.secondary-button),
+.auth-page .auth-button {
+  border-color: var(--nx-sage);
+}
+
+.main-content button:disabled,
+.auth-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.main-content button:focus-visible,
+.auth-page button:focus-visible {
+  outline: 2px solid var(--nx-sage);
+  outline-offset: 3px;
+}
+
+/* Form fields */
+
+.main-content input,
+.main-content textarea,
+.main-content select,
+.auth-page input {
+  border-color: var(--nx-border);
+  border-radius: 9px;
+  background-color: var(--nx-card);
+  color: var(--nx-text);
+}
+
+.main-content input::placeholder,
+.main-content textarea::placeholder,
+.auth-page input::placeholder {
+  color: #A09C91;
+}
+
+.main-content input:focus,
+.main-content textarea:focus,
+.main-content select:focus,
+.auth-page input:focus {
+  border-color: var(--nx-sage);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(91, 110, 88, 0.13);
+}
+
+/* Tags, skill chips and labels */
+
+.main-content .skill-tag,
+.main-content .skill-badge,
+.main-content .tag,
+.main-content .badge,
+.main-content .chip {
+  border-color: var(--nx-border);
+  border-radius: 7px;
+  background: var(--nx-beige);
+  color: var(--nx-forest);
+}
+
+/* Links */
+
+.main-content a {
+  color: var(--nx-sage);
+}
+
+.main-content a:hover {
+  color: var(--nx-forest);
+}
+
+/* Sidebar */
+
+.sidebar {
+  background: var(--nx-beige);
+  border-right-color: var(--nx-border);
+}
+
+.sidebar-logo,
+.sidebar-brand-text strong {
+  color: var(--nx-forest);
+}
+
+.sidebar-logo-mark {
+  background: var(--nx-sage-light);
+  color: var(--nx-sage);
+}
+
+.sidebar-menu a {
+  color: #62645B;
+}
+
+.sidebar-menu a .line-icon {
+  color: var(--nx-sage);
+}
+
+.sidebar-menu a:hover {
+  background: #ECE9DF;
+  color: var(--nx-forest);
+}
+
+.sidebar-menu a.active {
+  border-color: #D9DFCC;
+  background: #E5E9D9;
+  color: var(--nx-forest);
+  box-shadow: inset 3px 0 0 var(--nx-sage);
+}
+
+.sidebar-menu a.active .line-icon {
+  color: var(--nx-forest);
+}
+
+.logout-btn {
+  color: var(--nx-forest);
+}
+
+.sidebar-backdrop {
+  background: rgba(18, 18, 18, 0.42);
+}
+
+/* Mobile header */
+
+.mobile-app-header {
+  background: var(--nx-ivory);
+  border-bottom: 1px solid var(--nx-border);
+}
+
+.mobile-menu-toggle {
+  border-color: var(--nx-border);
+  background: var(--nx-card);
+}
+
+.mobile-menu-toggle span {
+  background: var(--nx-forest);
+}
+
+.mobile-brand {
+  color: var(--nx-forest);
+}
+
+.mobile-brand span {
+  color: var(--nx-sage);
+}
+
+/* Authentication pages */
+
+.auth-page {
+  background: var(--nx-ivory);
+}
+
+.auth-card {
+  border-color: var(--nx-border);
+  background: var(--nx-card);
+  box-shadow: var(--nx-shadow);
+}
+
+.auth-card h1,
+.auth-card h2,
+.auth-card h3,
+.auth-card .logo {
+  color: var(--nx-forest);
+}
+
+.auth-card .subtitle,
+.auth-card .switch-text {
+  color: var(--nx-muted);
+}
+
+.auth-card .auth-button {
+  border-color: var(--nx-sage);
+  background: var(--nx-sage);
+  color: #FFFFFF;
+}
+
+.auth-card .auth-button:hover:not(:disabled) {
+  border-color: var(--nx-forest-mid);
+  background: var(--nx-forest-mid);
+}
+
+.auth-card .secondary-button {
+  border-color: var(--nx-border);
+  background: var(--nx-beige);
+  color: var(--nx-forest);
+}
+
+/* Feedback states */
+
+.main-content .error,
+.main-content .error-message {
+  color: var(--nx-danger);
+}
+
+.main-content .success,
+.main-content .success-message {
+  color: var(--nx-success);
+}
+
+/* Tables */
+
+.main-content table {
+  border-color: var(--nx-border);
+  background: var(--nx-card);
+  color: var(--nx-text);
+}
+
+.main-content th {
+  background: var(--nx-beige);
+  color: var(--nx-forest);
+}
+
+.main-content td,
+.main-content th {
+  border-color: var(--nx-border);
+}
+
+/* Separators */
+
+.main-content hr {
+  border: 0;
+  border-top: 1px solid var(--nx-border);
+}
+
+/* Prevent horizontal overflow on narrow screens */
+
+.main-content,
+.dashboard-page,
+.profile-page,
+.education-page,
+.experience-page,
+.skills-page,
+.resume-page,
+.jobs-page,
+.skill-gap-page,
+.ai-interview-page,
+.interview-page,
+.history-page {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    width: 100%;
+    margin-left: 0;
+    padding: 18px 14px 28px;
+  }
+
+  .dashboard-welcome {
+    border-radius: 14px;
+  }
+
+  .mobile-app-header {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+    padding: 8px 14px;
+  }
+
+  .mobile-header-label {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
