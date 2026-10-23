@@ -91,7 +91,17 @@ function App() {
                 <Route path="/resume/:id/analysis" element={<ProtectedRoute><ProtectedPage><ResumeAnalysis /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/jobs" element={<ProtectedRoute><ProtectedPage><Jobs /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/skill-gap" element={<ProtectedRoute><ProtectedPage><SkillGap /></ProtectedPage></ProtectedRoute>} />
-                <Route path="/my-applications" element={<ProtectedRoute><ProtectedPage><MyApplications /></ProtectedPage></ProtectedPage></Route>} />
+                <Route
+    path="/my-applications"
+    element={
+        <ProtectedRoute>
+            <ProtectedPage>
+                <MyApplications />
+            </ProtectedPage>
+        </ProtectedRoute>
+    }
+/>
+
                 <Route path="/ai-interview" element={<ProtectedRoute><ProtectedPage><AIInterview /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/interview-history" element={<ProtectedRoute><ProtectedPage><InterviewHistory /></ProtectedPage></ProtectedRoute>} />
 
