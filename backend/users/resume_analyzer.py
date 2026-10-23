@@ -339,6 +339,9 @@ def generate_recommendations(
     email, phone, skills, sections, content, text
 ):
     recommendations = []
+    text = text or ""
+    sections = sections or {}
+    skills = skills or []
 
     def add(priority, area, advice):
         recommendations.append({
@@ -347,65 +350,167 @@ def generate_recommendations(
             "advice": advice,
         })
 
+    def lines_for(section_name):
+        return [
+            line.strip(" \t•-*")
+            for line in sections.get(section_name, "").splitlines()
+            if line.strip()
+        ]
+
+    # Contact
     if not email:
-        add("High", "Contact", "Add a professional email address.")
+        add(
+            "High",
+            "Contact",
+            "No email address was detected in the extracted resume text. "
+            "Check that your email is visible and selectable in the PDF or DOCX."
+        )
 
     if not phone:
-        add("High", "Contact", "Add a reachable phone number.")
-
-    if not sections.get("skills", "").strip():
-        add("High", "Skills", "Add a clearly labeled technical skills section.")
-
-    if not sections.get("projects", "").strip():
         add(
-            "High", "Projects",
-            "Add relevant projects, technologies used, and your contribution."
+            "High",
+            "Contact",
+            "No supported phone number was detected. Verify the number and "
+            "check whether text extraction preserved it correctly."
         )
 
-    if not sections.get("education", "").strip():
+    # Skills
+    skill_lines = lines_for("skills")
+
+    if not skill_lines:
         add(
-            "Medium", "Education",
-            "Include your degree, institution, and graduation year."
+            "High",
+            "Skills",
+            "No clearly labelled Skills section was detected. Add a "
+            "Technical Skills section if your skills are currently scattered "
+            "throughout the resume."
+        )
+    elif not skills:
+        add(
+            "Medium",
+            "Skills",
+            "A Skills section exists, but no skills from the current "
+            "recognition dictionary were detected. Review the extracted "
+            "text and expand the dictionary for relevant technologies."
+        )
+    elif len(skills) < 5:
+        add(
+            "Low",
+            "Skills",
+            "The analyzer recognized only "
+            + ", ".join(skills)
+            + ". Verify whether other skills already present in your resume "
+            "were missed. Do not add skills you do not possess."
         )
 
-    if not sections.get("experience", "").strip():
+    # Projects
+    project_lines = lines_for("projects")
+
+    if not project_lines:
         add(
-            "Medium", "Experience",
-            "Include relevant work, internships, or practical training if applicable."
+            "High",
+            "Projects",
+            "No Projects section was detected. If you have academic, personal, "
+            "or professional projects, describe the problem, your contribution, "
+            "the technologies used, and the outcome."
+        )
+    else:
+        short_projects = [
+            line for line in project_lines
+            if len(line.split()) < 5
+        ]
+
+        if short_projects:
+            add(
+                "Medium",
+                "Projects",
+                "These project entries may need more detail: "
+                + "; ".join(short_projects[:2])
+                + ". Explain what you implemented and what the project achieved."
+            )
+
+    # Experience
+    experience_lines = lines_for("experience")
+
+    if not experience_lines and not content.get("has_experience_terms"):
+        add(
+            "Medium",
+            "Experience",
+            "No Experience section or common experience terms were detected. "
+            "If applicable, include internships, training, employment, or "
+            "relevant practical work. Freshers can emphasize projects instead."
         )
 
-    if content["quantified_achievement_count"] == 0:
+    action_pattern = re.compile(
+        r"\b(built|developed|created|designed|implemented|automated|"
+        r"improved|optimized|delivered|deployed|integrated|reduced|"
+        r"increased|maintained|tested|analyzed|resolved|managed|launched)\b",
+        re.I,
+    )
+
+    weak_lines = [
+        line for line in experience_lines
+        if len(line.split()) >= 5 and not action_pattern.search(line)
+    ]
+
+    if weak_lines:
         add(
-            "Medium", "Achievements",
-            "Where truthful, add measurable results to project or experience bullets."
+            "Medium",
+            "Experience",
+            "Consider rewriting these lines to make your contribution clearer: "
+            + "; ".join(weak_lines[:2])
+            + ". Use an accurate action verb and explain the outcome."
         )
 
-    if content["action_verb_count"] < 3:
+    # Education
+    education_lines = lines_for("education")
+
+    if not education_lines:
         add(
-            "Medium", "Bullet points",
-            "Use clear action verbs such as Built, Developed, Tested, and Deployed."
+            "Medium",
+            "Education",
+            "No Education section was detected. Check the heading and ensure "
+            "your qualification and institution are represented in selectable text."
+        )
+
+    # Achievements
+    if content.get("quantified_achievement_count", 0) == 0:
+        add(
+            "Low",
+            "Achievements",
+            "No measurable achievement was detected by the current rules. "
+            "Where truthful, add project outcomes, scale, or verified results. "
+            "Do not invent metrics."
+        )
+
+    if content.get("action_verb_count", 0) < 3:
+        add(
+            "Low",
+            "Bullet points",
+            "The analyzer found few recognized action verbs. Review your "
+            "project and experience descriptions to make your own contributions "
+            "clear and specific."
         )
 
     if len(text.strip()) < 700:
         add(
-            "Low", "Content",
-            "Check whether relevant project, skills, and experience details are missing."
-        )
-
-    if len(skills) < 5:
-        add(
-            "Low", "Skills",
-            "Include other relevant skills only if you genuinely know them."
+            "Medium",
+            "Text extraction",
+            "Only "
+            + str(len(text.strip()))
+            + " characters were extracted. Compare this with the original "
+            "resume to check whether PDF or DOCX content was missed."
         )
 
     if not recommendations:
         add(
-            "Low", "Review",
-            "Tailor your resume to each target job description."
+            "Low",
+            "Final review",
+            "No issues were identified by these basic checks. Compare the resume "
+            "with your target job description to identify role-specific gaps."
         )
 
     return recommendations
-
 
 # =========================
 # MAIN RESUME ANALYSIS
