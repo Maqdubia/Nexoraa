@@ -237,7 +237,34 @@
         transform: translateX(0);
         visibility: visible;
     }
+.sidebar-collapse-toggle {
+    position: absolute;
+    top: 25px;
+    right: 10px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid #E3DCD2;
+    border-radius: 8px;
+    background: #FFFEFA;
+    color: #5B6E58;
+    cursor: pointer;
+}
 
+.sidebar-collapse-toggle:hover {
+    background: #E8ECDD;
+    color: #1D291C;
+}
+
+@media (max-width: 900px) {
+    .sidebar-collapse-toggle {
+        display: none;
+    }
+}
     .sidebar-mobile-top {
         display: flex;
         align-items: center;
