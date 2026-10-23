@@ -1,4 +1,5 @@
 
+import { useCallback, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -23,16 +24,45 @@ import Sidebar from "./components/Sidebar";
 import "./App.css";
 
 function ProtectedPage({ children }) {
-    return (
-        <ProtectedRoute>
-            <div className="app-layout">
-                <Sidebar />
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-                <main className="main-content">
-                    {children}
-                </main>
-            </div>
-        </ProtectedRoute>
+    const closeSidebar = useCallback(() => {
+        setSidebarOpen(false);
+    }, []);
+
+    return (
+        <div className="app-layout">
+            <header className="mobile-app-header">
+                <button
+                    type="button"
+                    className="mobile-menu-toggle"
+                    onClick={() => setSidebarOpen(true)}
+                    aria-label="Open navigation menu"
+                    aria-expanded={sidebarOpen}
+                >
+                    <span />
+                    <span />
+                    <span />
+                </button>
+
+                <span className="mobile-brand">
+                    Nexora<span>.</span>
+                </span>
+
+                <span className="mobile-header-label">
+                    Career Platform
+                </span>
+            </header>
+
+            <Sidebar
+                isOpen={sidebarOpen}
+                onClose={closeSidebar}
+            />
+
+            <main className="main-content">
+                {children}
+            </main>
+        </div>
     );
 }
 
@@ -40,150 +70,150 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Public Pages */}
                 <Route
                     path="/"
                     element={<Navigate to="/login" replace />}
                 />
 
-               
-<Route
-    path="/login"
-    element={<Login />}
-/>
+                <Route path="/login" element={<Login />} />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPassword />}
+                />
+                <Route path="/register" element={<Register />} />
 
-<Route
-    path="/forgot-password"
-    element={<ForgotPassword />}
-/>
-
-<Route
-    path="/register"
-    element={<Register />}
-/>
-
-
-                {/* Dashboard - First Protected Page */}
                 <Route
                     path="/dashboard"
                     element={
-                        <ProtectedPage>
-                            <Dashboard />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Dashboard />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Profile */}
                 <Route
                     path="/profile"
                     element={
-                        <ProtectedPage>
-                            <Profile />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Profile />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Education */}
                 <Route
                     path="/education"
                     element={
-                        <ProtectedPage>
-                            <Education />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Education />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Skills */}
                 <Route
                     path="/skills"
                     element={
-                        <ProtectedPage>
-                            <Skills />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Skills />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Experience */}
                 <Route
                     path="/experience"
                     element={
-                        <ProtectedPage>
-                            <Experience />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Experience />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Resume */}
                 <Route
                     path="/resume"
                     element={
-                        <ProtectedPage>
-                            <Resume />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Resume />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Resume Analysis */}
                 <Route
                     path="/resume/:id/analysis"
                     element={
-                        <ProtectedPage>
-                            <ResumeAnalysis />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <ResumeAnalysis />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Jobs */}
                 <Route
                     path="/jobs"
                     element={
-                        <ProtectedPage>
-                            <Jobs />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <Jobs />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Skill Gap */}
                 <Route
                     path="/skill-gap"
                     element={
-                        <ProtectedPage>
-                            <SkillGap />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <SkillGap />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* My Applications */}
                 <Route
                     path="/my-applications"
                     element={
-                        <ProtectedPage>
-                            <MyApplications />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <MyApplications />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* AI Interview */}
                 <Route
                     path="/ai-interview"
                     element={
-                        <ProtectedPage>
-                            <AIInterview />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <AIInterview />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Interview History */}
                 <Route
                     path="/interview-history"
                     element={
-                        <ProtectedPage>
-                            <InterviewHistory />
-                        </ProtectedPage>
+                        <ProtectedRoute>
+                            <ProtectedPage>
+                                <InterviewHistory />
+                            </ProtectedPage>
+                        </ProtectedRoute>
                     }
                 />
 
-                {/* Unknown URL */}
                 <Route
                     path="*"
                     element={<Navigate to="/dashboard" replace />}
