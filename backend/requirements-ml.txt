@@ -1,0 +1,14 @@
+torch==2.11.0
+transformers==5.8.0
+sentence-transformers==5.4.1
+openai-whisper==20250625
+numba==0.65.1
+llvmlite==0.47.0
+chromadb==1.5.9
+faiss-cpu==1.13.2
+onnxruntime==1.26.0
+kubernetes==35.0.0
+pinecone==9.0.0
+safetensors==0.7.0
+tokenizers==0.22.2
+hf-xet==1.5.0
