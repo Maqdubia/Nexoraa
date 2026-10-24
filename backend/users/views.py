@@ -1,7 +1,5 @@
 
 import logging
-import os
-import requests as http
 import secrets
 from datetime import timedelta
 
@@ -47,7 +45,6 @@ logger = logging.getLogger(__name__)
 class RegisterView(generics.CreateAPIView):
 
     serializer_class = RegisterSerializer
-
 
 # =========================================
 # USER PROFILE
@@ -231,8 +228,8 @@ def forgot_password(request):
     record.save()
 
     try:
-        send_mail(
-                    
+        import os
+        import requests as http
 
         mail = http.post(
             "https://api.resend.com/emails",
@@ -262,7 +259,7 @@ def forgot_password(request):
         record.delete()
 
         return Response(
-            {"detail": "Email delivery failed. Please check the email configuration."},
+            {"detail": "Email delivery failed. Please try again later."},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
