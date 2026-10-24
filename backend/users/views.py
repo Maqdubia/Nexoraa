@@ -1,5 +1,7 @@
 
 import logging
+import os
+import requests as http
 import secrets
 from datetime import timedelta
 
@@ -230,18 +232,28 @@ def forgot_password(request):
 
     try:
         send_mail(
-            subject="Nexora Password Reset OTP",
-            message=(
-                f"Hello {user.username},\n\n"
-                f"Your Nexora password reset OTP is: {otp}\n\n"
-                "This OTP expires in 5 minutes.\n"
-                "Do not share this code with anyone.\n\n"
-                "If you did not request a password reset, ignore this email."
-            ),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            fail_silently=False,
+                    
+
+        mail = http.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": "Bearer " + os.getenv("RESEND_API_KEY", ""),
+                "Content-Type": "application/json",
+            },
+            json={
+                "from": "Nexora <onboarding@resend.dev>",
+                "to": [user.email],
+                "subject": "Nexora Password Reset OTP",
+                "text": (
+                    f"Hello {user.username},\n\n"
+                    f"Your Nexora password reset OTP is: {otp}\n\n"
+                    "This OTP expires in 5 minutes.\n"
+                    "Do not share this code with anyone."
+                ),
+            },
+            timeout=15,
         )
+        mail.raise_for_status()
 
     except Exception:
         logger.exception("Failed to send Nexora password reset email.")
