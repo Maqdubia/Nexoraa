@@ -1,257 +1,350 @@
 
-/* =====================================================
-   NEXORA — OFFICIAL GLOBAL THEME
-   Deep Forest • Olive • Sage • Pale Sage • Warm Ivory
-   ===================================================== */
+/* =========================================================
+   NEXORA — GLOBAL THEME
+   Deep Forest • Olive Forest • Muted Sage • Pale Sage • Ivory
+   ========================================================= */
 
 :root {
-    --nx-forest: #1C2418;
-    --nx-olive: #3A4726;
-    --nx-sage: #7F8D63;
-    --nx-pale-sage: #CFD6C8;
-    --nx-ivory: #F7F7F2;
+    --nexora-deep-forest: #1C2418;
+    --nexora-olive-forest: #3A4726;
+    --nexora-muted-sage: #7F8D63;
+    --nexora-pale-sage: #CFD6C8;
+    --nexora-warm-ivory: #F7F7F2;
 
-    --nx-text: #30352A;
-    --nx-muted: #626858;
-    --nx-border: #DDE1D6;
-    --nx-card: #FFFFFF;
-    --nx-danger: #914B3D;
-    --nx-danger-bg: #FAEFEB;
-    --nx-success: #3A4726;
-    --nx-success-bg: #CFD6C8;
-    --nx-radius: 14px;
-    --nx-shadow: 0 4px 18px rgba(28, 36, 24, 0.06);
+    --nexora-white: #FFFFFF;
+    --nexora-text: #292F25;
+    --nexora-muted: #687060;
+    --nexora-border: #E1E4DA;
+    --nexora-success: #356747;
+    --nexora-error: #A13F35;
+    --nexora-warning: #8B682D;
+
+    --nexora-page-bg: var(--nexora-warm-ivory);
+    --nexora-card-bg: var(--nexora-white);
+    --nexora-primary: var(--nexora-olive-forest);
+    --nexora-primary-hover: var(--nexora-deep-forest);
+    --nexora-focus: rgba(127, 141, 99, 0.25);
+
+    --nexora-radius-sm: 8px;
+    --nexora-radius-md: 12px;
+    --nexora-radius-lg: 18px;
+
+    --nexora-shadow-sm:
+        0 2px 8px rgba(28, 36, 24, 0.04);
+    --nexora-shadow-md:
+        0 8px 24px rgba(28, 36, 24, 0.07);
+    --nexora-shadow-lg:
+        0 16px 40px rgba(28, 36, 24, 0.09);
+
+    --nexora-hero-gradient:
+        linear-gradient(
+            125deg,
+            #1C2418 0%,
+            #3A4726 35%,
+            #7F8D63 68%,
+            #CFD6C8 86%,
+            #F7F7F2 100%
+        );
 }
 
-/* Global backgrounds */
+/* ---------- Global foundation ---------- */
 
-html,
-body,
-#root,
-.app-layout,
-.main-content {
-    background-color: var(--nx-ivory);
-    color: var(--nx-text);
+html {
+    background: var(--nexora-page-bg);
+    scroll-behavior: smooth;
 }
 
 body {
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background-color: var(--nexora-page-bg);
+    color: var(--nexora-text);
 }
 
-.main-content {
-    min-width: 0;
+#root {
+    min-height: 100vh;
 }
 
-/* Typography */
+::selection {
+    color: var(--nexora-deep-forest);
+    background: var(--nexora-pale-sage);
+}
+
+a {
+    color: var(--nexora-olive-forest);
+    text-decoration-color: var(--nexora-muted-sage);
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: var(--nexora-deep-forest);
+}
 
 h1,
 h2,
 h3,
 h4,
-.main-content h1,
-.main-content h2,
-.main-content h3,
-.main-content h4 {
-    color: var(--nx-forest);
+h5,
+h6 {
+    color: var(--nexora-deep-forest);
 }
 
-.main-content p {
+p {
     color: inherit;
 }
 
-.main-content small,
-.main-content .subtitle,
-.main-content .muted,
-.main-content .text-muted {
-    color: var(--nx-muted);
+/* ---------- Form fields ---------- */
+
+input,
+select,
+textarea {
+    accent-color: var(--nexora-olive-forest);
 }
 
-/* Hero gradients */
-
-.dashboard-welcome {
-    background: linear-gradient(
-        112deg,
-        #1C2418 0%,
-        #3A4726 27%,
-        #7F8D63 49%,
-        #CFD6C8 73%,
-        #F7F7F2 100%
-    );
-    border-color: var(--nx-border);
-    color: #FFFFFF;
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+    border-color: var(--nexora-border);
+    border-radius: var(--nexora-radius-sm);
 }
 
-.dashboard-welcome h1,
-.dashboard-welcome h2,
-.dashboard-welcome h3 {
-    color: #FFFFFF;
+input:focus,
+select:focus,
+textarea:focus {
+    outline-color: var(--nexora-muted-sage);
 }
 
-.dashboard-welcome p {
-    color: rgba(255, 255, 255, 0.9);
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+    outline: 3px solid var(--nexora-focus);
+    outline-offset: 2px;
 }
 
-/* Cards */
+/* ---------- Primary buttons ---------- */
 
+button,
+input[type="submit"] {
+    transition:
+        background-color 180ms ease,
+        border-color 180ms ease,
+        color 180ms ease,
+        box-shadow 180ms ease;
+}
+
+.auth-button,
+.primary-button,
+button[type="submit"] {
+    background-color: var(--nexora-olive-forest);
+    border-color: var(--nexora-olive-forest);
+    color: var(--nexora-white);
+}
+
+.auth-button:hover:not(:disabled),
+.primary-button:hover:not(:disabled),
+button[type="submit"]:hover:not(:disabled) {
+    background-color: var(--nexora-deep-forest);
+    border-color: var(--nexora-deep-forest);
+    color: var(--nexora-white);
+}
+
+button:disabled,
+input[type="submit"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.secondary-button {
+    background-color: var(--nexora-pale-sage);
+    border-color: var(--nexora-border);
+    color: var(--nexora-deep-forest);
+}
+
+.secondary-button:hover:not(:disabled) {
+    background-color: #BEC9B4;
+    color: var(--nexora-deep-forest);
+}
+
+/* ---------- Common card surfaces ---------- */
+
+.auth-card,
+.card,
 .dashboard-card,
-.dashboard-action-card,
 .profile-card,
 .resume-card,
-.resume-upload-card,
-.experience-card,
+.job-card,
 .application-card,
 .interview-card,
-.interview-question-card,
-.question-card,
-.history-card,
-.job-card,
-.job-match-card,
-.match-card,
+.stat-card,
 .skill-card,
-.score-card,
-.analysis-card,
-.skills-result-card,
-.skill-gap-form-card,
-.improvement-card {
-    border-color: var(--nx-border);
-    border-radius: var(--nx-radius);
-    background-color: var(--nx-card);
-    box-shadow: var(--nx-shadow);
-    color: var(--nx-text);
+.result-card,
+.panel {
+    background-color: var(--nexora-card-bg);
+    border-color: var(--nexora-border);
+    box-shadow: var(--nexora-shadow-sm);
 }
 
-/* Buttons */
+/* ---------- Authentication pages ---------- */
 
-.main-content button,
-.auth-page button {
-    font-family: inherit;
+.auth-page {
+    background: var(--nexora-page-bg);
 }
 
-.main-content button:focus-visible,
-.auth-page button:focus-visible {
-    outline: 2px solid var(--nx-sage);
-    outline-offset: 3px;
+.auth-card {
+    border: 1px solid var(--nexora-border);
+    border-radius: var(--nexora-radius-lg);
+    box-shadow: var(--nexora-shadow-md);
 }
 
-.auth-page .auth-button,
-.auth-card .auth-button {
-    border-color: var(--nx-olive);
-    background: var(--nx-olive);
-    color: #FFFFFF;
+.logo,
+.brand-header .logo {
+    color: var(--nexora-deep-forest);
 }
 
-.auth-page .auth-button:hover:not(:disabled),
-.auth-card .auth-button:hover:not(:disabled) {
-    border-color: var(--nx-forest);
-    background: var(--nx-forest);
+.subtitle {
+    color: var(--nexora-muted);
 }
 
-.auth-page .secondary-button,
-.auth-card .secondary-button {
-    border-color: var(--nx-border);
-    background: var(--nx-pale-sage);
-    color: var(--nx-forest);
+.input-group label {
+    color: var(--nexora-text);
 }
 
-/* Inputs and forms */
-
-.main-content input,
-.main-content textarea,
-.main-content select,
-.auth-page input {
-    border-color: var(--nx-border);
-    border-radius: 9px;
-    background: var(--nx-card);
-    color: var(--nx-text);
+.message-banner.success {
+    background-color: #EDF3E8;
+    border-color: #D1E0C8;
+    color: #315A35;
 }
 
-.main-content input::placeholder,
-.main-content textarea::placeholder,
-.auth-page input::placeholder {
-    color: var(--nx-muted);
+.message-banner.error {
+    background-color: #FAEFED;
+    border-color: #EBD0CB;
+    color: #8C342D;
 }
 
-.main-content input:focus,
-.main-content textarea:focus,
-.main-content select:focus,
-.auth-page input:focus {
-    border-color: var(--nx-sage);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(127, 141, 99, 0.18);
+/* ---------- Navigation and sidebars ---------- */
+
+.sidebar,
+.sidebar-drawer {
+    background-color: var(--nexora-deep-forest);
+    color: var(--nexora-white);
 }
 
-/* Skill chips and tags */
-
-.main-content .skill-tag,
-.main-content .skill-badge,
-.main-content .tag,
-.main-content .badge,
-.main-content .chip {
-    border-color: var(--nx-border);
-    border-radius: 7px;
-    background: var(--nx-pale-sage);
-    color: var(--nx-forest);
+.sidebar a,
+.sidebar-drawer a {
+    color: var(--nexora-pale-sage);
 }
 
-/* Links */
-
-.main-content a {
-    color: var(--nx-olive);
+.sidebar a:hover,
+.sidebar-drawer a:hover {
+    color: var(--nexora-white);
 }
 
-.main-content a:hover {
-    color: var(--nx-forest);
+.sidebar a.active,
+.sidebar-drawer a.active {
+    background-color: var(--nexora-olive-forest);
+    color: var(--nexora-white);
 }
 
-/* Feedback */
-
-.main-content .error,
-.main-content .error-message {
-    color: var(--nx-danger);
+.navbar,
+.topbar,
+.app-header {
+    background-color: var(--nexora-card-bg);
+    border-color: var(--nexora-border);
 }
 
-.main-content .success,
-.main-content .success-message {
-    color: var(--nx-success);
+/* ---------- Soft sage surfaces ---------- */
+
+.badge,
+.tag,
+.skill-tag,
+.status-badge {
+    border-radius: 999px;
 }
 
-/* Tables */
-
-.main-content table {
-    border-color: var(--nx-border);
-    background: var(--nx-card);
-    color: var(--nx-text);
+.skill-tag {
+    background-color: var(--nexora-pale-sage);
+    color: var(--nexora-deep-forest);
 }
 
-.main-content th {
-    background: var(--nx-pale-sage);
-    color: var(--nx-forest);
+/* ---------- Hero sections ---------- */
+
+.hero-gradient,
+.gradient-hero {
+    background: var(--nexora-hero-gradient);
+    color: var(--nexora-white);
 }
 
-.main-content td,
-.main-content th {
-    border-color: var(--nx-border);
+.hero-gradient h1,
+.hero-gradient h2,
+.hero-gradient h3,
+.gradient-hero h1,
+.gradient-hero h2,
+.gradient-hero h3 {
+    color: inherit;
 }
 
-/* Separators */
+/* ---------- Tables ---------- */
 
-.main-content hr {
-    border: 0;
-    border-top: 1px solid var(--nx-border);
+table {
+    border-color: var(--nexora-border);
 }
 
-/* Preserve responsive page layouts */
+thead {
+    background-color: var(--nexora-pale-sage);
+    color: var(--nexora-deep-forest);
+}
+
+th,
+td {
+    border-color: var(--nexora-border);
+}
+
+tbody tr:hover {
+    background-color: #F2F4ED;
+}
+
+/* ---------- Feedback and separators ---------- */
+
+hr {
+    border-color: var(--nexora-border);
+}
+
+.success,
+.text-success {
+    color: var(--nexora-success);
+}
+
+.error,
+.text-error {
+    color: var(--nexora-error);
+}
+
+/* ---------- Responsive behavior ---------- */
+
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+}
 
 @media (max-width: 768px) {
-    .main-content {
-        min-width: 0;
+    .auth-card {
+        width: min(100% - 24px, 480px);
+        margin-inline: auto;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
     *,
     *::before,
     *::after {
         transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
     }
 }
