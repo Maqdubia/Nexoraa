@@ -1,17 +1,26 @@
 
-/* ========================================
-   PROFILE PAGE - RESPONSIVE STYLING
-======================================== */
+/* ======================================================
+   NEXORA — PROFILE PAGE
+   Official palette: Forest, Olive, Sage and Warm Ivory
+   ====================================================== */
 
 .profile-page {
     width: 100%;
     max-width: 1100px;
     min-width: 0;
     margin: 0 auto;
-    padding-bottom: 40px;
+    padding: 0 0 40px;
+    color: #292F25;
+    box-sizing: border-box;
 }
 
-/* HEADER */
+.profile-page *,
+.profile-page *::before,
+.profile-page *::after {
+    box-sizing: border-box;
+}
+
+/* PAGE HEADER */
 
 .profile-title {
     display: flex;
@@ -28,16 +37,16 @@
 
 .profile-title h1 {
     margin: 0;
-    color: #111827;
-    font-size: clamp(24px, 3vw, 30px);
+    color: #1C2418;
+    font-size: clamp(25px, 3vw, 32px);
     font-weight: 700;
     line-height: 1.3;
     overflow-wrap: anywhere;
 }
 
 .profile-title p {
-    margin-top: 8px;
-    color: #6b7280;
+    margin: 8px 0 0;
+    color: #687060;
     font-size: 14px;
     line-height: 1.7;
 }
@@ -50,10 +59,10 @@
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 20px;
-    color: #475569;
+    background: #FFFFFF;
+    border: 1px solid #E1E4DA;
+    border-radius: 999px;
+    color: #3A4726;
     font-size: 13px;
     font-weight: 600;
 }
@@ -63,7 +72,7 @@
     height: 8px;
     flex-shrink: 0;
     border-radius: 50%;
-    background: #22c55e;
+    background: #7F8D63;
 }
 
 /* MAIN PROFILE CARD */
@@ -71,13 +80,11 @@
 .profile-card {
     width: 100%;
     min-width: 0;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 16px;
+    background: #FFFFFF;
+    border: 1px solid #E1E4DA;
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow:
-        0 4px 6px rgba(15, 23, 42, 0.03),
-        0 10px 25px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 8px 24px rgba(28, 36, 24, 0.06);
 }
 
 /* PROFILE HEADER */
@@ -88,8 +95,8 @@
     gap: 20px;
     min-width: 0;
     padding: 30px 32px;
-    background: #f8faff;
-    border-bottom: 1px solid #e8ecf3;
+    background: #F2F4ED;
+    border-bottom: 1px solid #E1E4DA;
 }
 
 /* AVATAR */
@@ -102,11 +109,11 @@
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: #4f46e5;
-    color: #ffffff;
+    background: #3A4726;
+    color: #FFFFFF;
     font-size: 28px;
     font-weight: 700;
-    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.22);
+    box-shadow: 0 5px 14px rgba(28, 36, 24, 0.16);
 }
 
 /* USER INFORMATION */
@@ -117,7 +124,7 @@
 
 .profile-user-info h2 {
     margin: 0;
-    color: #111827;
+    color: #1C2418;
     font-size: 21px;
     font-weight: 700;
     overflow-wrap: anywhere;
@@ -125,7 +132,7 @@
 
 .profile-user-info p {
     margin: 7px 0 0;
-    color: #64748b;
+    color: #687060;
     font-size: 13px;
     line-height: 1.7;
 }
@@ -135,10 +142,14 @@
 .profile-section {
     min-width: 0;
     padding: 30px 32px;
-    border-bottom: 1px solid #eef2f7;
+    border-bottom: 1px solid #E9ECE4;
 }
 
-/* SECTION HEADING */
+.profile-section:last-of-type {
+    border-bottom: 1px solid #E9ECE4;
+}
+
+/* SECTION HEADINGS */
 
 .section-heading {
     display: flex;
@@ -155,9 +166,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eef2ff;
-    border-radius: 10px;
-    font-size: 17px;
+    background: #E9EDE2;
+    border: 1px solid #E1E7D8;
+    border-radius: 11px;
+    color: #3A4726;
+    font-size: 16px;
 }
 
 .section-heading > div:last-child {
@@ -166,7 +179,7 @@
 
 .section-heading h3 {
     margin: 0;
-    color: #1e293b;
+    color: #1C2418;
     font-size: 17px;
     font-weight: 650;
     overflow-wrap: anywhere;
@@ -174,7 +187,7 @@
 
 .section-heading p {
     margin: 4px 0 0;
-    color: #94a3b8;
+    color: #687060;
     font-size: 12px;
     line-height: 1.6;
 }
@@ -188,7 +201,7 @@
     min-width: 0;
 }
 
-/* INPUT GROUP */
+/* INPUT GROUPS */
 
 .profile-input {
     display: flex;
@@ -199,12 +212,12 @@
 
 .profile-input label {
     margin-bottom: 8px;
-    color: #374151;
+    color: #292F25;
     font-size: 13px;
     font-weight: 600;
 }
 
-/* INPUTS */
+/* INPUTS AND TEXTAREA */
 
 .profile-input input,
 .profile-input textarea {
@@ -212,14 +225,17 @@
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    border: 1px solid #d9dee8;
+    border: 1px solid #DDE2D5;
     border-radius: 9px;
-    background: #ffffff;
-    color: #1e293b;
+    background: #FFFFFF;
+    color: #292F25;
     font-family: inherit;
     font-size: 14px;
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
 }
 
 .profile-input input {
@@ -236,24 +252,29 @@
 
 .profile-input input::placeholder,
 .profile-input textarea::placeholder {
-    color: #a1aab8;
+    color: #92998B;
     opacity: 1;
-}
-
-.profile-input input:focus,
-.profile-input textarea:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
 }
 
 .profile-input input:hover,
 .profile-input textarea:hover {
-    border-color: #b8c0ce;
+    border-color: #AAB69A;
+}
+
+.profile-input input:focus,
+.profile-input textarea:focus {
+    border-color: #7F8D63;
+    box-shadow: 0 0 0 3px rgba(127, 141, 99, 0.18);
+}
+
+.profile-input input:focus-visible,
+.profile-input textarea:focus-visible {
+    outline: none;
 }
 
 .profile-input small {
     margin-top: 7px;
-    color: #64748b;
+    color: #687060;
     font-size: 12px;
     line-height: 1.6;
 }
@@ -264,43 +285,54 @@
     display: flex;
     justify-content: flex-end;
     padding: 22px 32px;
-    background: #fafbfc;
+    background: #FAFAF6;
 }
 
 /* SAVE BUTTON */
 
-.save-button {
+.profile-page .save-button {
     min-width: 145px;
     min-height: 44px;
     max-width: 100%;
     padding: 10px 22px;
-    border: none;
+    border: 1px solid #3A4726;
     border-radius: 9px;
-    background: #4f46e5;
-    color: #ffffff;
+    background: #3A4726;
+    color: #FFFFFF;
     font-family: inherit;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
-.save-button:hover {
-    background: #4338ca;
+.profile-page .save-button:hover:not(:disabled) {
+    background: #1C2418;
+    border-color: #1C2418;
+    color: #FFFFFF;
     transform: translateY(-1px);
-    box-shadow: 0 5px 12px rgba(79, 70, 229, 0.20);
+    box-shadow: 0 5px 12px rgba(28, 36, 24, 0.16);
 }
 
-.save-button:active {
+.profile-page .save-button:active {
     transform: translateY(0);
 }
 
-.save-button:focus-visible {
-    outline: 3px solid rgba(99, 102, 241, 0.35);
+.profile-page .save-button:focus-visible {
+    outline: 3px solid rgba(127, 141, 99, 0.35);
     outline-offset: 3px;
 }
 
-/* SUCCESS / ERROR MESSAGE */
+.profile-page .save-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* SUCCESS AND ERROR MESSAGES */
 
 .profile-message {
     margin: 0;
@@ -312,15 +344,15 @@
 }
 
 .profile-message.success {
-    background: #f0fdf4;
-    color: #15803d;
-    border-top: 1px solid #dcfce7;
+    background: #EDF3E8;
+    color: #315A35;
+    border-top: 1px solid #D1E0C8;
 }
 
 .profile-message.error {
-    background: #fef2f2;
-    color: #dc2626;
-    border-top: 1px solid #fee2e2;
+    background: #FAEFED;
+    color: #8C342D;
+    border-top: 1px solid #EBD0CB;
 }
 
 /* TABLET */
@@ -412,7 +444,7 @@
         width: 36px;
         height: 36px;
         min-width: 36px;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .section-heading h3 {
@@ -436,7 +468,7 @@
         padding: 16px;
     }
 
-    .save-button {
+    .profile-page .save-button {
         width: 100%;
         min-width: 0;
         min-height: 46px;
@@ -487,9 +519,9 @@
 /* ACCESSIBILITY */
 
 @media (prefers-reduced-motion: reduce) {
-    .save-button,
-    .profile-input input,
-    .profile-input textarea {
-        transition: none;
+    .profile-page *,
+    .profile-page *::before,
+    .profile-page *::after {
+        transition-duration: 0.01ms !important;
     }
 }
