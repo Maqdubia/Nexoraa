@@ -32,6 +32,9 @@ function ProtectedPage({ children }) {
     const closeSidebar = useCallback(() => {
         setSidebarOpen(false);
     }, []);
+    const openSidebar = useCallback(() => {
+    setSidebarOpen(true);
+    }, []);
 
     const toggleSidebarCollapse = useCallback(() => {
         setSidebarCollapsed((current) => !current);
