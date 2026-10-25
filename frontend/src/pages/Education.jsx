@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
+
 import {
     getEducation,
     addEducation,
@@ -154,7 +154,7 @@ function Education() {
 
     return (
         <>
-            <Navbar />
+            
 
             <div className="education-page">
                 <div className="education-container">
