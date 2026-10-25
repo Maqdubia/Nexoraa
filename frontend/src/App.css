@@ -1,18 +1,23 @@
 
 :root {
-    --nexora-white: #FDFBF7;
-    --nexora-beige: #F4EFEB;
-    --nexora-forest: #1D291C;
-    --nexora-sage: #5B6E58;
-    --nexora-tan: #C2A684;
-    --nexora-black: #121212;
-    --nexora-bg: var(--nexora-white);
-    --nexora-card: #FFFEFA;
-    --nexora-sage-light: #E8ECDD;
-    --nexora-text: #292B25;
-    --nexora-muted: #77766C;
-    --nexora-border: #E7E0D7;
-    --nexora-shadow: 0 4px 18px rgba(29, 41, 28, 0.045);
+    --nexora-forest: #1C2418;
+    --nexora-olive: #3A4726;
+    --nexora-sage: #7F8D63;
+    --nexora-pale-sage: #CFD6C8;
+    --nexora-ivory: #F7F7F2;
+
+    --nexora-white: #FFFFFF;
+    --nexora-beige: #F7F7F2;
+    --nexora-tan: #CFD6C8;
+    --nexora-black: #1C2418;
+
+    --nexora-bg: var(--nexora-ivory);
+    --nexora-card: #FFFFFF;
+    --nexora-sage-light: #CFD6C8;
+    --nexora-text: #1C2418;
+    --nexora-muted: #626858;
+    --nexora-border: #E1E4DB;
+    --nexora-shadow: 0 4px 18px rgba(28, 36, 24, 0.06);
 }
 
 * {
@@ -35,8 +40,8 @@ body {
 }
 
 #root {
-    min-height: 100vh;
     width: 100%;
+    min-height: 100vh;
 }
 
 .app-layout {
@@ -60,49 +65,7 @@ body {
     }
 }
 
-.mobile-app-header {
-    display: none;
-}
-
-.mobile-menu-toggle {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 4px;
-    width: 42px;
-    height: 42px;
-    padding: 10px;
-    border: 1px solid var(--nexora-border);
-    border-radius: 9px;
-    background: var(--nexora-white);
-    cursor: pointer;
-}
-
-.mobile-menu-toggle span {
-    display: block;
-    width: 18px;
-    height: 1.5px;
-    border-radius: 2px;
-    background: var(--nexora-forest);
-}
-
-.mobile-brand {
-    color: var(--nexora-forest);
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 22px;
-    font-weight: 700;
-}
-
-.mobile-brand span {
-    color: var(--nexora-sage);
-}
-
-.mobile-header-label {
-    margin-left: auto;
-    color: var(--nexora-muted);
-    font-size: 11px;
-}
+/* Typography */
 
 h1,
 h2,
@@ -116,6 +79,8 @@ h4 {
 p {
     line-height: 1.7;
 }
+
+/* Form controls */
 
 button,
 input,
@@ -135,12 +100,16 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-    outline: 2px solid rgba(91, 110, 88, 0.22);
+    outline: 2px solid rgba(127, 141, 99, 0.25);
     border-color: var(--nexora-sage);
 }
 
+button {
+    color: inherit;
+}
+
 a {
-    color: var(--nexora-sage);
+    color: var(--nexora-olive);
 }
 
 button:focus-visible,
@@ -151,33 +120,21 @@ a:focus-visible {
 
 ::selection {
     color: var(--nexora-white);
-    background: var(--nexora-sage);
+    background: var(--nexora-olive);
 }
+
+/* Tablet and mobile layout */
 
 @media (max-width: 900px) {
     .app-layout {
         display: block;
     }
 
-    .mobile-app-header {
-        position: sticky;
-        top: 0;
-        z-index: 900;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        min-height: 62px;
-        padding: 9px 14px;
-        border-bottom: 1px solid var(--nexora-border);
-        background: rgba(253, 251, 247, 0.97);
-        backdrop-filter: blur(12px);
-    }
-
     .main-content,
     .app-layout.sidebar-is-collapsed .main-content {
         width: 100%;
         min-width: 0;
-        min-height: calc(100vh - 62px);
+        min-height: 100vh;
         margin-left: 0;
         padding: 18px 14px 28px;
     }
@@ -188,14 +145,16 @@ a:focus-visible {
     .app-layout.sidebar-is-collapsed .main-content {
         padding: 14px 12px 24px;
     }
-
-    .mobile-header-label {
-        font-size: 10px;
-    }
 }
+
+/* Reduced motion */
 
 @media (prefers-reduced-motion: reduce) {
     .main-content {
         transition: none;
+    }
+
+    html {
+        scroll-behavior: auto;
     }
 }
