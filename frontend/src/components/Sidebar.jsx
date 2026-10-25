@@ -53,6 +53,7 @@ const navigation = [
 
 function Sidebar({
     isOpen = false,
+    onOpenSidebar = () => {},
     onClose = () => {},
     isCollapsed = false,
     onToggleCollapse = () => {},
