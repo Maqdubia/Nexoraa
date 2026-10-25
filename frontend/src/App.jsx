@@ -47,11 +47,12 @@ function ProtectedPage({ children }) {
             }`}
         >
             <Sidebar
-                isOpen={sidebarOpen}
-                onClose={closeSidebar}
-                isCollapsed={sidebarCollapsed}
-                onToggleCollapse={toggleSidebarCollapse}
-            />
+    isOpen={sidebarOpen}
+    onOpenSidebar={openSidebar}
+    onClose={closeSidebar}
+    isCollapsed={sidebarCollapsed}
+    onToggleCollapse={toggleSidebarCollapse}
+/>
 
             <main className="main-content">
                 {children}
