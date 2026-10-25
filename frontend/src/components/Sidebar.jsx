@@ -61,7 +61,9 @@ function Sidebar({
 
     useEffect(() => {
         const handleEscape = (event) => {
-            if (event.key === "Escape") onClose();
+            if (event.key === "Escape") {
+                onClose();
+            }
         };
 
         if (isOpen) {
@@ -88,6 +90,33 @@ function Sidebar({
         <>
             <button
                 type="button"
+                className={`mobile-sidebar-toggle ${isOpen ? "is-hidden" : ""}`}
+                onClick={() => {
+                    if (!isOpen) {
+                        // The parent owns the drawer state. This event
+                        // is handled by the callback supplied below.
+                        onOpenSidebar();
+                    }
+                }}
+                aria-label="Open navigation menu"
+                aria-expanded={isOpen}
+            >
+                <svg
+                    viewBox="0 0 24 24"
+                    width="22"
+                    height="22"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                >
+                    <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
+            </button>
+
+            <button
+                type="button"
                 className={`sidebar-backdrop ${isOpen ? "visible" : ""}`}
                 onClick={onClose}
                 aria-label="Close navigation"
@@ -106,10 +135,17 @@ function Sidebar({
                     aria-expanded={!isCollapsed}
                     title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
-                    <svg viewBox="0 0 24 24" width="18" height="18"
-                        fill="none" stroke="currentColor" strokeWidth="1.8"
-                        strokeLinecap="round" strokeLinejoin="round"
-                        aria-hidden="true">
+                    <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                    >
                         {isCollapsed
                             ? <path d="m9 18 6-6-6-6" />
                             : <path d="m15 18-6-6 6-6" />}
@@ -124,38 +160,60 @@ function Sidebar({
                         onClick={onClose}
                         aria-label="Close menu"
                     >
-                        <svg viewBox="0 0 24 24" width="20" height="20"
-                            fill="none" stroke="currentColor"
-                            strokeWidth="1.7" strokeLinecap="round">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="20"
+                            height="20"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.7"
+                            strokeLinecap="round"
+                            aria-hidden="true"
+                        >
                             <path d="m6 6 12 12M18 6 6 18" />
                         </svg>
                     </button>
                 </div>
 
-                <NavLink to="/dashboard" className="sidebar-logo" onClick={onClose}>
+                <NavLink
+                    to="/dashboard"
+                    className="sidebar-logo"
+                    onClick={onClose}
+                    aria-label="Nexora home"
+                >
                     <span className="sidebar-logo-mark">
-                        <svg viewBox="0 0 24 24" width="23" height="23"
-                            fill="none" stroke="currentColor" strokeWidth="1.5"
-                            strokeLinecap="round" strokeLinejoin="round"
-                            aria-hidden="true">
+                        <svg
+                            viewBox="0 0 24 24"
+                            width="23"
+                            height="23"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
+                        >
                             <path d="M19 4c-8 0-13 4-13 11 0 3 2 5 5 5 7 0 10-7 8-16Z" />
                             <path d="M4 21c2-5 5-8 10-11" />
                         </svg>
                     </span>
+
                     <span className="sidebar-brand-text">
                         <strong>Nexora.</strong>
                         <small>Career Platform</small>
                     </span>
                 </NavLink>
 
-                <nav className="sidebar-menu">
+                <nav className="sidebar-menu" aria-label="Application pages">
                     {navigation.map((item) => (
                         <NavLink
                             to={item.to}
                             key={item.to}
                             onClick={onClose}
                             title={isCollapsed ? item.label : undefined}
-                            className={({ isActive }) => isActive ? "active" : ""}
+                            className={({ isActive }) =>
+                                isActive ? "active" : ""
+                            }
                         >
                             <LineIcon name={item.icon} />
                             <span>{item.label}</span>
@@ -164,7 +222,11 @@ function Sidebar({
                 </nav>
 
                 <div className="sidebar-bottom">
-                    <button className="logout-btn" onClick={logout} type="button">
+                    <button
+                        className="logout-btn"
+                        onClick={logout}
+                        type="button"
+                    >
                         <LineIcon name="logout" />
                         <span>Logout</span>
                     </button>
