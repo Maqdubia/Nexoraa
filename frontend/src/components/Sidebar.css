@@ -86,7 +86,7 @@ letter-spacing: 0.2px;
 
 .sidebar-collapse-toggle {
 position: absolute;
-top: 50px;
+top: 70px;
 right: 9px;
 z-index: 2;
 display: flex;
