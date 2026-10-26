@@ -5,7 +5,6 @@ import axios from "axios";
 // API INSTANCES
 // =========================
 
-// Authentication, profile, education, skills, experience, and skill gap
 const API = axios.create({
     baseURL: "/api/auth/",
     headers: {
@@ -13,12 +12,10 @@ const API = axios.create({
     },
 });
 
-// Resume APIs
 const RESUME_API = axios.create({
     baseURL: "/api/resumes/",
 });
 
-// Jobs and applications APIs
 const JOBS_API = axios.create({
     baseURL: "/api/jobs/",
     headers: {
@@ -26,7 +23,6 @@ const JOBS_API = axios.create({
     },
 });
 
-// Interview practice APIs
 const INTERVIEW_API = axios.create({
     baseURL: "/api/interviews/",
     headers: {
@@ -40,6 +36,16 @@ const INTERVIEW_API = axios.create({
 
 export const registerUser = async (userData) => {
     const response = await API.post("register/", userData);
+    return response.data;
+};
+
+// Verify registration email using the six-digit OTP.
+export const verifyEmailOTP = async (email, otp) => {
+    const response = await API.post("verify-email-otp/", {
+        email: email.trim().toLowerCase(),
+        otp: String(otp).trim(),
+    });
+
     return response.data;
 };
 
@@ -364,10 +370,15 @@ export const getInterviewHistory = async () => {
     return response.data;
 };
 
+// =========================
+// FORGOT PASSWORD / OTP
+// =========================
+
 export const requestPasswordResetOTP = async (email) => {
     const response = await API.post("forgot-password/", {
         email,
     });
+
     return response.data;
 };
 
@@ -376,6 +387,7 @@ export const verifyPasswordResetOTP = async (email, otp) => {
         email,
         otp,
     });
+
     return response.data;
 };
 
@@ -385,6 +397,6 @@ export const resetPassword = async (email, resetToken, newPassword) => {
         reset_token: resetToken,
         new_password: newPassword,
     });
+
     return response.data;
 };
-
