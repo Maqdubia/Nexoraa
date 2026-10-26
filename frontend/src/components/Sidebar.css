@@ -87,9 +87,8 @@ letter-spacing: 0.2px;
 .sidebar-collapse-toggle {
 position: absolute;
  
-    top: 54px;
-    right: 22px;
-
+    top: 24px;
+right: 12px;
 
 z-index: 2;
 display: flex;
@@ -262,8 +261,9 @@ visibility: visible;
 }
 
 .sidebar.sidebar-collapsed .sidebar-collapse-toggle {
-    top: 50px;
-    right: 23px;
+    top: 54px;
+    right: 22px;
+
 }
 
 .sidebar.sidebar-collapsed .sidebar-menu a {
