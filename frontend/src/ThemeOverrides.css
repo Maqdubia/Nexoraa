@@ -220,37 +220,37 @@ input[type="submit"]:disabled {
     border-color: #EBD0CB;
     color: #8C342D;
 }
-
 /* ---------- Navigation and sidebars ---------- */
 
 .sidebar,
 .sidebar-drawer {
-    background-color: var(--nexora-deep-forest);
-    color: var(--nexora-white);
+background-color: #F7F7F2;
+color: #1C2418;
+border-right: 1px solid #DDE1D6;
 }
 
 .sidebar a,
 .sidebar-drawer a {
-    color: var(--nexora-pale-sage);
+color: #626858;
 }
 
 .sidebar a:hover,
 .sidebar-drawer a:hover {
-    color: var(--nexora-white);
+background-color: #E9EDE3;
+color: #1C2418;
 }
 
 .sidebar a.active,
 .sidebar-drawer a.active {
-    background-color: var(--nexora-olive-forest);
-    color: var(--nexora-white);
+background-color: #CFD6C8;
+color: #1C2418;
 }
 
-.navbar,
-.topbar,
-.app-header {
-    background-color: var(--nexora-card-bg);
-    border-color: var(--nexora-border);
+.sidebar a.active .line-icon,
+.sidebar-drawer a.active .line-icon {
+color: #3A4726;
 }
+
 
 /* ---------- Soft sage surfaces ---------- */
 
