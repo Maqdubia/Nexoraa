@@ -1,133 +1,273 @@
+/* ==========================================
+NEXORA — INTERVIEW HISTORY
+Forest Green · Olive · Sage · Warm Ivory
+========================================== */
 
 .history-page {
-    min-height: 100vh;
-    padding: 30px;
-    background: #f5f7fb;
-    color: #1e293b;
+box-sizing: border-box;
+width: 100%;
+min-width: 0;
+min-height: 100vh;
+padding: 30px;
+background: #F7F7F2;
+color: #1C2418;
+overflow-wrap: anywhere;
 }
 
+/* PAGE HEADER */
+
 .history-header {
-    margin-bottom: 28px;
+margin-bottom: 28px;
 }
 
 .history-header h1 {
-    margin-bottom: 8px;
-    font-size: 30px;
-    color: #172554;
+margin-bottom: 8px;
+color: #1C2418;
+font-size: 30px;
+line-height: 1.35;
 }
 
 .history-header p {
-    color: #64748b;
+color: #68715D;
+line-height: 1.7;
 }
+
+/* HISTORY LIST */
 
 .history-list {
-    display: grid;
-    gap: 22px;
+display: grid;
+gap: 22px;
+min-width: 0;
 }
 
+/* HISTORY CARD */
+
 .history-card {
-    padding: 24px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+box-sizing: border-box;
+min-width: 0;
+padding: 24px;
+background: #FFFFFF;
+border: 1px solid #E1E5DA;
+border-radius: 14px;
+box-shadow: 0 4px 12px rgba(28, 36, 24, 0.045);
+transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-card:hover {
+border-color: #CFD6C8;
+box-shadow: 0 7px 20px rgba(28, 36, 24, 0.07);
 }
 
 .history-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+flex-wrap: wrap;
 }
 
 .history-card-header h2 {
-    margin: 0;
-    font-size: 21px;
-    color: #1d4ed8;
+margin: 0;
+color: #3A4726;
+font-size: 21px;
+line-height: 1.5;
+overflow-wrap: anywhere;
 }
 
 .history-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    background: #dcfce7;
-    color: #166534;
-    font-size: 13px;
+display: inline-flex;
+align-items: center;
+max-width: 100%;
+padding: 6px 12px;
+border: 1px solid #CFD6C8;
+border-radius: 20px;
+background: #E8EDE2;
+color: #3A4726;
+font-size: 13px;
+line-height: 1.5;
+overflow-wrap: anywhere;
 }
 
 .history-date {
-    margin: 16px 0;
-    color: #64748b;
-    font-size: 14px;
+margin: 16px 0;
+color: #78816F;
+font-size: 14px;
+line-height: 1.6;
 }
 
+/* SCORE */
+
 .history-score {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: #eff6ff;
-    border-radius: 10px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 12px;
+padding: 15px;
+background: #F0F2EB;
+border: 1px solid #E1E5DA;
+border-radius: 10px;
 }
 
 .history-score strong {
-    font-size: 24px;
-    color: #1d4ed8;
+color: #3A4726;
+font-size: 24px;
+overflow-wrap: anywhere;
 }
+
+/* FEEDBACK AND ANSWERS */
 
 .history-feedback,
 .history-answers {
-    margin-top: 22px;
+margin-top: 22px;
+min-width: 0;
 }
 
 .history-feedback h3,
 .history-answers h3 {
-    color: #172554;
+color: #1C2418;
+font-size: 18px;
+line-height: 1.5;
 }
 
 .history-answer {
-    margin-top: 14px;
-    padding: 18px;
-    background: #f8fafc;
-    border-left: 4px solid #3b82f6;
-    border-radius: 8px;
+box-sizing: border-box;
+min-width: 0;
+margin-top: 14px;
+padding: 18px;
+background: #F7F7F2;
+border: 1px solid #E1E5DA;
+border-left: 4px solid #7F8D63;
+border-radius: 8px;
 }
 
 .history-answer h4 {
-    margin-bottom: 8px;
-    color: #334155;
+margin-bottom: 8px;
+color: #3A4726;
+font-size: 15px;
+line-height: 1.6;
+overflow-wrap: anywhere;
 }
 
 .history-answer p {
-    line-height: 1.6;
-    overflow-wrap: anywhere;
+margin-bottom: 0;
+color: #50594A;
+font-size: 14px;
+line-height: 1.7;
+white-space: pre-wrap;
+overflow-wrap: anywhere;
 }
 
+/* EMPTY STATE */
+
 .history-empty {
-    padding: 45px 20px;
-    text-align: center;
-    background: #ffffff;
-    border-radius: 14px;
+box-sizing: border-box;
+padding: 45px 20px;
+text-align: center;
+background: #FFFFFF;
+border: 1px solid #E1E5DA;
+border-radius: 14px;
+}
+
+.history-empty h2 {
+color: #1C2418;
 }
 
 .history-empty p {
-    color: #64748b;
+color: #68715D;
+line-height: 1.7;
 }
+
+/* ERROR STATE */
 
 .history-error {
-    color: #b91c1c;
+padding: 14px 16px;
+color: #873F2C;
+background: #FBF1EC;
+border: 1px solid #E8C9BC;
+border-radius: 9px;
+line-height: 1.7;
+overflow-wrap: anywhere;
 }
 
+/* TABLET */
+
+@media (max-width: 850px) {
+.history-page {
+padding: 24px 20px;
+}
+}
+
+/* MOBILE */
+
 @media (max-width: 600px) {
-    .history-page {
-        padding: 18px;
-    }
+.history-page {
+min-height: auto;
+padding: 18px 14px;
+}
 
-    .history-card {
-        padding: 18px;
-    }
+.history-header {
+    margin-bottom: 22px;
+}
 
-    .history-header h1 {
-        font-size: 25px;
-    }
+.history-header h1 {
+    font-size: 25px;
+}
+
+.history-card {
+    padding: 18px;
+    border-radius: 12px;
+}
+
+.history-card-header h2 {
+    font-size: 19px;
+}
+
+.history-score {
+    align-items: flex-start;
+    padding: 13px;
+}
+
+.history-score strong {
+    font-size: 22px;
+}
+
+.history-answer {
+    padding: 15px;
+}
+
+.history-empty {
+    padding: 32px 16px;
+}
+
+}
+
+/* VERY SMALL PHONES */
+
+@media (max-width: 360px) {
+.history-page {
+padding: 15px 10px;
+}
+
+.history-card {
+    padding: 14px;
+}
+
+.history-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+}
+
+.history-score {
+    flex-direction: column;
+}
+
+}
+
+/* ACCESSIBILITY */
+
+@media (prefers-reduced-motion: reduce) {
+.history-card {
+transition: none;
+}
 }
