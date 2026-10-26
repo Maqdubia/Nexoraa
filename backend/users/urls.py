@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import (
 
 from .views import (
     RegisterView,
+    verify_email_otp,
     ProfileView,
     EducationListCreateView,
     EducationDetailView,
@@ -22,6 +23,8 @@ from .views import (
 
 
 urlpatterns = [
+    
+
 
     # =========================================
     # AUTHENTICATION
@@ -32,6 +35,12 @@ urlpatterns = [
         RegisterView.as_view(),
         name="register",
     ),
+    path(
+    "verify-email-otp/",
+    verify_email_otp,
+    name="verify-email-otp",
+    ),
+
 
     path(
         "login/",
