@@ -1,3 +1,4 @@
+
 # Generated for Nexora email verification
 
 import django.db.models.deletion
@@ -8,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users", "0007_passwordresettotp"),
+        ("users", "0006_skillgap"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
