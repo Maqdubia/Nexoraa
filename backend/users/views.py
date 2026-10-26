@@ -121,6 +121,78 @@ class RegisterView(generics.CreateAPIView):
         )
 
 # =========================================
+# VERIFY REGISTRATION EMAIL OTP
+# =========================================
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def verify_email_otp(request):
+    email = request.data.get("email", "").strip().lower()
+    otp = str(request.data.get("otp", "")).strip()
+
+    if not email or len(otp) != 6 or not otp.isdigit():
+        return Response(
+            {"detail": "Enter a valid email and six-digit OTP."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user = User.objects.filter(email__iexact=email).first()
+
+    if not user:
+        return Response(
+            {"detail": "Invalid or expired verification code."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if user.is_active:
+        return Response(
+            {"detail": "This email has already been verified. You can log in."},
+            status=status.HTTP_200_OK,
+        )
+
+    try:
+        record = user.email_verification_otp
+    except EmailVerificationOTP.DoesNotExist:
+        return Response(
+            {"detail": "Invalid or expired verification code."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if record.expires_at <= timezone.now():
+        record.delete()
+        return Response(
+            {"detail": "Verification code expired. Please register again."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if record.attempts >= 5:
+        return Response(
+            {"detail": "Too many attempts. Please register again."},
+            status=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+    if not check_password(otp, record.otp_hash):
+        record.attempts += 1
+        record.save(update_fields=["attempts"])
+
+        return Response(
+            {"detail": "Invalid or expired verification code."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user.is_active = True
+    user.save(update_fields=["is_active"])
+    record.delete()
+
+    return Response(
+        {
+            "detail": "Email verified successfully. You can now log in.",
+            "verified": True,
+        },
+        status=status.HTTP_200_OK,
+    )
+
+# =========================================
 # USER PROFILE
 # =========================================
 
