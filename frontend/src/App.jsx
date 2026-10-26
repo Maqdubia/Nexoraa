@@ -1,8 +1,14 @@
 
 import { useCallback, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 
 import VerifyResetOTP from "./pages/VerifyResetOTP";
+import VerifyEmailOTP from "./pages/VerifyEmailOTP";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -32,8 +38,9 @@ function ProtectedPage({ children }) {
     const closeSidebar = useCallback(() => {
         setSidebarOpen(false);
     }, []);
+
     const openSidebar = useCallback(() => {
-    setSidebarOpen(true);
+        setSidebarOpen(true);
     }, []);
 
     const toggleSidebarCollapse = useCallback(() => {
@@ -47,12 +54,12 @@ function ProtectedPage({ children }) {
             }`}
         >
             <Sidebar
-    isOpen={sidebarOpen}
-    onOpenSidebar={openSidebar}
-    onClose={closeSidebar}
-    isCollapsed={sidebarCollapsed}
-    onToggleCollapse={toggleSidebarCollapse}
-/>
+                isOpen={sidebarOpen}
+                onOpenSidebar={openSidebar}
+                onClose={closeSidebar}
+                isCollapsed={sidebarCollapsed}
+                onToggleCollapse={toggleSidebarCollapse}
+            />
 
             <main className="main-content">
                 {children}
@@ -70,12 +77,27 @@ function App() {
                     element={<Navigate to="/login" replace />}
                 />
 
+                {/* Public authentication routes */}
                 <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
+                <Route
+                    path="/verify-email-otp"
+                    element={<VerifyEmailOTP />}
+                />
+                <Route
+                    path="/forgot-password"
+                    element={<ForgotPassword />}
+                />
+                <Route
+                    path="/verify-reset-otp"
+                    element={<VerifyResetOTP />}
+                />
+                <Route
+                    path="/reset-password"
+                    element={<ResetPassword />}
+                />
 
+                {/* Protected application routes */}
                 <Route
                     path="/dashboard"
                     element={
