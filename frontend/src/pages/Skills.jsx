@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
 import {
     getSkills,
     addSkill,
@@ -92,7 +91,7 @@ function Skills() {
 
     return (
       <>
-    <Navbar />
+    
 
     <div className="skills-page">
 
