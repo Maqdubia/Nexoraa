@@ -23,6 +23,7 @@ from .models import (
     Experience,
     SkillGap,
     PasswordResetOTP,
+    EmailVerificationOTP,
 )
 
 from .serializers import (
@@ -42,9 +43,82 @@ logger = logging.getLogger(__name__)
 # REGISTER
 # =========================================
 
-class RegisterView(generics.CreateAPIView):
 
+class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        otp = f"{secrets.randbelow(1000000):06d}"
+        now = timezone.now()
+
+        record = EmailVerificationOTP.objects.create(
+            user=user,
+            otp_hash=make_password(otp),
+            expires_at=now + timedelta(minutes=10),
+        )
+
+        try:
+            import os
+            import requests as http
+
+            api_key = os.getenv("RESEND_API_KEY", "")
+
+            if not api_key:
+                raise RuntimeError("Email service is not configured.")
+
+            mail = http.post(
+                "https://api.resend.com/emails",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "from": "Nexora <onboarding@resend.dev>",
+                    "to": [user.email],
+                    "subject": "Verify your Nexora email",
+                    "text": (
+                        f"Hello {user.username},\n\n"
+                        f"Your Nexora email verification code is: {otp}\n\n"
+                        "This code expires in 10 minutes.\n"
+                        "If you did not create this account, you can ignore this email."
+                    ),
+                },
+                timeout=15,
+            )
+            mail.raise_for_status()
+
+        except Exception:
+            logger.exception("Failed to send Nexora verification email.")
+            record.delete()
+            user.delete()
+
+            return Response(
+                {
+                    "detail": (
+                        "We couldn't send the verification email. "
+                        "Please try registering again later."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response(
+            {
+                "detail": (
+                    "Registration received. Check your email for "
+                    "the verification code."
+                ),
+                "email": user.email,
+                "verification_required": True,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 # =========================================
 # USER PROFILE
