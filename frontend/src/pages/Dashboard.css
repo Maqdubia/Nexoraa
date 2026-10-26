@@ -17,7 +17,14 @@
     overflow: hidden;
     border: 1px solid #354333;
     border-radius: 15px;
-    background: #1D291C;
+    background: linear-gradient(
+    110deg,
+    #1C2418 0%,
+    #3A4726 25%,
+    #7F8D63 52%,
+    #CFD6C8 76%,
+    #F7F7F2 100%
+);
     color: #FDFBF7;
 }
 
