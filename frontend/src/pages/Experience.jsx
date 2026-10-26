@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from "react";
-import Navbar from "../components/Navbar";
+
 import {
     getExperience,
     addExperience,
@@ -103,7 +103,7 @@ function Experience() {
 
     return (
       <>
-    <Navbar />
+    
 
     <div className="experience-page">
 
