@@ -7,7 +7,7 @@ import {
     deleteResume
 } from "../services/api";
 
-import Navbar from "../components/Navbar";
+
 import "./Resume.css";
 
 function Resume() {
@@ -125,7 +125,7 @@ function Resume() {
 
     return (
         <>
-            <Navbar />
+            
 
             <div className="resume-page">
 
