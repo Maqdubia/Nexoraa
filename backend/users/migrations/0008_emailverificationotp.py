@@ -1,15 +1,12 @@
-
-# Generated for Nexora email verification
-
-import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
+import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("users", "0006_skillgap"),
+        ("users", "0007_passwordresetotp"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -17,21 +14,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="EmailVerificationOTP",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("otp_hash", models.CharField(max_length=128)),
                 ("expires_at", models.DateTimeField()),
-                (
-                    "attempts",
-                    models.PositiveSmallIntegerField(default=0),
-                ),
+                ("attempts", models.PositiveSmallIntegerField(default=0)),
                 ("created_at", models.DateTimeField(auto_now=True)),
                 (
                     "user",
