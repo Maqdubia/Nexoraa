@@ -31,7 +31,7 @@ FRONTEND_DIST = Path(settings.BASE_DIR).parent / "frontend" / "dist"
 
 # Serve React JavaScript, CSS, and other assets.
 def serve_frontend_asset(request, path):
-    asset_path = (FRONTEND_DIST / path).resolve()
+    asset_path = (FRONTEND_DIST / "assets" / path).resolve()
 
     # Prevent access to files outside the frontend build directory.
     try:
