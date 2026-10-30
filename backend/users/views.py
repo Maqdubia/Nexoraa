@@ -70,26 +70,28 @@ class RegisterView(generics.CreateAPIView):
             expires_at=now + timedelta(minutes=10),
         )
 
-        try:
+                try:
             import os
             import requests as http
 
-            api_key = os.getenv("RESEND_API_KEY", "")
+            brevo_key = os.getenv("BREVO_API_KEY", "")
+            sender_email = os.getenv("BREVO_SENDER_EMAIL", "")
 
-            if not api_key:
+            if not brevo_key or not sender_email:
                 raise RuntimeError("Email service is not configured.")
 
             mail = http.post(
-                "https://api.resend.com/emails",
+                "https://api.brevo.com/v3/smtp/email",
                 headers={
-                    "Authorization": f"Bearer {api_key}",
+                    "api-key": brevo_key,
                     "Content-Type": "application/json",
+                    "accept": "application/json",
                 },
                 json={
-                    "from": "Nexora <onboarding@resend.dev>",
-                    "to": [user.email],
+                    "sender": {"name": "Nexora", "email": sender_email},
+                    "to": [{"email": user.email}],
                     "subject": "Verify your Nexora email",
-                    "text": (
+                    "textContent": (
                         f"Hello {user.username},\n\n"
                         f"Your Nexora email verification code is: {otp}\n\n"
                         "This code expires in 10 minutes.\n"
