@@ -69,8 +69,104 @@ class RegisterView(generics.CreateAPIView):
             otp_hash=make_password(otp),
             expires_at=now + timedelta(minutes=10),
         )
+        class RegisterView(generics.CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]
 
-                try:
+    def create(self, request, *args, **kwargs):
+        import os
+        import requests as http
+
+        email = str(request.data.get("email", "")).strip().lower()
+        username = str(request.data.get("username", "")).strip()
+        if email:
+            User.objects.filter(email__iexact=email, is_active=False).delete()
+        if username:
+            User.objects.filter(username__iexact=username, is_active=False).delete()
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+
+        otp = f"{secrets.randbelow(1000000):06d}"
+        now = timezone.now()
+
+        record = EmailVerificationOTP.objects.create(
+            user=user,
+            otp_hash=make_password(otp),
+            expires_at=now + timedelta(minutes=10),
+        )
+
+        try:
+            brevo_key = os.getenv("BREVO_API_KEY", "")
+            sender_email = os.getenv("BREVO_SENDER_EMAIL", "")
+
+            if not brevo_key or not sender_email:
+                raise RuntimeError("Email service is not configured.")
+
+            mail = http.post(
+                "https://api.brevo.com/v3/smtp/email",
+                headers={
+                    "api-key": brevo_key,
+                    "Content-Type": "application/json",
+                    "accept": "application/json",
+                },
+                json={
+                    "sender": {"name": "Nexora", "email": sender_email},
+                    "to": [{"email": user.email}],
+                    "subject": "Verify your Nexora email",
+                    "textContent": (
+                        f"Hello {user.username},\n\n"
+                        f"Your Nexora email verification code is: {otp}\n\n"
+                        "This code expires in 10 minutes.\n"
+                        "If you did not create this account, you can ignore this email."
+                    ),
+                },
+                timeout=15,
+            )
+            mail.raise_for_status()
+
+        except Exception:
+            logger.exception("Failed to send Nexora verification email.")
+
+            if os.getenv("DEMO_OTP_MODE", "").lower() in ("true", "1", "yes"):
+                print(f"DEMO OTP for {user.email}: {otp}", flush=True)
+                return Response(
+                    {
+                        "detail": "Registration received. Check your email for the verification code.",
+                        "email": user.email,
+                        "verification_required": True,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
+            record.delete()
+            user.delete()
+
+            return Response(
+                {
+                    "detail": (
+                        "We couldn't send the verification email. "
+                        "Please try registering again later."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        return Response(
+            {
+                "detail": (
+                    "Registration received. Check your email for "
+                    "the verification code."
+                ),
+                "email": user.email,
+                "verification_required": True,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+        try:
             import os
             import requests as http
 
