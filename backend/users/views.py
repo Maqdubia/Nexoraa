@@ -1,6 +1,7 @@
 
 import logging
 import secrets
+import os
 from datetime import timedelta
 
 from django.contrib.auth.models import User
@@ -49,6 +50,12 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
+        email = str(request.data.get("email", "")).strip().lower()
+        username = str(request.data.get("username", "")).strip()
+        if email:
+            User.objects.filter(email__iexact=email, is_active=False).delete()
+        if username:
+            User.objects.filter(username__iexact=username, is_active=False).delete()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -95,6 +102,17 @@ class RegisterView(generics.CreateAPIView):
 
         except Exception:
             logger.exception("Failed to send Nexora verification email.")
+                        
+            if os.getenv("DEMO_OTP_MODE", "").lower() in ("true", "1", "yes"):
+                print(f"DEMO OTP for {user.email}: {otp}", flush=True)
+                return Response(
+                    {
+                        "detail": "Registration received. Check your email for the verification code.",
+                        "email": user.email,
+                        "verification_required": True,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
             record.delete()
             user.delete()
 
