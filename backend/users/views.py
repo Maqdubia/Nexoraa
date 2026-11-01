@@ -1,15 +1,14 @@
-
 import logging
-import secrets
 import os
+import secrets
 from datetime import timedelta
 
+import requests
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.core.mail import send_mail
-from django.conf import settings
+from django.db import transaction
 from django.utils import timezone
 
 from rest_framework import generics, status
@@ -41,6 +40,68 @@ logger = logging.getLogger(__name__)
 
 
 # =========================================
+# BREVO EMAIL HELPER (used by registration AND forgot-password)
+# =========================================
+
+BREVO_URL = "https://api.brevo.com/v3/smtp/email"
+
+
+class EmailDeliveryError(Exception):
+    """Raised when an email could not be sent through Brevo."""
+
+
+def _demo_otp_mode():
+    return os.getenv("DEMO_OTP_MODE", "").strip().lower() in ("true", "1", "yes")
+
+
+def send_brevo_email(to_email, to_name, subject, text_content):
+    """Send one plain-text email through Brevo.
+
+    Reads BREVO_API_KEY and BREVO_SENDER_EMAIL from the environment.
+    Raises EmailDeliveryError on any failure. Never logs the API key,
+    the message body or the OTP.
+    """
+    api_key = os.getenv("BREVO_API_KEY", "").strip()
+    sender_email = os.getenv("BREVO_SENDER_EMAIL", "").strip()
+
+    if not api_key or not sender_email:
+        logger.error("Brevo is not configured: BREVO_API_KEY or BREVO_SENDER_EMAIL is missing.")
+        raise EmailDeliveryError("Email service is not configured.")
+
+    try:
+        response = requests.post(
+            BREVO_URL,
+            headers={
+                "api-key": api_key,
+                "Content-Type": "application/json",
+                "accept": "application/json",
+            },
+            json={
+                "sender": {"name": "Nexora", "email": sender_email},
+                "to": [{"email": to_email, "name": to_name or to_email}],
+                "subject": subject,
+                "textContent": text_content,
+            },
+            timeout=15,
+        )
+    except requests.RequestException as exc:
+        logger.error("Brevo request failed: %s", exc.__class__.__name__)
+        raise EmailDeliveryError("Could not reach the email service.") from exc
+
+    if response.status_code >= 400:
+        # Brevo's error text explains the cause (e.g. sender not verified).
+        # It never contains our API key or the OTP.
+        logger.error(
+            "Brevo rejected the email: status=%s reason=%s",
+            response.status_code,
+            response.text[:300],
+        )
+        raise EmailDeliveryError("The email service rejected the message.")
+
+    logger.info("Brevo accepted an email (status=%s).", response.status_code)
+
+
+# =========================================
 # REGISTER
 # =========================================
 
@@ -52,33 +113,8 @@ class RegisterView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         email = str(request.data.get("email", "")).strip().lower()
         username = str(request.data.get("username", "")).strip()
-        if email:
-            User.objects.filter(email__iexact=email, is_active=False).delete()
-        if username:
-            User.objects.filter(username__iexact=username, is_active=False).delete()
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
-        user = serializer.save()
-
-        otp = f"{secrets.randbelow(1000000):06d}"
-        now = timezone.now()
-
-        record = EmailVerificationOTP.objects.create(
-            user=user,
-            otp_hash=make_password(otp),
-            expires_at=now + timedelta(minutes=10),
-        )
-        class RegisterView(generics.CreateAPIView):
-    serializer_class = RegisterSerializer
-    permission_classes = [AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        import os
-        import requests as http
-
-        email = str(request.data.get("email", "")).strip().lower()
-        username = str(request.data.get("username", "")).strip()
+        # Remove earlier unverified sign-ups so the person can try again.
         if email:
             User.objects.filter(email__iexact=email, is_active=False).delete()
         if username:
@@ -87,63 +123,46 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.save()
-
         otp = f"{secrets.randbelow(1000000):06d}"
-        now = timezone.now()
 
-        record = EmailVerificationOTP.objects.create(
-            user=user,
-            otp_hash=make_password(otp),
-            expires_at=now + timedelta(minutes=10),
+        # User + OTP are saved together: both or neither.
+        with transaction.atomic():
+            user = serializer.save()  # is_active=False
+            EmailVerificationOTP.objects.create(
+                user=user,
+                otp_hash=make_password(otp),
+                expires_at=timezone.now() + timedelta(minutes=10),
+            )
+
+        success = Response(
+            {
+                "detail": "Registration received. Check your email for the verification code.",
+                "email": user.email,
+                "verification_required": True,
+            },
+            status=status.HTTP_201_CREATED,
         )
 
         try:
-            brevo_key = os.getenv("BREVO_API_KEY", "")
-            sender_email = os.getenv("BREVO_SENDER_EMAIL", "")
-
-            if not brevo_key or not sender_email:
-                raise RuntimeError("Email service is not configured.")
-
-            mail = http.post(
-                "https://api.brevo.com/v3/smtp/email",
-                headers={
-                    "api-key": brevo_key,
-                    "Content-Type": "application/json",
-                    "accept": "application/json",
-                },
-                json={
-                    "sender": {"name": "Nexora", "email": sender_email},
-                    "to": [{"email": user.email}],
-                    "subject": "Verify your Nexora email",
-                    "textContent": (
-                        f"Hello {user.username},\n\n"
-                        f"Your Nexora email verification code is: {otp}\n\n"
-                        "This code expires in 10 minutes.\n"
-                        "If you did not create this account, you can ignore this email."
-                    ),
-                },
-                timeout=15,
+            send_brevo_email(
+                to_email=user.email,
+                to_name=user.username,
+                subject="Verify your Nexora email",
+                text_content=(
+                    f"Hello {user.username},\n\n"
+                    f"Your Nexora email verification code is: {otp}\n\n"
+                    "This code expires in 10 minutes.\n"
+                    "If you did not create this account, you can ignore this email."
+                ),
             )
-            mail.raise_for_status()
+        except EmailDeliveryError:
+            if _demo_otp_mode():
+                # Demo only: the OTP is shown in the server log.
+                logger.warning("DEMO_OTP_MODE: email failed. OTP for %s is %s", user.email, otp)
+                return success
 
-        except Exception:
-            logger.exception("Failed to send Nexora verification email.")
-
-            if os.getenv("DEMO_OTP_MODE", "").lower() in ("true", "1", "yes"):
-                print(f"DEMO OTP for {user.email}: {otp}", flush=True)
-                return Response(
-                    {
-                        "detail": "Registration received. Check your email for the verification code.",
-                        "email": user.email,
-                        "verification_required": True,
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
-
-            record.delete()
-            user.delete()
-
+            # Do not leave an unusable, unverified account behind.
+            user.delete()  # also deletes the OTP record (CASCADE)
             return Response(
                 {
                     "detail": (
@@ -154,87 +173,8 @@ class RegisterView(generics.CreateAPIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        return Response(
-            {
-                "detail": (
-                    "Registration received. Check your email for "
-                    "the verification code."
-                ),
-                "email": user.email,
-                "verification_required": True,
-            },
-            status=status.HTTP_201_CREATED,
-        )
+        return success
 
-        try:
-            import os
-            import requests as http
-
-            brevo_key = os.getenv("BREVO_API_KEY", "")
-            sender_email = os.getenv("BREVO_SENDER_EMAIL", "")
-
-            if not brevo_key or not sender_email:
-                raise RuntimeError("Email service is not configured.")
-
-            mail = http.post(
-                "https://api.brevo.com/v3/smtp/email",
-                headers={
-                    "api-key": brevo_key,
-                    "Content-Type": "application/json",
-                    "accept": "application/json",
-                },
-                json={
-                    "sender": {"name": "Nexora", "email": sender_email},
-                    "to": [{"email": user.email}],
-                    "subject": "Verify your Nexora email",
-                    "textContent": (
-                        f"Hello {user.username},\n\n"
-                        f"Your Nexora email verification code is: {otp}\n\n"
-                        "This code expires in 10 minutes.\n"
-                        "If you did not create this account, you can ignore this email."
-                    ),
-                },
-                timeout=15,
-            )
-            mail.raise_for_status()
-
-        except Exception:
-            logger.exception("Failed to send Nexora verification email.")
-                        
-            if os.getenv("DEMO_OTP_MODE", "").lower() in ("true", "1", "yes"):
-                print(f"DEMO OTP for {user.email}: {otp}", flush=True)
-                return Response(
-                    {
-                        "detail": "Registration received. Check your email for the verification code.",
-                        "email": user.email,
-                        "verification_required": True,
-                    },
-                    status=status.HTTP_201_CREATED,
-                )
-            record.delete()
-            user.delete()
-
-            return Response(
-                {
-                    "detail": (
-                        "We couldn't send the verification email. "
-                        "Please try registering again later."
-                    )
-                },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-
-        return Response(
-            {
-                "detail": (
-                    "Registration received. Check your email for "
-                    "the verification code."
-                ),
-                "email": user.email,
-                "verification_required": True,
-            },
-            status=status.HTTP_201_CREATED,
-        )
 
 # =========================================
 # VERIFY REGISTRATION EMAIL OTP
@@ -490,33 +430,18 @@ def forgot_password(request):
     record.save()
 
     try:
-        import os
-        import requests as http
-
-        mail = http.post(
-            "https://api.resend.com/emails",
-            headers={
-                "Authorization": "Bearer " + os.getenv("RESEND_API_KEY", ""),
-                "Content-Type": "application/json",
-            },
-            json={
-                "from": "Nexora <onboarding@resend.dev>",
-                "to": [user.email],
-                "subject": "Nexora Password Reset OTP",
-                "text": (
-                    f"Hello {user.username},\n\n"
-                    f"Your Nexora password reset OTP is: {otp}\n\n"
-                    "This OTP expires in 5 minutes.\n"
-                    "Do not share this code with anyone."
-                ),
-            },
-            timeout=15,
+        send_brevo_email(
+            to_email=user.email,
+            to_name=user.username,
+            subject="Nexora Password Reset OTP",
+            text_content=(
+                f"Hello {user.username},\n\n"
+                f"Your Nexora password reset OTP is: {otp}\n\n"
+                "This OTP expires in 5 minutes.\n"
+                "Do not share this code with anyone."
+            ),
         )
-        mail.raise_for_status()
-
-    except Exception:
-        logger.exception("Failed to send Nexora password reset email.")
-
+    except EmailDeliveryError:
         # Invalidate the OTP if email delivery failed.
         record.delete()
 
