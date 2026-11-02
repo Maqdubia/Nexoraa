@@ -50,12 +50,16 @@ export const verifyEmailOTP = async (email, otp) => {
 };
 
 export const loginUser = async (userData) => {
-    const response = await API.post("login/", userData);
+    const response = await API.post("login/", {
+        email: userData.email.trim().toLowerCase(),
+        password: userData.password,
+    });
 
     localStorage.setItem("access_token", response.data.access);
     localStorage.setItem("refresh_token", response.data.refresh);
 
     return response.data;
+};
 };
 
 export const logoutUser = () => {
