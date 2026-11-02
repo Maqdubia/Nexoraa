@@ -15,9 +15,6 @@ from .models import (
 )
 
 
-class EmailTokenObtainPairView(TokenObtainPairView):
-    serializer_class = EmailTokenObtainPairSerializer
-
 
 # =========================================
 # REGISTER
