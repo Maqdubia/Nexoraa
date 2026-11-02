@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 from .models import SupportTicket
-from .views import SUPPORT_CATEGORIES
+from .catalog import SUPPORT_CATEGORIES
 
 
 class SupportTicketSerializer(serializers.ModelSerializer):
