@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
@@ -7,7 +8,7 @@ function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    username: "",
+    email: "",
     password: "",
   });
 
@@ -27,23 +28,29 @@ function Login() {
     setMessage({ text: "", type: "" });
 
     try {
-      await loginUser(formData);
+      await loginUser({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
 
-      setMessage({ text: "Login successful! Redirecting...", type: "success" });
+      setMessage({
+        text: "Login successful! Redirecting...",
+        type: "success",
+      });
 
-      setTimeout(() => {
-       navigate("/dashboard");
-      }, 600);
+      setTimeout(() => navigate("/dashboard"), 600);
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error.response?.data || error);
+
       const errMsg =
         error.response?.data?.detail ||
         error.response?.data?.message ||
-        error.message ||
-        "Login failed. Please check your credentials.";
+        "Login failed. Check your email and password.";
 
       setMessage({
-        text: typeof errMsg === "object" ? JSON.stringify(errMsg) : errMsg,
+        text: typeof errMsg === "object"
+          ? JSON.stringify(errMsg)
+          : errMsg,
         type: "error",
       });
     } finally {
@@ -55,22 +62,24 @@ function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="brand-header">
-          
           <h1 className="logo">Nexora</h1>
         </div>
 
-        <p className="subtitle">Welcome back! Please enter your details.</p>
+        <p className="subtitle">
+          Welcome back! Please enter your details.
+        </p>
 
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="email">Email Address</label>
             <input
-              id="username"
-              type="text"
-              name="username"
-              placeholder="e.g. naveed"
-              value={formData.username}
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
               required
             />
           </div>
@@ -84,28 +93,28 @@ function Login() {
               placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
+              autoComplete="current-password"
               required
             />
           </div>
-          
-<div style={{ textAlign: "right", marginBottom: "16px" }}>
-  <button
-    type="button"
-    onClick={() => navigate("/forgot-password")}
-    style={{
-      background: "none",
-      border: "none",
-      color: "#6366f1",
-      cursor: "pointer",
-      fontSize: "14px",
-      fontWeight: "600",
-      padding: "4px 0",
-    }}
-  >
-    Forgot Password?
-  </button>
-</div>
 
+          <div style={{ textAlign: "right", marginBottom: "16px" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#6366f1",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                padding: "4px 0",
+              }}
+            >
+              Forgot Password?
+            </button>
+          </div>
 
           <button
             type="submit"
@@ -126,7 +135,9 @@ function Login() {
           <span>or</span>
         </div>
 
-        <p className="switch-text">Don't have an account?</p>
+        <p className="switch-text">
+          Don't have an account?
+        </p>
 
         <button
           type="button"
