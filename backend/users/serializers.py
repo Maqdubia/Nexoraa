@@ -1,3 +1,4 @@
+from .serializers import EmailTokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -14,7 +15,8 @@ from .models import (
 )
 
 
-
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
 
 
 # =========================================
@@ -163,7 +165,7 @@ class SkillGapSerializer(serializers.ModelSerializer):
             "created_at",
         ]
 
-class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+
 
     def to_internal_value(self, data):
         data = data.copy()
