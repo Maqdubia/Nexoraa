@@ -16,6 +16,7 @@ urlpatterns = [
     path("api/resumes/", include("resumes.urls")),
     path("api/jobs/", include("jobs.urls")),
     path("api/interviews/", include("interviews.url")),
+    path("api/chatbot/", include("chatbot.urls")),
 ]
 
 # Serve uploaded media files during local development.
