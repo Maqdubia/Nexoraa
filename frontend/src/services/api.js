@@ -60,7 +60,6 @@ export const loginUser = async (userData) => {
 
     return response.data;
 };
-};
 
 export const logoutUser = () => {
     localStorage.removeItem("access_token");
