@@ -242,7 +242,7 @@ def verify_email_otp(request):
 
     return Response(
         {
-            "detail": "Email verified successfully. You can now log in.",
+            "detail": "Email verified successfully. log in.",
             "verified": True,
         },
         status=status.HTTP_200_OK,
