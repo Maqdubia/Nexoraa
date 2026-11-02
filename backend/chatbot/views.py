@@ -1,3 +1,5 @@
+from rest_framework import status
+from .ai_service import get_chatbot_response
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
@@ -132,3 +134,27 @@ class SupportTicketCreateView(generics.CreateAPIView):
         else:
             serializer.save()
 
+
+class ChatbotMessageView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        message = request.data.get("message", "")
+
+        if not isinstance(message, str) or not message.strip():
+            return Response(
+                {"error": "Please enter a message."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(message) > 2000:
+            return Response(
+                {"error": "Message must be 2000 characters or fewer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reply = get_chatbot_response(message.strip())
+
+        return Response({
+            "reply": reply
+        })
