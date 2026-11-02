@@ -1,10 +1,6 @@
-from .serializers import EmailTokenObtainPairSerializer
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
-User = get_user_model()
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import (
     UserProfile,
@@ -164,21 +160,26 @@ class SkillGapSerializer(serializers.ModelSerializer):
 
 
 
+   
+# =========================================
+# EMAIL LOGIN / JWT AUTHENTICATION
+# =========================================
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+
     def to_internal_value(self, data):
         data = data.copy()
 
-        # Accept either an email field or username field.
         email = data.get("email")
 
         if email and not data.get(self.username_field):
-            data[self.username_field] = email.strip()
+            data[self.username_field] = email.strip().lower()
 
         return super().to_internal_value(data)
 
     def validate(self, attrs):
         identifier = attrs.get(self.username_field)
 
-        # Convert email into the corresponding Django username.
         user = User.objects.filter(
             email__iexact=identifier
         ).first()
