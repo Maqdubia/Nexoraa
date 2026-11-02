@@ -1,39 +1,34 @@
 
 import os
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 API_KEY = os.getenv("GEMINI_API_KEY")
-
-if API_KEY:
-    genai.configure(api_key=API_KEY)
 
 SYSTEM_INSTRUCTION = """
 You are Nexora's official website support assistant.
 
-Your purpose is ONLY to help users understand and troubleshoot
+Your ONLY purpose is to help users understand and troubleshoot
 the Nexora career platform.
 
-You can help with:
+Supported topics:
 - Account registration and login
 - OTP and email verification
 - Resume uploads and ATS analysis
 - Job discovery and applications
-- AI interview practice and feedback
+- Interview practice and feedback
 - Profile and account settings
 - Website navigation and technical problems
 
 Rules:
 1. Only answer questions related to Nexora.
 2. Do not act as a general-purpose assistant or career advisor.
-3. Never invent features, buttons, settings, or troubleshooting steps.
-4. If you do not know the answer, say so honestly and offer
+3. Never invent platform features or troubleshooting steps.
+4. If reliable information is unavailable, say so and offer
    to create a support ticket.
 5. Never request passwords, OTPs, or API keys.
-6. Keep instructions clear and easy to follow.
+6. Keep answers clear, concise, and step-by-step.
 7. Politely redirect unrelated questions to Nexora support.
-
-Answer the user's Nexora-related question using only
-reliable information provided in the conversation.
 """
 
 def get_chatbot_response(message):
@@ -41,13 +36,17 @@ def get_chatbot_response(message):
         return "Support chat is temporarily unavailable. Please create a support ticket."
 
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            system_instruction=SYSTEM_INSTRUCTION,
+        client = genai.Client(api_key=API_KEY)
+
+        response = client.models.generate_content(
+            model="gemini-3.8-flash",
+            contents=message,
+            config=types.GenerateContentConfig(
+                system_instruction=SYSTEM_INSTRUCTION
+            ),
         )
 
-        response = model.generate_content(message)
-        return response.text
+        return response.text or "I couldn't generate an answer. Please try again."
 
     except Exception:
         return "I'm unable to process your request right now. Please try again or create a support ticket."
