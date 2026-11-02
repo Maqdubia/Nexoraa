@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "resumes",
     "jobs",
      "interviews",
+    "chatbot",
 ]
 # =========================================================
 # MIDDLEWARE
