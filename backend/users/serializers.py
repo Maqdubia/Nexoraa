@@ -162,3 +162,29 @@ class SkillGapSerializer(serializers.ModelSerializer):
             "match_percentage",
             "created_at",
         ]
+
+class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    def to_internal_value(self, data):
+        data = data.copy()
+
+        # Accept either an email field or username field.
+        email = data.get("email")
+
+        if email and not data.get(self.username_field):
+            data[self.username_field] = email.strip()
+
+        return super().to_internal_value(data)
+
+    def validate(self, attrs):
+        identifier = attrs.get(self.username_field)
+
+        # Convert email into the corresponding Django username.
+        user = User.objects.filter(
+            email__iexact=identifier
+        ).first()
+
+        if user:
+            attrs[self.username_field] = user.get_username()
+
+        return super().validate(attrs)
