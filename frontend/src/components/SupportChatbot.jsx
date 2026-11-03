@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./SupportChatbot.css";
 
@@ -17,6 +17,14 @@ const categories = [
 ];
 
 function SupportChatbot() {
+    const messagesEndRef = useRef(null);
+
+useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+    });
+}, [messages, loading]);
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([
         {
@@ -304,7 +312,7 @@ Selected issue: ${message}`,
                             </div>
                         )}
                     </div>
-
+                    <div ref={messagesEndRef} />
                     <form
                         className="support-chat-input"
                         onSubmit={(event) => {
