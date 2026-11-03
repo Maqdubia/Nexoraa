@@ -165,24 +165,39 @@ class SkillGapSerializer(serializers.ModelSerializer):
 # EMAIL LOGIN / JWT AUTHENTICATION
 # =========================================
 
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
 
     def to_internal_value(self, data):
         data = data.copy()
 
-        email = data.get("email")
+        identifier = (
+            data.get("email")
+            or data.get("username")
+            or data.get("user")
+            or ""
+        ).strip()
 
-        if email and not data.get(self.username_field):
-            data[self.username_field] = email.strip().lower()
+        data[self.username_field] = identifier
 
         return super().to_internal_value(data)
 
     def validate(self, attrs):
-        identifier = attrs.get(self.username_field)
+        identifier = attrs.get(self.username_field, "").strip()
 
         user = User.objects.filter(
             email__iexact=identifier
         ).first()
+
+        if not user:
+            user = User.objects.filter(
+                username__iexact=identifier
+            ).first()
+
+        if user:
+            attrs[self.username_field] = user.username
+
+        return super().validate(attrs)
 
         if user:
             attrs[self.username_field] = user.get_username()
