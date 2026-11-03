@@ -174,11 +174,53 @@ Selected issue: ${message}`,
 
     return (
         <>
-            <button
-                className="support-chat-toggle"
-                onClick={() => setIsOpen(!isOpen)}
-                aria-label="Open Nexora support chat"
-            >
+            
+<button
+    className={`support-chat-toggle ${isOpen ? "chat-is-open" : ""}`}
+    onClick={() => setIsOpen(!isOpen)}
+    aria-label={isOpen ? "Close Nexora support chat" : "Open Nexora support chat"}
+>
+    {isOpen ? (
+        <span className="chat-close-icon">×</span>
+    ) : (
+        <svg viewBox="0 0 100 100" className="nexora-robot">
+            {/* Antenna */}
+            <path d="M50 15 V8" stroke="#E8EBCF" strokeWidth="3" strokeLinecap="round"/>
+            <circle cx="50" cy="6" r="4" fill="#E8DFA5" className="robot-light"/>
+
+            {/* Head */}
+            <rect x="20" y="23" width="60" height="48" rx="17" fill="#E9EBD9"/>
+
+            {/* Ears */}
+            <rect x="13" y="39" width="9" height="19" rx="4" fill="#A8B79A"/>
+            <rect x="78" y="39" width="9" height="19" rx="4" fill="#A8B79A"/>
+
+            {/* Face */}
+            <rect x="27" y="31" width="46" height="32" rx="11" fill="#35463B"/>
+
+            {/* Eyes */}
+            <g className="robot-eyes" fill="none" stroke="#F4F5E9" strokeWidth="3" strokeLinecap="round">
+                <path d="M36 43 Q41 37 46 43"/>
+                <path d="M54 43 Q59 37 64 43"/>
+            </g>
+
+            {/* Body */}
+            <path d="M35 70 Q50 65 65 70 L70 86 Q50 94 30 86 Z" fill="#DDE4CF"/>
+
+            {/* Leaf emblem */}
+            <path d="M50 75 Q62 70 59 81 Q53 86 47 81 Q45 77 50 75Z"
+                fill="none" stroke="#647B5D" strokeWidth="2"/>
+            <path d="M48 83 L57 75" stroke="#647B5D" strokeWidth="1.5"/>
+
+            {/* Waving arm */}
+            <g className="robot-wave" stroke="#A8B79A" strokeWidth="5" strokeLinecap="round" fill="none">
+                <path d="M31 74 L22 64 L17 51"/>
+                <path d="M17 51 L12 44"/>
+            </g>
+        </svg>
+    )}
+</button>
+
                 {isOpen ? "×" : "☏"}
             </button>
 
