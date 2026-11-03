@@ -223,3 +223,66 @@
         bottom: 15px;
     }
 }
+
+.support-chat-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #596d55;
+    border: 3px solid #e5ead9;
+    box-shadow: 0 5px 22px rgba(65, 85, 58, 0.28);
+    overflow: visible;
+}
+
+.nexora-robot {
+    width: 49px;
+    height: 49px;
+    overflow: visible;
+    animation: robot-float 2.8s ease-in-out infinite;
+}
+
+.robot-wave {
+    transform-origin: 22px 64px;
+    animation: robot-wave 2s ease-in-out infinite;
+}
+
+.robot-light {
+    animation: robot-blink 2.5s ease-in-out infinite;
+}
+
+@keyframes robot-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+@keyframes robot-wave {
+    0%, 65%, 100% { transform: rotate(0deg); }
+    75% { transform: rotate(-18deg); }
+    85% { transform: rotate(12deg); }
+    95% { transform: rotate(-8deg); }
+}
+
+@keyframes robot-blink {
+    0%, 90%, 100% { opacity: 1; }
+    95% { opacity: 0.35; }
+}
+
+.chat-close-icon {
+    color: white;
+    font-size: 32px;
+    line-height: 1;
+}
+
+.chat-is-open .nexora-robot {
+    animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nexora-robot,
+    .robot-wave,
+    .robot-light {
+        animation: none;
+    }
+}
+
+
