@@ -235,8 +235,9 @@ function App() {
                     element={<Navigate to="/dashboard" replace />}
                 />
             </Routes>
+            <SupportChatbot />
         </BrowserRouter>
-        <SupportChatbot />
+        
     );
 }
 
