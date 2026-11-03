@@ -1,4 +1,4 @@
-
+import SupportChatbot from "./components/SupportChatbot";
 import { useCallback, useState } from "react";
 import {
     BrowserRouter,
@@ -236,6 +236,7 @@ function App() {
                 />
             </Routes>
         </BrowserRouter>
+        <SupportChatbot />
     );
 }
 
