@@ -19,13 +19,30 @@ const categories = [
 function SupportChatbot() {
     const messagesEndRef = useRef(null);
 
-useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
-    });
-}, [messages, loading]);
     const [isOpen, setIsOpen] = useState(false);
+    const [messages, setMessages] = useState([
+        {
+            sender: "bot",
+            text: "Welcome to Nexora Support! How can I help you today?",
+            type: "welcome",
+        },
+    ]);
+
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [input, setInput] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [needsDescription, setNeedsDescription] = useState(false);
+    const [ticketMode, setTicketMode] = useState(false);
+    const [customerName, setCustomerName] = useState("");
+    const [email, setEmail] = useState("");
+    const [issue, setIssue] = useState("");
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
+    }, [messages, loading]);
     const [messages, setMessages] = useState([
         {
             sender: "bot",
