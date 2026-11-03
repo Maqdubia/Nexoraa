@@ -1,5 +1,12 @@
-
 from django.urls import path
+
+from .recruiter_views import (
+    HRAccountCreateView,
+    RecruiterJobListCreateView,
+    RecruiterJobDetailView,
+    RecruiterApplicationsView,
+)
+
 from .views import (
     JobListView,
     JobDetailView,
@@ -10,41 +17,45 @@ from .views import (
 )
 
 urlpatterns = [
-    # Display and search jobs
-    path("", JobListView.as_view(), name="job-list"),
-
-    # Match jobs to user skills
+    # HR and admin endpoints
     path(
-        "matches/",
-        JobMatchView.as_view(),
-        name="job-matches",
+        "hr/accounts/",
+        HRAccountCreateView.as_view(),
+        name="hr-account-create",
+    ),
+    path(
+        "hr/jobs/",
+        RecruiterJobListCreateView.as_view(),
+        name="hr-job-list-create",
+    ),
+    path(
+        "hr/jobs/<int:pk>/",
+        RecruiterJobDetailView.as_view(),
+        name="hr-job-detail",
+    ),
+    path(
+        "hr/applications/",
+        RecruiterApplicationsView.as_view(),
+        name="hr-applications",
     ),
 
-    # Skill improvement recommendations
+    # Student job endpoints
+    path("", JobListView.as_view(), name="job-list"),
+    path("matches/", JobMatchView.as_view(), name="job-matches"),
     path(
         "recommendations/",
         ImprovementRecommendationsView.as_view(),
         name="job-recommendations",
     ),
-
-    # Apply for a job
     path(
         "apply/",
         JobApplicationCreateView.as_view(),
         name="job-apply",
     ),
-
-    # View the logged-in user's applications
     path(
         "my-applications/",
         MyApplicationsView.as_view(),
         name="my-applications",
     ),
-
-    # Display details of one job
-    path(
-        "<int:pk>/",
-        JobDetailView.as_view(),
-        name="job-detail",
-    ),
+    path("<int:pk>/", JobDetailView.as_view(), name="job-detail"),
 ]
