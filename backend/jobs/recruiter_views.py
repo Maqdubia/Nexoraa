@@ -1,3 +1,5 @@
+import secrets
+
 from django.contrib.auth.models import User, Group
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -31,21 +33,27 @@ class HRCreateSerializer(Serializer):
         return value
 
     def create(self, validated_data):
-        full_name = validated_data.pop("full_name", "")
-        validated_data.pop("company", "")
-        password = validated_data.pop("password")
+        email = validated_data["email"]
+        password = validated_data["password"]
+        full_name = validated_data.get("full_name", "").strip()
+
+        # Generate a unique username for Django's User model.
+        base_username = email.split("@")[0][:120]
+        username = base_username
+
+        while User.objects.filter(username=username).exists():
+            username = f"{base_username}_{secrets.token_hex(3)}"
 
         user = User.objects.create_user(
-            **validated_data,
+            username=username,
+            email=email,
             password=password,
+            first_name=full_name[:150],
             is_active=True,
         )
 
         group, _ = Group.objects.get_or_create(name="HR")
         user.groups.add(group)
-
-        user.first_name = full_name[:150]
-        user.save(update_fields=["first_name"])
 
         return user
 
@@ -75,11 +83,6 @@ class RecruiterJobListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsHR]
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Job.objects.filter(
-                created_by__isnull=False
-            ).order_by("-created_at")
-
         return Job.objects.filter(
             created_by=self.request.user
         ).order_by("-created_at")
@@ -96,9 +99,6 @@ class RecruiterJobDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsHR]
 
     def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Job.objects.filter(created_by__isnull=False)
-
         return Job.objects.filter(created_by=self.request.user)
 
 
@@ -107,9 +107,6 @@ class RecruiterApplicationsView(APIView):
 
     def get(self, request):
         jobs = Job.objects.filter(created_by=request.user)
-
-        if request.user.is_superuser:
-            jobs = Job.objects.filter(created_by__isnull=False)
 
         applications = (
             JobApplication.objects
