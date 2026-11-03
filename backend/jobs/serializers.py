@@ -1,10 +1,8 @@
-
 from rest_framework import serializers
 from .models import Job, JobApplication
 
 
 class JobSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Job
         fields = [
@@ -20,11 +18,20 @@ class JobSerializer(serializers.ModelSerializer):
             "application_url",
             "created_at",
             "updated_at",
+            "work_mode",
+            "vacancies",
+            "application_deadline",
+            "is_published",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "is_published",
         ]
 
 
 class JobApplicationSerializer(serializers.ModelSerializer):
-
     job_details = JobSerializer(source="job", read_only=True)
 
     class Meta:
@@ -48,10 +55,7 @@ class JobApplicationSerializer(serializers.ModelSerializer):
     def validate_job(self, value):
         user = self.context["request"].user
 
-        if JobApplication.objects.filter(
-            user=user,
-            job=value
-        ).exists():
+        if JobApplication.objects.filter(user=user, job=value).exists():
             raise serializers.ValidationError(
                 "You have already applied for this job."
             )
