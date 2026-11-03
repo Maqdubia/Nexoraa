@@ -285,4 +285,72 @@
     }
 }
 
+/* Nexora robot animation */
+.support-chat-toggle .nexora-robot {
+    display: block;
+    width: 52px;
+    height: 52px;
+    overflow: visible;
+    animation: nexora-bounce 1.8s ease-in-out infinite !important;
+}
+
+/* Gentle robot movement */
+@keyframes nexora-bounce {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-5px) rotate(3deg);
+    }
+}
+
+/* Make the robot wave clearly */
+.support-chat-toggle .robot-wave {
+    transform-box: view-box;
+    transform-origin: 22px 64px;
+    animation: nexora-wave 1.5s ease-in-out infinite !important;
+}
+
+@keyframes nexora-wave {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-25deg);
+    }
+    50% {
+        transform: rotate(12deg);
+    }
+    75% {
+        transform: rotate(-18deg);
+    }
+}
+
+/* Robot antenna glow */
+.support-chat-toggle .robot-light {
+    animation: nexora-glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes nexora-glow {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Stop movement while chat is open */
+.support-chat-toggle.chat-is-open .nexora-robot {
+    animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .support-chat-toggle .nexora-robot,
+    .support-chat-toggle .robot-wave,
+    .support-chat-toggle .robot-light {
+        animation: none !important;
+    }
+}
+
 
