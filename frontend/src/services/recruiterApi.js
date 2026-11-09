@@ -65,6 +65,7 @@ export const getRecruiterApplications = async () => {
     return response.data;
 };
 
+
 export const createHRAccount = async (accountData) => {
     const response = await axios.post(
         "/api/jobs/hr/accounts/",
