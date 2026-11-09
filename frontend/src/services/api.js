@@ -61,6 +61,21 @@ export const loginUser = async (userData) => {
     return response.data;
 };
 
+export const googleLogin = async (credential) => {
+    const response = await API.post("google/", { credential });
+    localStorage.setItem("access_token", response.data.access);
+    localStorage.setItem("refresh_token", response.data.refresh);
+    return response.data;
+};
+
+export const getCurrentUser = async () => {
+    const token = localStorage.getItem("access_token");
+    const response = await API.get("me/", {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+};
+
 export const logoutUser = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
