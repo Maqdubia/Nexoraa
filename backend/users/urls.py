@@ -22,6 +22,9 @@ from .views import (
     forgot_password,
     verify_reset_otp,
     reset_password,
+    google_auth_config,
+    google_auth,
+    current_user,
 )
 
 
@@ -38,6 +41,9 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 # =========================================
 
 urlpatterns = [
+    path("google/config/", google_auth_config, name="google-auth-config"),
+    path("google/", google_auth, name="google-auth"),
+    path("me/", current_user, name="current-user"),
     path("register/", RegisterView.as_view(), name="register"),
 
     path("verify-email-otp/", verify_email_otp, name="verify-email-otp"),
