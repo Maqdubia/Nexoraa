@@ -109,10 +109,16 @@ def send_brevo_email(to_email, to_name, subject, text_content):
 # GOOGLE SIGN-IN (Google Identity Services)
 # =========================================
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def google_auth_config(request):
     """Expose only the public Google OAuth client ID to the frontend."""
     client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
-    return Response({"configured": bool(client_id), "client_id": client_id})
+
+    return Response({
+        "configured": bool(client_id),
+        "client_id": client_id,
+    })
 
 
 def _unique_google_username(email):
