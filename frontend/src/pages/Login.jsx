@@ -1,246 +1,166 @@
 
-:root {
-  --primary: #3A4726;
-  --primary-hover: #1C2418;
-  --primary-light: #CFD6C8;
-  --text-main: #1C2418;
-  --text-muted: #626858;
-  --bg-gradient: #F7F7F2;
-  --surface: #FFFFFF;
-  --border: #DDE1D6;
-  --radius: 16px;
-  --shadow: 0 12px 36px rgba(28, 36, 24, 0.07);
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../services/api";
+import GoogleSignInButton from "../components/GoogleSignInButton";
+import "./Login.css";
+
+function Login() {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleSuccess = (result) => {
+    const destination = result.user?.role === "admin"
+      ? "/admin/accounts"
+      : result.user?.role === "recruiter"
+        ? "/hr/dashboard"
+        : "/dashboard";
+    navigate(destination, { replace: true });
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ text: "", type: "" });
+
+    try {
+      await loginUser({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+      });
+
+      setMessage({
+        text: "Login successful! Redirecting...",
+        type: "success",
+      });
+
+      setTimeout(() => navigate("/dashboard"), 600);
+    } catch (error) {
+      console.error("Login error:", error.response?.data || error);
+
+      const errMsg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Login failed. Check your email and password.";
+
+      setMessage({
+        text: typeof errMsg === "object"
+          ? JSON.stringify(errMsg)
+          : errMsg,
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="brand-header">
+          <h1 className="logo">Nexora</h1>
+        </div>
+
+        <p className="subtitle">
+          Welcome back! Please enter your details.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="email">Email Address</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              autoComplete="email"
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+
+          <div style={{ textAlign: "right", marginBottom: "16px" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#6366f1",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: "600",
+                padding: "4px 0",
+              }}
+            >
+              Forgot Password?
+            </button>
+          </div>
+
+          <button
+            type="submit"
+            className="auth-button"
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+
+        {message.text && (
+          <div className={`message-banner ${message.type}`}>
+            {message.text}
+          </div>
+        )}
+
+        <div className="divider">
+          <span>or continue with</span>
+        </div>
+
+        <GoogleSignInButton onSuccess={handleGoogleSuccess} />
+
+        <p className="switch-text">
+          Don't have an account?
+        </p>
+
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => navigate("/register")}
+        >
+          Create Account
+        </button>
+      </div>
+    </div>
+  );
 }
 
-.auth-page {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
-  background: var(--bg-gradient);
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 440px;
-  padding: 40px 36px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.brand-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.logo-icon {
-  display: none;
-}
-
-.logo {
-  margin: 0;
-  color: var(--text-main);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -1px;
-  text-align: center;
-}
-
-.subtitle {
-  margin: 0 0 32px;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.7;
-  text-align: center;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-}
-
-.input-group label {
-  margin-bottom: 8px;
-  color: var(--text-main);
-  font-size: 12px;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.input-group input {
-  width: 100%;
-  min-height: 48px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  outline: none;
-  background: var(--bg-gradient);
-  color: var(--text-main);
-  font-size: 14px;
-  transition: border-color 180ms ease, box-shadow 180ms ease,
-    background 180ms ease;
-}
-
-.input-group input::placeholder {
-  color: #777D6D;
-}
-
-.input-group input:focus {
-  border-color: #7F8D63;
-  background: var(--surface);
-  box-shadow: 0 0 0 3px rgba(127, 141, 99, 0.18);
-}
-
-.auth-button {
-  width: 100%;
-  min-height: 48px;
-  margin-top: 8px;
-  padding: 13px 16px;
-  border: 1px solid var(--primary);
-  border-radius: 9px;
-  background: var(--primary);
-  color: #FFFFFF;
-  font-size: 14px;
-  font-weight: 650;
-  cursor: pointer;
-  transition: background 180ms ease, transform 180ms ease;
-}
-
-.auth-button:hover:not(:disabled) {
-  background: var(--primary-hover);
-  border-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.auth-button:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
-.auth-page button[style] {
-  color: var(--primary) !important;
-}
-
-.message-banner,
-.message {
-  margin-top: 18px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  font-size: 13px;
-  line-height: 1.6;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-
-.message-banner.error {
-  border-color: #E8C9C1;
-  background: #FAEFEB;
-  color: #914B3D;
-}
-
-.message-banner.success {
-  border-color: #BFCAB1;
-  background: #EDF0E6;
-  color: #3A4726;
-}
-
-.message {
-  border-color: #BFCAB1;
-  background: #EDF0E6;
-  color: #3A4726;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 26px 0 18px;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.divider::before,
-.divider::after {
-  flex: 1;
-  border-bottom: 1px solid var(--border);
-  content: "";
-}
-
-.divider span {
-  padding: 0 4px;
-}
-
-.switch-text {
-  margin: 0 0 12px;
-  color: var(--text-muted);
-  font-size: 13px;
-  text-align: center;
-}
-
-.secondary-button {
-  width: 100%;
-  min-height: 46px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--primary-light);
-  color: var(--text-main);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 180ms ease, border-color 180ms ease;
-}
-
-.secondary-button:hover {
-  border-color: #7F8D63;
-  background: #E2E7DC;
-}
-
-.auth-page button:focus-visible {
-  outline: 2px solid #7F8D63;
-  outline-offset: 3px;
-}
-
-@media (max-width: 480px) {
-  .auth-page {
-    padding: 16px;
-  }
-
-  .auth-card {
-    padding: 32px 22px;
-    border-radius: 13px;
-  }
-
-  .logo {
-    font-size: 32px;
-  }
-
-  .subtitle {
-    margin-bottom: 26px;
-  }
-}
-
-
-/* Google Identity Services button */
-.google-signin-wrap {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  margin: 12px 0 4px;
-}
-.google-signin-button { width: 100%; display: flex; justify-content: center; min-height: 40px; }
-.google-signin-note { margin: 0; color: #66715f; font-size: 12px; }
-.google-signin-error { margin: 0; color: #b42318; font-size: 13px; text-align: center; }
+export default Login;
