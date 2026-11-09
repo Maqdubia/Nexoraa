@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../services/api";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 import "./Login.css";
 
 function Register() {
@@ -15,6 +16,15 @@ function Register() {
 
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+
+    const handleGoogleSuccess = (result) => {
+        const destination = result.user?.role === "admin"
+            ? "/admin/accounts"
+            : result.user?.role === "recruiter"
+                ? "/hr/dashboard"
+                : "/dashboard";
+        navigate(destination, { replace: true });
+    };
 
     const handleChange = (e) => {
         setFormData((previous) => ({
@@ -137,6 +147,12 @@ function Register() {
                         {message}
                     </p>
                 )}
+
+                <div className="divider">
+                    <span>or sign up with</span>
+                </div>
+
+                <GoogleSignInButton onSuccess={handleGoogleSuccess} />
 
                 <p className="switch-text">
                     Already have an account?
