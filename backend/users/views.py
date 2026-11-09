@@ -4,7 +4,7 @@ import secrets
 from datetime import timedelta
 
 import requests
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -15,6 +15,9 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 
 from .models import (
     UserProfile,
@@ -100,6 +103,123 @@ def send_brevo_email(to_email, to_name, subject, text_content):
 
     logger.info("Brevo accepted an email (status=%s).", response.status_code)
 
+
+
+# =========================================
+# GOOGLE SIGN-IN (Google Identity Services)
+# =========================================
+
+def google_auth_config(request):
+    """Expose only the public Google OAuth client ID to the frontend."""
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    return Response({"configured": bool(client_id), "client_id": client_id})
+
+
+def _unique_google_username(email):
+    base = email.split("@", 1)[0].lower()
+    # Django usernames are limited to 150 chars; keep generated names predictable.
+    base = "".join(ch for ch in base if ch.isalnum() or ch in "._+-")[:120] or "googleuser"
+    candidate = base
+    suffix = 1
+    while User.objects.filter(username__iexact=candidate).exists():
+        suffix += 1
+        candidate = f"{base[: min(120, 140-len(str(suffix)))]}{suffix}"
+    return candidate
+
+
+def _nexora_role(user):
+    if user.is_superuser:
+        return "admin"
+    if user.groups.filter(name="HR").exists():
+        return "recruiter"
+    return "student"
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def google_auth(request):
+    """Verify a Google ID token, reuse/create the account, and issue Nexora JWTs."""
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    if not client_id:
+        return Response(
+            {"detail": "Google sign-in is not configured on the server."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    credential = request.data.get("credential")
+    if not isinstance(credential, str) or not credential.strip():
+        return Response({"detail": "Google credential is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        claims = id_token.verify_oauth2_token(
+            credential, google_requests.Request(), audience=client_id
+        )
+    except Exception:
+        logger.warning("Google sign-in rejected an invalid ID token.")
+        return Response({"detail": "Google sign-in could not verify your identity. Please try again."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    email = str(claims.get("email", "")).strip().lower()
+    if not email or claims.get("email_verified") is not True:
+        return Response({"detail": "Google must provide a verified email address."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    display_name = str(claims.get("name", "")).strip()
+    given_name = str(claims.get("given_name", "")).strip()
+
+    with transaction.atomic():
+        user = User.objects.select_for_update().filter(email__iexact=email).first()
+        if user is None:
+            user = User.objects.create_user(
+                username=_unique_google_username(email),
+                email=email,
+                password=secrets.token_urlsafe(48),
+                first_name=given_name[:150],
+                is_active=True,
+            )
+        else:
+            # Google's verified ownership of this same email completes any pending email verification.
+            changed_fields = []
+            if not user.is_active:
+                user.is_active = True
+                changed_fields.append("is_active")
+            if not user.email:
+                user.email = email
+                changed_fields.append("email")
+            if given_name and not user.first_name:
+                user.first_name = given_name[:150]
+                changed_fields.append("first_name")
+            if changed_fields:
+                user.save(update_fields=changed_fields)
+
+        # Ensure a profile exists, but never alter an existing role or elevated permission.
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        if display_name and not profile.full_name:
+            profile.full_name = display_name[:150]
+            profile.save(update_fields=["full_name"])
+
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "access": str(refresh.access_token),
+        "refresh": str(refresh),
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "role": _nexora_role(user),
+        },
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    user = request.user
+    return Response({
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "role": _nexora_role(user),
+        "is_active": user.is_active,
+    })
 
 # =========================================
 # REGISTER
