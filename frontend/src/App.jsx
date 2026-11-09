@@ -6,7 +6,7 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
-
+import RecruiterCandidates from "./pages/RecruiterCandidates";
 import VerifyResetOTP from "./pages/VerifyResetOTP";
 import VerifyEmailOTP from "./pages/VerifyEmailOTP";
 import Login from "./pages/Login";
@@ -229,6 +229,14 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
+                <Route
+  path="/hr/candidates"
+  element={
+    <ProtectedRoute>
+      <RecruiterCandidates />
+    </ProtectedRoute>
+  }
+/>
 
                 <Route
                     path="*"
