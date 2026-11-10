@@ -1,0 +1,159 @@
+.hrj-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.hrj-job {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 22px;
+}
+
+.hrj-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.hrj-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hrj-title-row h3 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 19px;
+    color: #1c2418;
+}
+
+.hrj-meta {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #687060;
+}
+
+.hrj-main > div:last-child {
+    margin-top: 12px;
+}
+
+.hrj-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.hrj-applicants {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 92px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #f0f2ea;
+    text-decoration: none;
+}
+
+.hrj-applicants strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 24px;
+    color: #1c2418;
+}
+
+.hrj-applicants span {
+    font-size: 12px;
+    color: #3a4726;
+    font-weight: 600;
+}
+
+.hrj-applicants:hover {
+    background: #e4e9db;
+}
+
+.hrj-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* Form */
+.hrj-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 14px;
+}
+
+.hrj-field {
+    display: block;
+    margin-bottom: 14px;
+}
+
+.hrj-field > span {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #3a4726;
+}
+
+.hrj-field em {
+    display: block;
+    margin-top: 5px;
+    font-size: 11.5px;
+    font-style: normal;
+    color: #7b8374;
+}
+
+.hrj-field-error {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #a13f35;
+}
+
+.hrj-check {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 4px 0 8px;
+    font-size: 14px;
+    color: #3a4726;
+}
+
+.hrj-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.hrj-delete {
+    background: #a13f35;
+    border-color: #a13f35;
+}
+
+.hrj-delete:hover:not(:disabled) {
+    background: #86322a;
+    border-color: #86322a;
+}
+
+@media (max-width: 760px) {
+    .hrj-job {
+        flex-direction: column;
+    }
+
+    .hrj-side {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .hrj-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
