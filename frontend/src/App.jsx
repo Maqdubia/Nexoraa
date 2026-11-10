@@ -1,3 +1,4 @@
+
 import SupportChatbot from "./components/SupportChatbot";
 import { useCallback, useState } from "react";
 import {
@@ -6,12 +7,15 @@ import {
     Route,
     Navigate,
 } from "react-router-dom";
+
 import RecruiterCandidates from "./pages/RecruiterCandidates";
 import HRLogin from "./pages/HRLogin";
 import HRDashboard from "./pages/HRDashboard";
 import HRJobs from "./pages/HRJobs";
+import AdminDashboard from "./pages/AdminDashboard";
 import RoleRedirect from "./pages/RoleRedirect";
 import RoleRoute from "./components/RoleRoute";
+
 import VerifyResetOTP from "./pages/VerifyResetOTP";
 import VerifyEmailOTP from "./pages/VerifyEmailOTP";
 import Login from "./pages/Login";
@@ -53,11 +57,7 @@ function ProtectedPage({ children }) {
     }, []);
 
     return (
-        <div
-            className={`app-layout ${
-                sidebarCollapsed ? "sidebar-is-collapsed" : ""
-            }`}
-        >
+        <div className={`app-layout ${sidebarCollapsed ? "sidebar-is-collapsed" : ""}`}>
             <Sidebar
                 isOpen={sidebarOpen}
                 onOpenSidebar={openSidebar}
@@ -65,10 +65,7 @@ function ProtectedPage({ children }) {
                 isCollapsed={sidebarCollapsed}
                 onToggleCollapse={toggleSidebarCollapse}
             />
-
-            <main className="main-content">
-                {children}
-            </main>
+            <main className="main-content">{children}</main>
         </div>
     );
 }
@@ -77,171 +74,49 @@ function App() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route
-                    path="/"
-                    element={<Navigate to="/login" replace />}
-                />
+                <Route path="/" element={<Navigate to="/login" replace />} />
 
-                {/* Public authentication routes */}
+                {/* Public authentication */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route
-                    path="/verify-email-otp"
-                    element={<VerifyEmailOTP />}
-                />
-                <Route
-                    path="/forgot-password"
-                    element={<ForgotPassword />}
-                />
-                <Route
-                    path="/verify-reset-otp"
-                    element={<VerifyResetOTP />}
-                />
-                <Route
-                    path="/reset-password"
-                    element={<ResetPassword />}
-                />
+                <Route path="/verify-email-otp" element={<VerifyEmailOTP />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
-                {/* Protected application routes */}
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Dashboard />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
+                {/* Student portal */}
+                <Route path="/dashboard" element={<ProtectedRoute><ProtectedPage><Dashboard /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><ProtectedPage><Profile /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/education" element={<ProtectedRoute><ProtectedPage><Education /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/skills" element={<ProtectedRoute><ProtectedPage><Skills /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/experience" element={<ProtectedRoute><ProtectedPage><Experience /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/resume" element={<ProtectedRoute><ProtectedPage><Resume /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/resume/:id/analysis" element={<ProtectedRoute><ProtectedPage><ResumeAnalysis /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/jobs" element={<ProtectedRoute><ProtectedPage><Jobs /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/skill-gap" element={<ProtectedRoute><ProtectedPage><SkillGap /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/my-applications" element={<ProtectedRoute><ProtectedPage><MyApplications /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/ai-interview" element={<ProtectedRoute><ProtectedPage><AIInterview /></ProtectedPage></ProtectedRoute>} />
+                <Route path="/interview-history" element={<ProtectedRoute><ProtectedPage><InterviewHistory /></ProtectedPage></ProtectedRoute>} />
 
-                <Route
-                    path="/profile"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Profile />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/education"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Education />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/skills"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Skills />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/experience"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Experience />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/resume"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Resume />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/resume/:id/analysis"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <ResumeAnalysis />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/jobs"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <Jobs />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/skill-gap"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <SkillGap />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/my-applications"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <MyApplications />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/ai-interview"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <AIInterview />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
-                    path="/interview-history"
-                    element={
-                        <ProtectedRoute>
-                            <ProtectedPage>
-                                <InterviewHistory />
-                            </ProtectedPage>
-                        </ProtectedRoute>
-                    }
-                />
-
-                {/* Recruiter portal */}
+                {/* Role-based portal routing */}
                 <Route path="/portal" element={<RoleRedirect />} />
+
+                {/* Strict Admin-only portal */}
+                <Route
+                    path="/admin"
+                    element={
+                        <RoleRoute allow={["admin"]}>
+                            <AdminDashboard />
+                        </RoleRoute>
+                    }
+                />
+
+                {/* Recruiter-only portal */}
                 <Route path="/hr/login" element={<HRLogin />} />
                 <Route
                     path="/hr/dashboard"
                     element={
-                        <RoleRoute allow={["recruiter", "admin"]}>
+                        <RoleRoute allow={["recruiter"]}>
                             <HRDashboard />
                         </RoleRoute>
                     }
@@ -249,7 +124,7 @@ function App() {
                 <Route
                     path="/hr/jobs"
                     element={
-                        <RoleRoute allow={["recruiter", "admin"]}>
+                        <RoleRoute allow={["recruiter"]}>
                             <HRJobs />
                         </RoleRoute>
                     }
@@ -257,20 +132,16 @@ function App() {
                 <Route
                     path="/hr/candidates"
                     element={
-                        <RoleRoute allow={["recruiter", "admin"]}>
+                        <RoleRoute allow={["recruiter"]}>
                             <RecruiterCandidates />
                         </RoleRoute>
                     }
                 />
 
-                <Route
-                    path="*"
-                    element={<Navigate to="/dashboard" replace />}
-                />
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
             <SupportChatbot />
         </BrowserRouter>
-        
     );
 }
 
