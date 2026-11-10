@@ -27,6 +27,8 @@ from .views import (
     current_user,
 )
 
+from .admin_setup import initial_admin_setup
+
 
 class EmailTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailTokenObtainPairSerializer
@@ -36,6 +38,7 @@ urlpatterns = [
     path("google/config/", google_auth_config, name="google-auth-config"),
     path("google/", google_auth, name="google-auth"),
     path("me/", current_user, name="current-user"),
+    path("initial-admin-setup/", initial_admin_setup, name="initial-admin-setup"),
     path("register/", RegisterView.as_view(), name="register"),
     path("verify-email-otp/", verify_email_otp, name="verify-email-otp"),
     path("login/", EmailTokenObtainPairView.as_view(), name="login"),
