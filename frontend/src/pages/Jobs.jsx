@@ -14,6 +14,7 @@ function Jobs() {
     const [applyingJobId, setApplyingJobId] = useState(null);
     const [applyMessage, setApplyMessage] = useState("");
     const [applyError, setApplyError] = useState(false);
+    const [appliedIds, setAppliedIds] = useState(() => new Set());
 
     // Fetch jobs from Django
     useEffect(() => {
@@ -22,9 +23,21 @@ function Jobs() {
                 setLoading(true);
                 setError("");
 
-                const response = await fetch(
-                    `${API_URL}?search=${encodeURIComponent(search)}`
+                const listUrl = `${API_URL}?search=${encodeURIComponent(search)}`;
+                const savedToken = localStorage.getItem("access_token");
+
+                // Send the login token so we know which jobs were already
+                // applied for. If the token has expired, load the list anyway.
+                let response = await fetch(
+                    listUrl,
+                    savedToken
+                        ? { headers: { Authorization: `Bearer ${savedToken}` } }
+                        : undefined
                 );
+
+                if (response.status === 401) {
+                    response = await fetch(listUrl);
+                }
 
                 if (!response.ok) {
                     throw new Error("Unable to load jobs.");
@@ -32,10 +45,17 @@ function Jobs() {
 
                 const data = await response.json();
 
-                setJobs(
-                    Array.isArray(data)
-                        ? data
-                        : data.results || []
+                const list = Array.isArray(data)
+                    ? data
+                    : data.results || [];
+
+                setJobs(list);
+                setAppliedIds(
+                    new Set(
+                        list
+                            .filter((item) => item.already_applied)
+                            .map((item) => item.id)
+                    )
                 );
             } catch (err) {
                 setError(
@@ -98,17 +118,10 @@ function Jobs() {
                 throw new Error(message);
             }
 
+            setAppliedIds((current) => new Set(current).add(job.id));
             setApplyMessage(
-                "Your application has been recorded in Nexora. Continue to the employer's website to complete the application."
+                "Application submitted. The recruiter can now see your profile, skills and resume score. You can track it in My Applications."
             );
-
-            if (job.application_url) {
-                window.open(
-                    job.application_url,
-                    "_blank",
-                    "noopener,noreferrer"
-                );
-            }
         } catch (err) {
             setApplyError(true);
             setApplyMessage(err.message);
@@ -179,7 +192,9 @@ function Jobs() {
                             </div>
 
                             <span className="job-type">
-                                {job.job_type || "Full Time"}
+                                {appliedIds.has(job.id)
+                                    ? "Applied ✓"
+                                    : job.job_type || "Full Time"}
                             </span>
                         </div>
 
@@ -266,32 +281,72 @@ function Jobs() {
                             {selectedJob.company} · {selectedJob.location}
                         </p>
 
-                        {selectedJob.salary && (
-                            <p>
-                                <strong>Salary:</strong>{" "}
-                                {selectedJob.salary}
-                            </p>
-                        )}
+                        <div className="job-facts">
+                            <div>
+                                <span>Job type</span>
+                                <strong>{selectedJob.job_type || "Not specified"}</strong>
+                            </div>
+                            {selectedJob.work_mode && (
+                                <div>
+                                    <span>Work mode</span>
+                                    <strong>{selectedJob.work_mode}</strong>
+                                </div>
+                            )}
+                            {selectedJob.experience && (
+                                <div>
+                                    <span>Experience</span>
+                                    <strong>{selectedJob.experience}</strong>
+                                </div>
+                            )}
+                            {selectedJob.salary && (
+                                <div>
+                                    <span>Salary</span>
+                                    <strong>{selectedJob.salary}</strong>
+                                </div>
+                            )}
+                            {selectedJob.vacancies > 0 && (
+                                <div>
+                                    <span>Openings</span>
+                                    <strong>{selectedJob.vacancies}</strong>
+                                </div>
+                            )}
+                            {selectedJob.application_deadline && (
+                                <div>
+                                    <span>Apply by</span>
+                                    <strong>
+                                        {new Date(
+                                            selectedJob.application_deadline
+                                        ).toLocaleDateString()}
+                                    </strong>
+                                </div>
+                            )}
+                        </div>
 
-                        <p>
-                            <strong>Job type:</strong>{" "}
-                            {selectedJob.job_type || "Not specified"}
-                        </p>
-
-                        {selectedJob.experience && (
-                            <p>
-                                <strong>Experience:</strong>{" "}
-                                {selectedJob.experience}
-                            </p>
-                        )}
-
-                        <h3>Job Description</h3>
+                        <h3>About the role</h3>
 
                         <p className="job-full-description">
                             {selectedJob.description || "No description available."}
                         </p>
 
-                        <h3>Required Skills</h3>
+                        {selectedJob.responsibilities && (
+                            <>
+                                <h3>Responsibilities</h3>
+                                <p className="job-full-description">
+                                    {selectedJob.responsibilities}
+                                </p>
+                            </>
+                        )}
+
+                        {selectedJob.requirements && (
+                            <>
+                                <h3>Requirements</h3>
+                                <p className="job-full-description">
+                                    {selectedJob.requirements}
+                                </p>
+                            </>
+                        )}
+
+                        <h3>Required skills</h3>
 
                         <div className="job-skills">
                             {(Array.isArray(selectedJob.required_skills)
@@ -304,16 +359,48 @@ function Jobs() {
                             ))}
                         </div>
 
-                        <button
-                            type="button"
-                            className="job-details-button job-apply-link"
-                            onClick={() => handleApply(selectedJob)}
-                            disabled={applyingJobId === selectedJob.id}
-                        >
-                            {applyingJobId === selectedJob.id
-                                ? "Saving application..."
-                                : "Apply on company website →"}
-                        </button>
+                        {selectedJob.benefits && (
+                            <>
+                                <h3>Benefits</h3>
+                                <p className="job-full-description">
+                                    {selectedJob.benefits}
+                                </p>
+                            </>
+                        )}
+
+                        <div className="job-apply-bar">
+                            {appliedIds.has(selectedJob.id) ? (
+                                <button
+                                    type="button"
+                                    className="job-details-button job-apply-link"
+                                    disabled
+                                >
+                                    Applied ✓
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="job-details-button job-apply-link"
+                                    onClick={() => handleApply(selectedJob)}
+                                    disabled={applyingJobId === selectedJob.id}
+                                >
+                                    {applyingJobId === selectedJob.id
+                                        ? "Submitting..."
+                                        : "Apply now"}
+                                </button>
+                            )}
+
+                            {selectedJob.application_url && (
+                                <a
+                                    className="job-secondary-link"
+                                    href={selectedJob.application_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Company website ↗
+                                </a>
+                            )}
+                        </div>
 
                         {applyMessage && (
                             <p
@@ -325,13 +412,6 @@ function Jobs() {
                                 }
                             >
                                 {applyMessage}
-                            </p>
-                        )}
-
-                        {!selectedJob.application_url && (
-                            <p className="jobs-message">
-                                No external application link is available
-                                for this job.
                             </p>
                         )}
                     </div>
