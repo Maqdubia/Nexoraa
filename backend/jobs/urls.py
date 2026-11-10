@@ -5,6 +5,7 @@ from .recruiter_views import (
     RecruiterJobListCreateView,
     RecruiterJobDetailView,
     RecruiterApplicationsView,
+    RecruiterStatsView,
 )
 
 from .views import (
@@ -38,6 +39,7 @@ urlpatterns = [
         RecruiterApplicationsView.as_view(),
         name="hr-applications",
     ),
+    path("hr/stats/", RecruiterStatsView.as_view(), name="hr-stats"),
 
     # Student job endpoints
     path("", JobListView.as_view(), name="job-list"),
