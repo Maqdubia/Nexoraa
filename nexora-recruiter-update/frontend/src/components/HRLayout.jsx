@@ -83,7 +83,7 @@ function HRLayout({ title, subtitle, actions, children }) {
     const logout = () => {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
-        navigate("/hr/login");
+        navigate("/login");
     };
 
     const linkClass = ({ isActive }) =>
@@ -93,7 +93,7 @@ function HRLayout({ title, subtitle, actions, children }) {
         <div className="hr-shell">
             <aside className={`hr-sidebar ${menuOpen ? "open" : ""}`}>
                 <div className="hr-brand">
-                    <img src="/static/nexora-icon.svg" alt="" width="38" height="38" />
+                    <span className="hr-brand-mark" aria-hidden="true">N</span>
                     <span>
                         <strong>NEXORA</strong>
                         <small>RECRUITER WORKSPACE</small>
