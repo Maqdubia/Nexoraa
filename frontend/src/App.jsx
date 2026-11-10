@@ -1,5 +1,5 @@
 import SupportChatbot from "./components/SupportChatbot";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
     BrowserRouter,
     Routes,
@@ -7,6 +7,10 @@ import {
     Navigate,
 } from "react-router-dom";
 import RecruiterCandidates from "./pages/RecruiterCandidates";
+import HRDashboard from "./pages/HRDashboard";
+import HRJobs from "./pages/HRJobs";
+import RoleRoute from "./components/RoleRoute";
+import RoleRedirect from "./pages/RoleRedirect";
 import VerifyResetOTP from "./pages/VerifyResetOTP";
 import VerifyEmailOTP from "./pages/VerifyEmailOTP";
 import Login from "./pages/Login";
@@ -68,6 +72,25 @@ function ProtectedPage({ children }) {
     );
 }
 
+function AdminAccountsRedirect() {
+    const token = localStorage.getItem("access_token");
+    const [allowed, setAllowed] = useState(null);
+    React.useEffect(() => {
+        let active = true;
+        if (!token) { setAllowed(false); return () => { active = false; }; }
+        import("./services/recruiterApi").then(({ getCurrentUser }) => getCurrentUser())
+            .then((user) => { if (active) setAllowed(user.role === "admin"); })
+            .catch(() => { if (active) setAllowed(false); });
+        return () => { active = false; };
+    }, [token]);
+    React.useEffect(() => {
+        if (allowed) window.location.replace("/admin/");
+    }, [allowed]);
+    if (allowed === null) return <div className="role-route-loading">Checking administrator access…</div>;
+    if (!allowed) return <Navigate to="/login" replace />;
+    return <div className="role-route-loading">Opening administrator console…</div>;
+}
+
 function App() {
     return (
         <BrowserRouter>
@@ -79,6 +102,9 @@ function App() {
 
                 {/* Public authentication routes */}
                 <Route path="/login" element={<Login />} />
+                <Route path="/hr/login" element={<Navigate to="/login?portal=recruiter" replace />} />
+                <Route path="/hr" element={<Navigate to="/hr/dashboard" replace />} />
+                <Route path="/portal" element={<RoleRedirect />} />
                 <Route path="/register" element={<Register />} />
                 <Route
                     path="/verify-email-otp"
@@ -229,19 +255,13 @@ function App() {
                         </ProtectedRoute>
                     }
                 />
-                <Route
-  path="/hr/candidates"
-  element={
-    <ProtectedRoute>
-      <RecruiterCandidates />
-    </ProtectedRoute>
-  }
-/>
+                {/* Recruiter workspace: role is verified against the backend on every route. */}
+                <Route path="/hr/dashboard" element={<RoleRoute allow={["recruiter"]}><HRDashboard /></RoleRoute>} />
+                <Route path="/hr/jobs" element={<RoleRoute allow={["recruiter"]}><HRJobs /></RoleRoute>} />
+                <Route path="/hr/candidates" element={<RoleRoute allow={["recruiter"]}><RecruiterCandidates /></RoleRoute>} />
+                <Route path="/admin/accounts" element={<AdminAccountsRedirect />} />
 
-                <Route
-                    path="*"
-                    element={<Navigate to="/dashboard" replace />}
-                />
+                <Route path="*" element={<Navigate to="/portal" replace />} />
             </Routes>
             <SupportChatbot />
         </BrowserRouter>
