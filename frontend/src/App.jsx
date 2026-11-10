@@ -241,7 +241,7 @@ function App() {
                 <Route
                     path="/hr/dashboard"
                     element={
-                        <RoleRoute allow={["hr", "admin"]}>
+                        <RoleRoute allow={["recruiter", "admin"]}>
                             <HRDashboard />
                         </RoleRoute>
                     }
@@ -249,7 +249,7 @@ function App() {
                 <Route
                     path="/hr/jobs"
                     element={
-                        <RoleRoute allow={["hr", "admin"]}>
+                        <RoleRoute allow={["recruiter", "admin"]}>
                             <HRJobs />
                         </RoleRoute>
                     }
@@ -257,7 +257,7 @@ function App() {
                 <Route
                     path="/hr/candidates"
                     element={
-                        <RoleRoute allow={["hr", "admin"]}>
+                        <RoleRoute allow={["recruiter", "admin"]}>
                             <RecruiterCandidates />
                         </RoleRoute>
                     }
