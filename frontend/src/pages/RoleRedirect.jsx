@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { getCurrentUser } from "../services/recruiterApi";
@@ -7,9 +8,19 @@ function RoleRedirect() {
     const [failed, setFailed] = useState(false);
 
     useEffect(() => {
+        let active = true;
+
         getCurrentUser()
-            .then((user) => setRole(user.role))
-            .catch(() => setFailed(true));
+            .then((user) => {
+                if (active) setRole(user.role);
+            })
+            .catch(() => {
+                if (active) setFailed(true);
+            });
+
+        return () => {
+            active = false;
+        };
     }, []);
 
     if (failed) {
@@ -21,10 +32,10 @@ function RoleRedirect() {
     }
 
     if (role === "admin") {
-        return <Navigate to="/hr/dashboard" replace />;
+        return <Navigate to="/admin" replace />;
     }
 
-   if (role === "recruiter") {
+    if (role === "recruiter") {
         return <Navigate to="/hr/dashboard" replace />;
     }
 
