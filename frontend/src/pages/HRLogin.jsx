@@ -25,7 +25,7 @@ function HRLogin() {
             if (user.role === "hr") {
                 navigate("/hr/dashboard");
             } else if (user.role === "admin") {
-                navigate("/admin/hr");
+                navigate("/hr/dashboard");
             } else {
                 localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh_token");
