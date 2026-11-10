@@ -1,4 +1,4 @@
-
+from django.db.models import Exists, OuterRef
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
@@ -28,27 +28,38 @@ class JobListView(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+    queryset = super().get_queryset()
 
-        skill = self.request.query_params.get("skill")
+    # Calculate application status in the main database query.
+    # Avoid running one additional query for every job.
+    if self.request.user.is_authenticated:
+        queryset = queryset.annotate(
+            _already_applied_for_user=Exists(
+                JobApplication.objects.filter(
+                    job_id=OuterRef("pk"),
+                    user_id=self.request.user.pk,
+                )
+            )
+        )
 
-        if skill:
-            matching_jobs = []
+    skill = self.request.query_params.get("skill")
 
-            for job in queryset:
-                skills = job.required_skills or []
+    if skill:
+        matching_jobs = []
 
-                if isinstance(skills, list):
-                    if any(
-                        skill.lower() in str(item).lower()
-                        for item in skills
-                    ):
-                        matching_jobs.append(job.pk)
+        for job in queryset:
+            skills = job.required_skills or []
 
-            queryset = queryset.filter(pk__in=matching_jobs)
+            if isinstance(skills, list):
+                if any(
+                    skill.lower() in str(item).lower()
+                    for item in skills
+                ):
+                    matching_jobs.append(job.pk)
 
-        return queryset
+        queryset = queryset.filter(pk__in=matching_jobs)
 
+    return queryset
 
 # Display details of one job
 class JobDetailView(generics.RetrieveAPIView):
