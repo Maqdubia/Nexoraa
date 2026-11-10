@@ -182,11 +182,14 @@ def google_auth(request):
                 is_active=True,
             )
         else:
-            # Google's verified ownership of this same email completes any pending email verification.
-            changed_fields = []
+            # Never let Google sign-in reactivate an account disabled by an administrator.
+            # Pending/unverified inactive accounts must complete the existing verification flow.
             if not user.is_active:
-                user.is_active = True
-                changed_fields.append("is_active")
+                return Response(
+                    {"detail": "This Nexora account is inactive. Contact the administrator or complete account verification."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            changed_fields = []
             if not user.email:
                 user.email = email
                 changed_fields.append("email")
