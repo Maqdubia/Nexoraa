@@ -1,4 +1,4 @@
-
+import InitialAdminSetup from "./pages/InitialAdminSetup";
 import SupportChatbot from "./components/SupportChatbot";
 import { useCallback, useState } from "react";
 import {
@@ -83,7 +83,7 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-
+                <Route path="/initial-admin-setup" element={<InitialAdminSetup />} />
                 {/* Student portal */}
                 <Route path="/dashboard" element={<ProtectedRoute><ProtectedPage><Dashboard /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProtectedPage><Profile /></ProtectedPage></ProtectedRoute>} />
