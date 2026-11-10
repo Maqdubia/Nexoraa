@@ -22,10 +22,10 @@ function HRLogin() {
 
             const user = await getCurrentUser();
 
-            if (user.role === "hr") {
+            if (user.role === "recruiter") {
                 navigate("/hr/dashboard");
             } else if (user.role === "admin") {
-                navigate("/hr/dashboard");
+                navigate("/admin/accounts");
             } else {
                 localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh_token");
