@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
@@ -6,7 +7,6 @@ import "./HRLogin.css";
 
 function HRLogin() {
     const navigate = useNavigate();
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -19,12 +19,9 @@ function HRLogin() {
 
         try {
             await loginUser({ email, password });
-
             const user = await getCurrentUser();
 
-            if (user.role === "hr") {
-                navigate("/hr/dashboard");
-            } else if (user.role === "admin") {
+            if (user.role === "recruiter" || user.role === "admin") {
                 navigate("/hr/dashboard");
             } else {
                 localStorage.removeItem("access_token");
@@ -46,7 +43,6 @@ function HRLogin() {
             <section className="hr-login-card">
                 <div className="hr-brand">NEXORA<span>.</span></div>
                 <p className="hr-login-label">RECRUITER PORTAL</p>
-
                 <h1>Welcome back.</h1>
                 <p className="hr-login-description">
                     Sign in to manage opportunities and discover talent.
