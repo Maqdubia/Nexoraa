@@ -1,4 +1,6 @@
+
 from django.db.models import Exists, OuterRef
+
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
@@ -10,14 +12,14 @@ from .models import Job, JobApplication
 from .serializers import JobSerializer, JobApplicationSerializer
 
 
-
 # Display all jobs and allow users to search
 class JobListView(generics.ListAPIView):
+    queryset = Job.objects.filter(
+        is_published=True
+    ).order_by("-created_at")
 
-    queryset = Job.objects.filter(is_published=True).order_by("-created_at")
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
-
     filter_backends = [SearchFilter]
 
     search_fields = [
@@ -28,46 +30,44 @@ class JobListView(generics.ListAPIView):
     ]
 
     def get_queryset(self):
-    queryset = super().get_queryset()
+        queryset = super().get_queryset()
 
-    # Calculate application status in the main database query.
-    # Avoid running one additional query for every job.
-    if self.request.user.is_authenticated:
-        queryset = queryset.annotate(
-            _already_applied_for_user=Exists(
-                JobApplication.objects.filter(
-                    job_id=OuterRef("pk"),
-                    user_id=self.request.user.pk,
+        # Calculate application status in the main database query.
+        if self.request.user.is_authenticated:
+            queryset = queryset.annotate(
+                _already_applied_for_user=Exists(
+                    JobApplication.objects.filter(
+                        job_id=OuterRef("pk"),
+                        user_id=self.request.user.pk,
+                    )
                 )
             )
-        )
 
-    skill = self.request.query_params.get("skill")
+        skill = self.request.query_params.get("skill")
 
-    if skill:
-        matching_jobs = []
+        if skill:
+            matching_jobs = []
 
-        for job in queryset:
-            skills = job.required_skills or []
+            for job in queryset:
+                skills = job.required_skills or []
 
-            if isinstance(skills, list):
-                if any(
-                    skill.lower() in str(item).lower()
-                    for item in skills
-                ):
-                    matching_jobs.append(job.pk)
+                if isinstance(skills, list):
+                    if any(
+                        skill.lower() in str(item).lower()
+                        for item in skills
+                    ):
+                        matching_jobs.append(job.pk)
 
-        queryset = queryset.filter(pk__in=matching_jobs)
+            queryset = queryset.filter(pk__in=matching_jobs)
 
-    return queryset
+        return queryset
+
 
 # Display details of one job
 class JobDetailView(generics.RetrieveAPIView):
-
     queryset = Job.objects.filter(is_published=True)
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
-
 
 
 # ========================================
@@ -75,17 +75,13 @@ class JobDetailView(generics.RetrieveAPIView):
 # ========================================
 
 class JobMatchView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
-        # Get the logged-in user's saved skills
         user_skills = request.user.skills.values_list(
             "name", flat=True
         )
 
-        # Normalize skill names for comparison
         user_skill_map = {
             skill.strip().casefold(): skill.strip()
             for skill in user_skills
@@ -94,15 +90,15 @@ class JobMatchView(APIView):
 
         results = []
 
-        # Compare the user's skills with every job
-        for job in Job.objects.filter(is_published=True).order_by("-created_at"):
+        for job in Job.objects.filter(
+            is_published=True
+        ).order_by("-created_at"):
 
             required_skills = job.required_skills or []
 
             if not isinstance(required_skills, list):
                 required_skills = []
 
-            # Remove duplicate required skills
             required_map = {}
 
             for skill in required_skills:
@@ -125,7 +121,6 @@ class JobMatchView(APIView):
                 if skill.casefold() not in user_skill_map
             ]
 
-            # Calculate the match percentage
             if required:
                 match_percentage = round(
                     len(matched_skills) / len(required) * 100
@@ -155,7 +150,6 @@ class JobMatchView(APIView):
                 "experience": job.experience,
             })
 
-        # Show the strongest matches first
         results.sort(
             key=lambda item: item["match_percentage"],
             reverse=True
@@ -164,10 +158,8 @@ class JobMatchView(APIView):
         return Response(results)
 
 
-
-
 # ========================================
-# STEP 7: IMPROVEMENT RECOMMENDATIONS
+# IMPROVEMENT RECOMMENDATIONS
 # ========================================
 
 class ImprovementRecommendationsView(APIView):
@@ -367,7 +359,7 @@ class ImprovementRecommendationsView(APIView):
 
 
 # ========================================
-# STEP 8: JOB APPLICATIONS
+# JOB APPLICATIONS
 # ========================================
 
 class JobApplicationCreateView(generics.CreateAPIView):
