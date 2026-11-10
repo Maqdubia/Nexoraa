@@ -6,7 +6,170 @@ function ScoreRing({ value = 0, size = 44 }) {
     const circumference = 2 * Math.PI * radius;
     const offset = circumference * (1 - score / 100);
 
-    return (
+    return (.hrd-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.hrd-stat {
+    padding: 18px 20px;
+}
+
+.hrd-stat span {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #687060;
+}
+
+.hrd-stat strong {
+    display: block;
+    margin: 6px 0 2px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: #1c2418;
+}
+
+.hrd-stat small {
+    font-size: 12px;
+    color: #7f8d63;
+}
+
+.hrd-pipeline {
+    margin-bottom: 18px;
+}
+
+.hrd-bar {
+    display: flex;
+    height: 12px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #eef0e8;
+}
+
+.hrd-bar span {
+    display: block;
+    height: 100%;
+}
+
+.hrd-bar-empty {
+    width: 100%;
+}
+
+.hrd-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #4d5546;
+}
+
+.hrd-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.hrd-legend i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.hrd-legend b {
+    color: #1c2418;
+}
+
+.hrd-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.hrd-list {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.hrd-list li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid #eef0e8;
+}
+
+.hrd-list li:last-child {
+    border-bottom: 0;
+}
+
+.hrd-person {
+    flex: 1;
+    min-width: 0;
+}
+
+.hrd-person strong {
+    display: block;
+    font-size: 14px;
+    color: #1c2418;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hrd-person small {
+    display: block;
+    margin-top: 2px;
+    font-size: 12px;
+    color: #687060;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hrd-count {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #3a4726;
+    text-decoration: none;
+}
+
+.hrd-count:hover {
+    text-decoration: underline;
+}
+
+.hrd-more {
+    font-size: 13px;
+    font-weight: 600;
+    color: #3a4726;
+    text-decoration: none;
+}
+
+.hrd-more:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 1100px) {
+    .hrd-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .hrd-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 520px) {
+    .hrd-stat strong {
+        font-size: 28px;
+    }
+}
+
         <span
             className={`hr-ring hr-ring-${band}`}
             style={{ width: size, height: size }}
