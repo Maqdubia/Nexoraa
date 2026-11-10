@@ -161,6 +161,37 @@ function Login() {
         >
           Create Account
         </button>
+
+        <div style={{
+          marginTop: "24px",
+          paddingTop: "18px",
+          borderTop: "1px solid #e8e8e2",
+          textAlign: "center",
+        }}>
+          <p style={{
+            fontSize: "13px",
+            color: "#777",
+            marginBottom: "8px",
+          }}>
+            Hiring talent for your company?
+          </p>
+
+          <button
+            type="button"
+            onClick={() => navigate("/hr/login")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#315c45",
+              fontSize: "14px",
+              fontWeight: "700",
+              cursor: "pointer",
+              padding: "6px",
+            }}
+          >
+            Recruiter? Sign in here →
+          </button>
+        </div>
       </div>
     </div>
   );
