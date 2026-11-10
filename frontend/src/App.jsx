@@ -1,3 +1,5 @@
+import RecruiterRegister from "./pages/RecruiterRegister";
+import RecruiterVerifyEmailOTP from "./pages/RecruiterVerifyEmailOTP";
 import InitialAdminSetup from "./pages/InitialAdminSetup";
 import SupportChatbot from "./components/SupportChatbot";
 import { useCallback, useState } from "react";
@@ -113,6 +115,8 @@ function App() {
 
                 {/* Recruiter-only portal */}
                 <Route path="/hr/login" element={<HRLogin />} />
+                <Route path="/hr/register" element={<RecruiterRegister />} />
+                <Route path="/hr/verify-email-otp" element={<RecruiterVerifyEmailOTP />} />
                 <Route
                     path="/hr/dashboard"
                     element={
