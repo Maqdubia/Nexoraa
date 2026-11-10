@@ -30,7 +30,7 @@ function HRLogin() {
             } else {
                 localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh_token");
-                setMessage("This login is for authorized recruiters only.");
+                setMessage("This login is for recruiter accounts only.");
             }
         } catch (error) {
             setMessage(
@@ -75,24 +75,36 @@ function HRLogin() {
                         required
                     />
 
-                    {message && <p className="hr-login-error">{message}</p>}
+                    {message && (
+                        <p className="hr-login-error" role="alert">
+                            {message}
+                        </p>
+                    )}
 
                     <button type="submit" disabled={loading}>
                         {loading ? "Signing in..." : "Sign in to recruiter portal"}
                     </button>
                 </form>
 
+                <p className="hr-login-footer">
+                    New to Nexora?
+                </p>
+
                 <button
                     className="hr-back-button"
-                    onClick={() => navigate("/login")}
                     type="button"
+                    onClick={() => navigate("/hr/register")}
+                >
+                    Create a recruiter account
+                </button>
+
+                <button
+                    className="hr-back-button"
+                    type="button"
+                    onClick={() => navigate("/login")}
                 >
                     Back to student login
                 </button>
-
-                <p className="hr-login-footer">
-                    Recruiter access is provided by the Nexora administrator.
-                </p>
             </section>
         </main>
     );
