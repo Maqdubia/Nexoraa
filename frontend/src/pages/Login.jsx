@@ -18,10 +18,14 @@ function Login() {
 
   const handleGoogleSuccess = (result) => {
     const role = result.user?.role;
-    const destination = role === "admin" || role === "hr" || role === "recruiter"
-      ? "/hr/dashboard"
-      : "/dashboard";
-    navigate(destination, { replace: true });
+
+    if (role === "admin") {
+      navigate("/admin", { replace: true });
+    } else if (role === "recruiter" || role === "hr") {
+      navigate("/hr/dashboard", { replace: true });
+    } else {
+      navigate("/dashboard", { replace: true });
+    }
   };
 
   const handleChange = (e) => {
