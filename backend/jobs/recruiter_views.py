@@ -1,6 +1,10 @@
 import secrets
 
+from datetime import timedelta
+
 from django.contrib.auth.models import User, Group
+from django.db.models import Count
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -72,7 +76,7 @@ class HRAccountCreateView(generics.CreateAPIView):
                 "id": user.id,
                 "email": user.email,
                 "name": user.first_name,
-                "role": "hr",
+                "role": "recruiter",
             },
             status=status.HTTP_201_CREATED,
         )
@@ -131,3 +135,37 @@ class RecruiterApplicationsView(APIView):
             }
             for item in applications
         ])
+
+
+class RecruiterStatsView(APIView):
+    permission_classes = [IsHR]
+
+    def get(self, request):
+        jobs = Job.objects.filter(created_by=request.user)
+        applications = JobApplication.objects.filter(job__in=jobs).select_related("user", "job")
+        status_counts = {key: applications.filter(status=key).count() for key, _ in JobApplication.STATUS_CHOICES}
+        week_ago = timezone.now() - timedelta(days=7)
+        recent = applications.order_by("-applied_at")[:6]
+        top_jobs = jobs.annotate(application_count=Count("applications")).order_by("-application_count", "-created_at")[:6]
+        return Response({
+            "total_jobs": jobs.count(),
+            "published_jobs": jobs.filter(is_published=True).count(),
+            "total_applications": applications.count(),
+            "new_this_week": applications.filter(applied_at__gte=week_ago).count(),
+            "by_status": status_counts,
+            "recent_applications": [{
+                "id": item.id,
+                "candidate": item.user.get_full_name() or item.user.username,
+                "job_title": item.job.title,
+                "applied_at": item.applied_at,
+                "status": item.status,
+                "ats_score": 0,
+            } for item in recent],
+            "top_jobs": [{
+                "id": job.id,
+                "title": job.title,
+                "location": job.location,
+                "applications": job.application_count,
+                "is_published": job.is_published,
+            } for job in top_jobs],
+        })
