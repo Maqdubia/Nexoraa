@@ -1,370 +1,652 @@
-
-import React, { useEffect, useMemo, useState } from "react";
-import { getRecruiterApplications } from "../services/recruiterApi";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import HRLayout from "../components/HRLayout";
+import ScoreRing from "../components/ScoreRing";
+import {
+    getRecruiterApplications,
+    getRecruiterJobs,
+    getApplicationDetail,
+    updateApplicationStatus,
+    bulkUpdateStatus,
+} from "../services/recruiterApi";
 import "./RecruiterCandidates.css";
 
-const Icon = ({ name }) => {
-  const paths = {
-    dashboard: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
-    jobs: <><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></>,
-    people: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></>,
-    search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
-    bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></>,
-    filter: <path d="M4 5h16M7 12h10M10 19h4"/>,
-    grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
-    list: <path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/>,
-    eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>,
-    close: <path d="m6 6 12 12M18 6 6 18"/>,
-    logout: <><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></>
-  };
-
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24"
-      fill="none" stroke="currentColor" strokeWidth="1.7"
-      strokeLinecap="round" strokeLinejoin="round">
-      {paths[name]}
-    </svg>
-  );
-};
+const STATUSES = ["Applied", "Shortlisted", "Selected", "Rejected"];
 
 const initials = (name = "") =>
-  name.split(/\s+/).filter(Boolean).slice(0, 2)
-    .map(part => part[0]).join("").toUpperCase() || "C";
+    name
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase() || "C";
 
-const formatDate = value =>
-  value ? new Date(value).toLocaleDateString(undefined, {
-    month: "short", day: "numeric", year: "numeric"
-  }) : "—";
+const formatDate = (value) =>
+    value
+        ? new Date(value).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+          })
+        : "—";
 
-const statusClass = status =>
-  (status || "Applied").toLowerCase().replace(/[^a-z]+/g, "-");
+const badgeClass = (status) => `hr-badge hr-badge-${(status || "Applied").toLowerCase()}`;
 
-export default function RecruiterCandidates() {
-  const [applications, setApplications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("All statuses");
-  const [view, setView] = useState("list");
-  const [selected, setSelected] = useState(null);
-
-  useEffect(() => {
-    let active = true;
-
-    getRecruiterApplications()
-      .then(data => {
-        if (active) {
-          setApplications(
-            Array.isArray(data) ? data : data.results || []
-          );
+const copyText = async (text) => {
+    try {
+        await navigator.clipboard.writeText(text);
+        return true;
+    } catch (err) {
+        const box = document.createElement("textarea");
+        box.value = text;
+        box.style.position = "fixed";
+        box.style.opacity = "0";
+        document.body.appendChild(box);
+        box.select();
+        let ok = false;
+        try {
+            ok = document.execCommand("copy");
+        } catch (e) {
+            ok = false;
         }
-      })
-      .catch(err => {
-        if (active) {
-          setError(
-            err.response?.data?.detail ||
-            "Unable to load candidates. Please check your recruiter login."
-          );
+        document.body.removeChild(box);
+        return ok;
+    }
+};
+
+function RecruiterCandidates() {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const [applications, setApplications] = useState([]);
+    const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [toast, setToast] = useState(null);
+
+    const [search, setSearch] = useState("");
+    const [jobFilter, setJobFilter] = useState(searchParams.get("job") || "all");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [minScore, setMinScore] = useState("0");
+    const [sortBy, setSortBy] = useState("ats");
+
+    const [selectedIds, setSelectedIds] = useState([]);
+    const [busy, setBusy] = useState(false);
+
+    const [drawerId, setDrawerId] = useState(null);
+    const [detail, setDetail] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(false);
+    const [showResumeText, setShowResumeText] = useState(false);
+
+    const showToast = (message, type = "ok") => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    const loadAll = useCallback(async () => {
+        try {
+            const [apps, jobList] = await Promise.all([
+                getRecruiterApplications(),
+                getRecruiterJobs(),
+            ]);
+
+            setApplications(Array.isArray(apps) ? apps : apps.results || []);
+            setJobs(Array.isArray(jobList) ? jobList : jobList.results || []);
+            setError("");
+        } catch (err) {
+            setError(
+                err.response?.data?.detail ||
+                    "Could not load candidates. Please refresh the page."
+            );
+        } finally {
+            setLoading(false);
         }
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
+    }, []);
 
-    return () => { active = false; };
-  }, []);
+    useEffect(() => {
+        loadAll();
+    }, [loadAll]);
 
-  const filtered = useMemo(() => {
-    return applications.filter(item => {
-      const q = search.toLowerCase().trim();
+    const changeJobFilter = (value) => {
+        setJobFilter(value);
+        setSelectedIds([]);
 
-      const matchesSearch = !q || [
-        item.candidate,
-        item.email,
-        item.job_title,
-        item.company
-      ].some(value => String(value || "").toLowerCase().includes(q));
+        if (value === "all") {
+            setSearchParams({}, { replace: true });
+        } else {
+            setSearchParams({ job: value }, { replace: true });
+        }
+    };
 
-      const matchesStatus =
-        status === "All statuses" || item.status === status;
+    const visible = useMemo(() => {
+        const q = search.toLowerCase().trim();
+        const min = Number(minScore);
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [applications, search, status]);
+        const list = applications.filter((item) => {
+            const matchesSearch =
+                !q ||
+                [item.candidate, item.email, item.job_title, item.location]
+                    .concat(item.skills || [])
+                    .some((value) => String(value || "").toLowerCase().includes(q));
 
-  const counts = {
-    total: applications.length,
-    applied: applications.filter(a => a.status === "Applied").length,
-    shortlisted: applications.filter(a => a.status === "Shortlisted").length,
-    selected: applications.filter(a => a.status === "Selected").length
-  };
+            const matchesJob =
+                jobFilter === "all" || String(item.job_id) === String(jobFilter);
+            const matchesStatus =
+                statusFilter === "all" || item.status === statusFilter;
 
-  return (
-    <div className="nxc-page">
-      <aside className="nxc-sidebar">
-        <a href="/hr/dashboard" className="nxc-brand">
-          <span className="nxc-brand-mark">N</span>
-          <span>
-            <strong>NEXORA</strong>
-            <small>RECRUITER WORKSPACE</small>
-          </span>
-        </a>
+            return matchesSearch && matchesJob && matchesStatus && item.ats_score >= min;
+        });
 
-        <div className="nxc-nav-label">MAIN MENU</div>
+        list.sort((a, b) => {
+            if (sortBy === "newest") {
+                return new Date(b.applied_at) - new Date(a.applied_at);
+            }
+            if (sortBy === "name") {
+                return a.candidate.localeCompare(b.candidate);
+            }
+            return b.ats_score - a.ats_score;
+        });
 
-        <nav className="nxc-nav">
-          <a href="/hr/dashboard" className="nxc-nav-link">
-            <Icon name="dashboard"/> Dashboard
-          </a>
-          <a href="/hr/jobs" className="nxc-nav-link">
-            <Icon name="jobs"/> Jobs
-          </a>
-          <a href="/hr/candidates" className="nxc-nav-link active">
-            <Icon name="people"/> Candidates
-          </a>
-        </nav>
+        return list;
+    }, [applications, search, jobFilter, statusFilter, minScore, sortBy]);
 
-        <div className="nxc-sidebar-bottom">
-          <div className="nxc-user">
-            <span className="nxc-avatar">R</span>
-            <span>
-              <strong>Recruiter account</strong>
-              <small>Nexora workspace</small>
-            </span>
-          </div>
+    const selectedPeople = useMemo(
+        () => applications.filter((item) => selectedIds.includes(item.id)),
+        [applications, selectedIds]
+    );
 
-          <button className="nxc-logout" onClick={() => {
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-            window.location.assign("/login");
-          }}>
-            <Icon name="logout"/> Sign out
-          </button>
-        </div>
-      </aside>
+    const allVisibleSelected =
+        visible.length > 0 && visible.every((item) => selectedIds.includes(item.id));
 
-      <main className="nxc-main">
-        <header className="nxc-topbar">
-          <div className="nxc-breadcrumb">
-            <a href="/hr/dashboard">Home</a>
-            <span>/</span>
-            Candidates
-          </div>
+    const toggleOne = (id) =>
+        setSelectedIds((current) =>
+            current.includes(id)
+                ? current.filter((value) => value !== id)
+                : [...current, id]
+        );
 
-          <div className="nxc-top-actions">
-            <label className="nxc-global-search">
-              <Icon name="search"/>
-              <input
-                placeholder="Search candidates..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </label>
-            <button className="nxc-icon-btn" aria-label="Notifications">
-              <Icon name="bell"/>
-            </button>
-          </div>
-        </header>
+    const toggleAll = () => {
+        if (allVisibleSelected) {
+            const visibleIds = visible.map((item) => item.id);
+            setSelectedIds((current) =>
+                current.filter((id) => !visibleIds.includes(id))
+            );
+        } else {
+            setSelectedIds((current) => [
+                ...new Set([...current, ...visible.map((item) => item.id)]),
+            ]);
+        }
+    };
 
-        <section className="nxc-content">
-          <div className="nxc-heading">
-            <div>
-              <span className="nxc-eyebrow">TALENT MANAGEMENT</span>
-              <h1>Candidates <small>({applications.length} applications)</small></h1>
-              <p>Review applicants and manage your hiring pipeline.</p>
-            </div>
-          </div>
+    const patchLocal = (id, changes) =>
+        setApplications((current) =>
+            current.map((item) => (item.id === id ? { ...item, ...changes } : item))
+        );
 
-          <div className="nxc-stats">
-            <div className="nxc-stat">
-              <span>Total applicants</span>
-              <strong>{counts.total}</strong>
-              <small>Across your jobs</small>
-            </div>
-            <div className="nxc-stat">
-              <span>New applications</span>
-              <strong>{counts.applied}</strong>
-              <small>Awaiting review</small>
-            </div>
-            <div className="nxc-stat">
-              <span>Shortlisted</span>
-              <strong>{counts.shortlisted}</strong>
-              <small>Moving forward</small>
-            </div>
-            <div className="nxc-stat">
-              <span>Selected</span>
-              <strong>{counts.selected}</strong>
-              <small>Selected candidates</small>
-            </div>
-          </div>
+    const setStatus = async (id, status) => {
+        const previous = applications.find((item) => item.id === id)?.status;
+        patchLocal(id, { status });
 
-          <section className="nxc-table-card">
-            <div className="nxc-toolbar">
-              <label className="nxc-search">
-                <Icon name="search"/>
-                <input
-                  placeholder="Search candidate or job..."
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                />
-              </label>
+        if (detail && detail.id === id) {
+            setDetail((current) => ({ ...current, status }));
+        }
 
-              <div className="nxc-toolbar-right">
-                <label className="nxc-filter">
-                  <Icon name="filter"/>
-                  <select value={status} onChange={e => setStatus(e.target.value)}>
-                    <option>All statuses</option>
-                    <option>Applied</option>
-                    <option>Shortlisted</option>
-                    <option>Rejected</option>
-                    <option>Selected</option>
-                  </select>
-                </label>
+        try {
+            await updateApplicationStatus(id, status);
+            showToast(`Marked as ${status}.`);
+        } catch (err) {
+            patchLocal(id, { status: previous });
+            if (detail && detail.id === id) {
+                setDetail((current) => ({ ...current, status: previous }));
+            }
+            showToast("Could not update the status.", "error");
+        }
+    };
 
-                <div className="nxc-view-toggle">
-                  <button className={view === "list" ? "active" : ""}
-                    onClick={() => setView("list")} aria-label="List view">
-                    <Icon name="list"/>
-                  </button>
-                  <button className={view === "grid" ? "active" : ""}
-                    onClick={() => setView("grid")} aria-label="Grid view">
-                    <Icon name="grid"/>
-                  </button>
+    const bulkSet = async (status) => {
+        if (selectedIds.length === 0) return;
+
+        setBusy(true);
+
+        try {
+            const result = await bulkUpdateStatus(selectedIds, status);
+            setApplications((current) =>
+                current.map((item) =>
+                    selectedIds.includes(item.id) ? { ...item, status } : item
+                )
+            );
+            showToast(`${result.updated} candidate(s) marked as ${status}.`);
+        } catch (err) {
+            showToast("Could not update the selected candidates.", "error");
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const copyEmails = async () => {
+        const emails = selectedPeople
+            .map((item) => item.email)
+            .filter(Boolean)
+            .join(", ");
+
+        const ok = await copyText(emails);
+        showToast(ok ? "Email addresses copied." : "Could not copy. Select them manually.", ok ? "ok" : "error");
+    };
+
+    const mailtoHref = useMemo(() => {
+        const emails = selectedPeople.map((item) => item.email).filter(Boolean);
+        return `mailto:?bcc=${encodeURIComponent(emails.join(","))}&subject=${encodeURIComponent(
+            "Regarding your application on Nexora"
+        )}`;
+    }, [selectedPeople]);
+
+    const openDrawer = async (id) => {
+        setDrawerId(id);
+        setDetail(null);
+        setShowResumeText(false);
+        setDetailLoading(true);
+
+        try {
+            const data = await getApplicationDetail(id);
+            setDetail(data);
+        } catch (err) {
+            showToast("Could not load this candidate.", "error");
+            setDrawerId(null);
+        } finally {
+            setDetailLoading(false);
+        }
+    };
+
+    const closeDrawer = () => {
+        setDrawerId(null);
+        setDetail(null);
+    };
+
+    const counts = {
+        total: applications.length,
+        shortlisted: applications.filter((item) => item.status === "Shortlisted").length,
+    };
+
+    return (
+        <HRLayout
+            title="Candidates"
+            subtitle={`${counts.total} applied · ${counts.shortlisted} shortlisted`}
+        >
+            {error && <div className="hr-error">{error}</div>}
+
+            <section className="hr-card rc-panel">
+                <div className="rc-toolbar">
+                    <input
+                        className="hr-input rc-search"
+                        placeholder="Search name, email, skill or location…"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                    />
+
+                    <select className="hr-select" value={jobFilter}
+                        onChange={(event) => changeJobFilter(event.target.value)}>
+                        <option value="all">All jobs</option>
+                        {jobs.map((job) => (
+                            <option key={job.id} value={job.id}>
+                                {job.title}
+                            </option>
+                        ))}
+                    </select>
+
+                    <select className="hr-select" value={statusFilter}
+                        onChange={(event) => setStatusFilter(event.target.value)}>
+                        <option value="all">All statuses</option>
+                        {STATUSES.map((status) => (
+                            <option key={status}>{status}</option>
+                        ))}
+                    </select>
+
+                    <select className="hr-select" value={minScore}
+                        onChange={(event) => setMinScore(event.target.value)}>
+                        <option value="0">Any ATS score</option>
+                        <option value="50">ATS 50+</option>
+                        <option value="75">ATS 75+</option>
+                    </select>
+
+                    <select className="hr-select" value={sortBy}
+                        onChange={(event) => setSortBy(event.target.value)}>
+                        <option value="ats">Best ATS first</option>
+                        <option value="newest">Newest first</option>
+                        <option value="name">Name A–Z</option>
+                    </select>
                 </div>
-              </div>
-            </div>
 
-            {loading ? (
-              <div className="nxc-state">Loading candidates...</div>
-            ) : error ? (
-              <div className="nxc-state nxc-error">{error}</div>
-            ) : filtered.length === 0 ? (
-              <div className="nxc-state">
-                <strong>No candidates found</strong>
-                <span>
-                  {applications.length
-                    ? "Try changing your search or filters."
-                    : "Applicants who apply to your jobs will appear here."}
-                </span>
-              </div>
-            ) : view === "list" ? (
-              <div className="nxc-table-wrap">
-                <table className="nxc-table">
-                  <thead>
-                    <tr>
-                      <th>Candidate</th>
-                      <th>Applied for</th>
-                      <th>Status</th>
-                      <th>Applied on</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map(item => (
-                      <tr key={item.id}>
-                        <td>
-                          <div className="nxc-candidate">
-                            <span className="nxc-avatar">
-                              {initials(item.candidate)}
-                            </span>
-                            <span>
-                              <strong>{item.candidate || "Candidate"}</strong>
-                              <small>{item.email || "—"}</small>
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <strong>{item.job_title || "—"}</strong>
-                          <small className="nxc-company">
-                            {item.company || ""}
-                          </small>
-                        </td>
-                        <td>
-                          <span className={`nxc-status ${statusClass(item.status)}`}>
-                            <i/>{item.status || "Applied"}
-                          </span>
-                        </td>
-                        <td>{formatDate(item.applied_at)}</td>
-                        <td>
-                          <button className="nxc-action"
-                            onClick={() => setSelected(item)}
-                            aria-label="View candidate">
-                            <Icon name="eye"/>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="nxc-cards">
-                {filtered.map(item => (
-                  <button className="nxc-candidate-card"
-                    key={item.id} onClick={() => setSelected(item)}>
-                    <span className="nxc-avatar large">
-                      {initials(item.candidate)}
-                    </span>
-                    <strong>{item.candidate || "Candidate"}</strong>
-                    <small>{item.email || "—"}</small>
-                    <span>{item.job_title || "—"}</span>
-                    <span className={`nxc-status ${statusClass(item.status)}`}>
-                      <i/>{item.status || "Applied"}
-                    </span>
-                    <small>Applied {formatDate(item.applied_at)}</small>
-                  </button>
-                ))}
-              </div>
+                {selectedPeople.length > 0 && (
+                    <div className="rc-tray">
+                        <div className="rc-tray-top">
+                            <strong>{selectedPeople.length} selected</strong>
+
+                            <div className="rc-tray-actions">
+                                <button type="button" className="hr-btn hr-btn-primary hr-btn-sm"
+                                    disabled={busy} onClick={() => bulkSet("Shortlisted")}>
+                                    Shortlist
+                                </button>
+                                <button type="button" className="hr-btn hr-btn-sm"
+                                    disabled={busy} onClick={() => bulkSet("Selected")}>
+                                    Mark selected
+                                </button>
+                                <button type="button" className="hr-btn hr-btn-sm hr-btn-danger"
+                                    disabled={busy} onClick={() => bulkSet("Rejected")}>
+                                    Reject
+                                </button>
+                                <button type="button" className="hr-btn hr-btn-sm" onClick={copyEmails}>
+                                    Copy emails
+                                </button>
+                                <a className="hr-btn hr-btn-sm" href={mailtoHref}>
+                                    Email them
+                                </a>
+                                <button type="button" className="hr-btn hr-btn-sm"
+                                    onClick={() => setSelectedIds([])}>
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="rc-tray-names">
+                            {selectedPeople.map((item) => (
+                                <span className="rc-pill" key={item.id}>
+                                    {item.candidate}
+                                    <button type="button" aria-label={`Remove ${item.candidate}`}
+                                        onClick={() => toggleOne(item.id)}>
+                                        ×
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {loading && <div className="hr-loading">Loading candidates…</div>}
+
+                {!loading && !error && applications.length === 0 && (
+                    <div className="hr-empty">
+                        <h3>No applications yet</h3>
+                        <p>
+                            When students apply to your jobs, they will appear here with
+                            their ATS score.
+                        </p>
+                        <Link to="/hr/jobs" className="hr-btn hr-btn-primary">
+                            Manage jobs
+                        </Link>
+                    </div>
+                )}
+
+                {!loading && applications.length > 0 && (
+                    <div className="rc-table-wrap">
+                        <table className="rc-table">
+                            <thead>
+                                <tr>
+                                    <th className="rc-check">
+                                        <input type="checkbox" checked={allVisibleSelected}
+                                            onChange={toggleAll} aria-label="Select all candidates" />
+                                    </th>
+                                    <th>Candidate</th>
+                                    <th>Applied for</th>
+                                    <th>Status</th>
+                                    <th>Applied on</th>
+                                    <th>ATS score</th>
+                                    <th>Skills match</th>
+                                    <th className="rc-actions-col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {visible.map((item) => (
+                                    <tr key={item.id}
+                                        className={selectedIds.includes(item.id) ? "is-selected" : ""}>
+                                        <td className="rc-check">
+                                            <input type="checkbox"
+                                                checked={selectedIds.includes(item.id)}
+                                                onChange={() => toggleOne(item.id)}
+                                                aria-label={`Select ${item.candidate}`} />
+                                        </td>
+                                        <td>
+                                            <button type="button" className="rc-person"
+                                                onClick={() => openDrawer(item.id)}>
+                                                <span className="rc-avatar">{initials(item.candidate)}</span>
+                                                <span>
+                                                    <strong>{item.candidate}</strong>
+                                                    <small>{item.location || item.email}</small>
+                                                </span>
+                                            </button>
+                                        </td>
+                                        <td className="rc-job">{item.job_title}</td>
+                                        <td>
+                                            <span className={badgeClass(item.status)}>{item.status}</span>
+                                        </td>
+                                        <td className="rc-date">{formatDate(item.applied_at)}</td>
+                                        <td>
+                                            <ScoreRing value={item.ats_score} />
+                                        </td>
+                                        <td className="rc-match">
+                                            {item.skill_match === null
+                                                ? "—"
+                                                : `${item.matched_skills.length}/${
+                                                      item.matched_skills.length +
+                                                      item.missing_skills.length
+                                                  }`}
+                                        </td>
+                                        <td className="rc-actions-col">
+                                            <div className="rc-row-actions">
+                                                <button type="button" className="hr-btn hr-btn-sm"
+                                                    onClick={() => openDrawer(item.id)}>
+                                                    View
+                                                </button>
+                                                {item.status !== "Shortlisted" && (
+                                                    <button type="button" className="hr-btn hr-btn-sm hr-btn-primary"
+                                                        onClick={() => setStatus(item.id, "Shortlisted")}>
+                                                        Shortlist
+                                                    </button>
+                                                )}
+                                                {item.status !== "Rejected" && (
+                                                    <button type="button" className="hr-btn hr-btn-sm hr-btn-danger"
+                                                        onClick={() => setStatus(item.id, "Rejected")}>
+                                                        Reject
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {visible.length === 0 && (
+                            <div className="hr-empty">
+                                <h3>No candidates match these filters</h3>
+                                <p>Try clearing the search or lowering the ATS score.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <p className="rc-footnote">
+                    ATS score = 60% match with the job's required skills + 40% resume
+                    score. If a candidate has no resume, the skill match is used alone.
+                </p>
+            </section>
+
+            {drawerId && (
+                <div className="rc-drawer-overlay" onMouseDown={closeDrawer}>
+                    <aside className="rc-drawer" onMouseDown={(event) => event.stopPropagation()}>
+                        <button type="button" className="rc-drawer-close"
+                            onClick={closeDrawer} aria-label="Close">
+                            ×
+                        </button>
+
+                        {detailLoading && <div className="hr-loading">Loading…</div>}
+
+                        {detail && (
+                            <>
+                                <div className="rc-d-head">
+                                    <span className="rc-avatar rc-avatar-lg">
+                                        {initials(detail.candidate)}
+                                    </span>
+                                    <div>
+                                        <h2>{detail.candidate}</h2>
+                                        <p>{detail.email}</p>
+                                        <p>
+                                            {[detail.phone, detail.location]
+                                                .filter(Boolean)
+                                                .join(" · ") || "No phone or location added"}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="rc-d-apply">
+                                    <span>Applied for <b>{detail.job_title}</b> on {formatDate(detail.applied_at)}</span>
+                                    <span className={badgeClass(detail.status)}>{detail.status}</span>
+                                </div>
+
+                                <div className="rc-d-status">
+                                    {STATUSES.map((status) => (
+                                        <button type="button" key={status}
+                                            className={`hr-btn hr-btn-sm ${
+                                                detail.status === status ? "hr-btn-primary" : ""
+                                            }`}
+                                            onClick={() => setStatus(detail.id, status)}>
+                                            {status}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="rc-d-score">
+                                    <ScoreRing value={detail.ats_score} size={64} />
+                                    <div>
+                                        <strong>ATS score {detail.ats_score}/100</strong>
+                                        <p>
+                                            Skill match:{" "}
+                                            {detail.skill_match === null
+                                                ? "job lists no skills"
+                                                : `${detail.skill_match}%`}
+                                            {" · "}
+                                            Resume score:{" "}
+                                            {detail.resume_score === null
+                                                ? "no resume uploaded"
+                                                : `${detail.resume_score}/100`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <h4>Skills for this job</h4>
+                                <div>
+                                    {detail.matched_skills.map((skill) => (
+                                        <span className="hr-chip" key={`m-${skill}`}>✓ {skill}</span>
+                                    ))}
+                                    {detail.missing_skills.map((skill) => (
+                                        <span className="hr-chip hr-chip-miss" key={`x-${skill}`}>{skill}</span>
+                                    ))}
+                                    {detail.matched_skills.length + detail.missing_skills.length === 0 && (
+                                        <p className="rc-muted">This job lists no required skills.</p>
+                                    )}
+                                </div>
+
+                                <h4>All candidate skills</h4>
+                                <div>
+                                    {detail.skills.length === 0 ? (
+                                        <p className="rc-muted">No skills added.</p>
+                                    ) : (
+                                        detail.skills.map((skill) => (
+                                            <span className="hr-chip" key={skill}>{skill}</span>
+                                        ))
+                                    )}
+                                </div>
+
+                                {detail.bio && (
+                                    <>
+                                        <h4>About</h4>
+                                        <p className="rc-text">{detail.bio}</p>
+                                    </>
+                                )}
+
+                                <h4>Experience</h4>
+                                {detail.experience.length === 0 ? (
+                                    <p className="rc-muted">No experience added.</p>
+                                ) : (
+                                    detail.experience.map((item, index) => (
+                                        <div className="rc-item" key={index}>
+                                            <strong>{item.job_title}</strong>
+                                            <span>
+                                                {item.company} · {formatDate(item.start_date)} –{" "}
+                                                {item.currently_working ? "Present" : formatDate(item.end_date)}
+                                            </span>
+                                            {item.description && <p>{item.description}</p>}
+                                        </div>
+                                    ))
+                                )}
+
+                                <h4>Education</h4>
+                                {detail.education.length === 0 ? (
+                                    <p className="rc-muted">No education added.</p>
+                                ) : (
+                                    detail.education.map((item, index) => (
+                                        <div className="rc-item" key={index}>
+                                            <strong>
+                                                {item.degree}
+                                                {item.field_of_study ? `, ${item.field_of_study}` : ""}
+                                            </strong>
+                                            <span>
+                                                {item.institution} · {item.start_year}
+                                                {item.end_year ? ` – ${item.end_year}` : ""}
+                                            </span>
+                                        </div>
+                                    ))
+                                )}
+
+                                {detail.cover_letter && (
+                                    <>
+                                        <h4>Cover letter</h4>
+                                        <p className="rc-text">{detail.cover_letter}</p>
+                                    </>
+                                )}
+
+                                <h4>Resume</h4>
+                                {!detail.has_resume ? (
+                                    <p className="rc-muted">This candidate has not uploaded a resume.</p>
+                                ) : (
+                                    <>
+                                        <p className="rc-muted">
+                                            {detail.resume_title}
+                                            {detail.resume_sections.length > 0 &&
+                                                ` · sections: ${detail.resume_sections.join(", ")}`}
+                                        </p>
+                                        <div className="rc-resume-actions">
+                                            {detail.resume_url && (
+                                                <a className="hr-btn hr-btn-sm" href={detail.resume_url}
+                                                    target="_blank" rel="noopener noreferrer">
+                                                    Open resume file
+                                                </a>
+                                            )}
+                                            {detail.resume_text && (
+                                                <button type="button" className="hr-btn hr-btn-sm"
+                                                    onClick={() => setShowResumeText((value) => !value)}>
+                                                    {showResumeText ? "Hide resume text" : "Read resume text"}
+                                                </button>
+                                            )}
+                                        </div>
+                                        {showResumeText && (
+                                            <pre className="rc-resume-text">{detail.resume_text}</pre>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+                    </aside>
+                </div>
             )}
 
-            <footer className="nxc-table-footer">
-              <span>Showing {filtered.length} of {applications.length} applications</span>
-              <span>Nexora Recruiter Workspace</span>
-            </footer>
-          </section>
-        </section>
-      </main>
-
-      {selected && (
-        <div className="nxc-modal-bg" onClick={() => setSelected(null)}>
-          <section className="nxc-modal" role="dialog" aria-modal="true"
-            onClick={e => e.stopPropagation()}>
-            <button className="nxc-modal-close"
-              onClick={() => setSelected(null)} aria-label="Close">
-              <Icon name="close"/>
-            </button>
-
-            <span className="nxc-detail-avatar">
-              {initials(selected.candidate)}
-            </span>
-            <span className="nxc-eyebrow">APPLICATION DETAILS</span>
-            <h2>{selected.candidate || "Candidate"}</h2>
-            <p>{selected.email || "No email provided"}</p>
-
-            <div className="nxc-detail-list">
-              <div><span>Applied for</span><strong>{selected.job_title || "—"}</strong></div>
-              <div><span>Company</span><strong>{selected.company || "—"}</strong></div>
-              <div><span>Applied on</span><strong>{formatDate(selected.applied_at)}</strong></div>
-              <div>
-                <span>Status</span>
-                <strong>{selected.status || "Applied"}</strong>
-              </div>
-            </div>
-
-            {selected.cover_letter && (
-              <div className="nxc-cover-letter">
-                <strong>Cover letter</strong>
-                <p>{selected.cover_letter}</p>
-              </div>
+            {toast && (
+                <div className={`hr-toast ${toast.type === "error" ? "hr-toast-error" : ""}`}
+                    role="status">
+                    {toast.message}
+                </div>
             )}
-
-            <p className="nxc-note">
-              Candidate status updates and interview scheduling will be connected
-              in the next implementation step.
-            </p>
-          </section>
-        </div>
-      )}
-    </div>
-  );
+        </HRLayout>
+    );
 }
+
+export default RecruiterCandidates;
