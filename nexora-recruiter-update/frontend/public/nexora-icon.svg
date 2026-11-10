@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Nexora">
+<defs>
+<linearGradient id="dk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1F3A20"/><stop offset="1" stop-color="#2F5A30"/></linearGradient>
+<linearGradient id="dk2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2B4A2A"/><stop offset="1" stop-color="#3F6B3C"/></linearGradient>
+<linearGradient id="lt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9DB86E"/><stop offset="1" stop-color="#7C9A56"/></linearGradient>
+<linearGradient id="rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E6EFC9"/><stop offset=".55" stop-color="#A9C07A"/><stop offset="1" stop-color="#6F8F4C"/></linearGradient>
+</defs>
+<!-- left stem + diagonal -->
+<path d="M16 30C16 18 24 12 34 14C38 15 41 17 44 19L82 54V82L68 72V62L34 36V70L16 86Z" fill="url(#dk)"/>
+<!-- left stem lower (slightly lighter) -->
+<path d="M16 50H34V70L16 86Z" fill="url(#dk2)"/>
+<!-- right stem light top -->
+<path d="M68 33L83 12V54L68 66Z" fill="url(#lt)"/>
+<!-- right stem dark bottom -->
+<path d="M83 54V80C83 83 81 84 79 83L68 74V66Z" fill="url(#dk)"/>
+<!-- ribbon -->
+<path d="M16 52C26 42 38 42 48 51L79 79C81 82 82 83 83 83C73 91 60 88 50 79L28 59C24 55 20 54 16 56Z" fill="url(#rb)"/>
+</svg>
