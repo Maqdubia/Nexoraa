@@ -21,8 +21,12 @@ function HRLogin() {
             await loginUser({ email, password });
             const user = await getCurrentUser();
 
-            if (user.role === "recruiter" || user.role === "admin") {
-                navigate("/hr/dashboard");
+            if (user.role === "recruiter") {
+                navigate("/hr/dashboard", { replace: true });
+            } else if (user.role === "admin") {
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                setMessage("Admin accounts must use the Admin portal.");
             } else {
                 localStorage.removeItem("access_token");
                 localStorage.removeItem("refresh_token");
