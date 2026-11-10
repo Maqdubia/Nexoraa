@@ -27,8 +27,8 @@ client.interceptors.response.use(
             localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
 
-            if (!window.location.pathname.startsWith("/login")) {
-                window.location.assign("/login");
+            if (!window.location.pathname.startsWith("/hr/login")) {
+                window.location.assign("/hr/login");
             }
         }
 
