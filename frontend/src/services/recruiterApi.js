@@ -1,77 +1,102 @@
 import axios from "axios";
 
-const recruiterAPI = axios.create({
-    baseURL: "/api/jobs/hr/",
-    headers: {
-        "Content-Type": "application/json",
-    },
+// One client for all recruiter calls. It adds the login token to every
+// request and sends the person back to the recruiter login if the session
+// has expired.
+const client = axios.create({
+    baseURL: "/api/",
+    headers: { "Content-Type": "application/json" },
 });
 
-const authHeaders = () => {
+client.interceptors.request.use((config) => {
     const token = localStorage.getItem("access_token");
 
-    return {
-        Authorization: `Bearer ${token}`,
-    };
-};
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+});
+
+client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const url = error.config?.url || "";
+
+        if (error.response?.status === 401 && url !== "auth/me/") {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+
+            if (!window.location.pathname.startsWith("/login")) {
+                window.location.assign("/login");
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 export const getCurrentUser = async () => {
-    const response = await axios.get("/api/auth/me/", {
-        headers: authHeaders(),
-    });
-
+    const response = await client.get("auth/me/");
     return response.data;
 };
 
+// ---------- Jobs ----------
 export const getRecruiterJobs = async () => {
-    const response = await recruiterAPI.get("jobs/", {
-        headers: authHeaders(),
-    });
-
+    const response = await client.get("jobs/hr/jobs/");
     return response.data;
 };
 
 export const createRecruiterJob = async (jobData) => {
-    const response = await recruiterAPI.post("jobs/", jobData, {
-        headers: authHeaders(),
-    });
-
+    const response = await client.post("jobs/hr/jobs/", jobData);
     return response.data;
 };
 
 export const updateRecruiterJob = async (id, jobData) => {
-    const response = await recruiterAPI.patch(
-        `jobs/${id}/`,
-        jobData,
-        { headers: authHeaders() }
-    );
-
+    const response = await client.patch(`jobs/hr/jobs/${id}/`, jobData);
     return response.data;
 };
 
 export const deleteRecruiterJob = async (id) => {
-    const response = await recruiterAPI.delete(`jobs/${id}/`, {
-        headers: authHeaders(),
-    });
-
+    const response = await client.delete(`jobs/hr/jobs/${id}/`);
     return response.data;
 };
 
-export const getRecruiterApplications = async () => {
-    const response = await recruiterAPI.get("applications/", {
-        headers: authHeaders(),
+// ---------- Candidates / applications ----------
+export const getRecruiterApplications = async (jobId) => {
+    const response = await client.get("jobs/hr/applications/", {
+        params: jobId ? { job: jobId } : {},
     });
-
     return response.data;
 };
 
+export const getApplicationDetail = async (id) => {
+    const response = await client.get(`jobs/hr/applications/${id}/`);
+    return response.data;
+};
 
+export const updateApplicationStatus = async (id, status) => {
+    const response = await client.patch(`jobs/hr/applications/${id}/`, {
+        status,
+    });
+    return response.data;
+};
+
+export const bulkUpdateStatus = async (ids, status) => {
+    const response = await client.post("jobs/hr/applications/bulk-status/", {
+        ids,
+        status,
+    });
+    return response.data;
+};
+
+export const getRecruiterStats = async () => {
+    const response = await client.get("jobs/hr/stats/");
+    return response.data;
+};
+
+// ---------- Admin ----------
 export const createHRAccount = async (accountData) => {
-    const response = await axios.post(
-        "/api/jobs/hr/accounts/",
-        accountData,
-        { headers: authHeaders() }
-    );
-
+    const response = await client.post("jobs/hr/accounts/", accountData);
     return response.data;
 };
