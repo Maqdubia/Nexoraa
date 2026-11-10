@@ -136,7 +136,7 @@ export default function RecruiterCandidates() {
           <button className="nxc-logout" onClick={() => {
             localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
-            window.location.assign("/hr/login");
+            window.location.assign("/login");
           }}>
             <Icon name="logout"/> Sign out
           </button>
