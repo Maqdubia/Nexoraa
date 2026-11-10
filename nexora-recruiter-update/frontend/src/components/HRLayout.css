@@ -553,3 +553,5 @@
         font-size: 22px;
     }
 }
+
+.hr-brand-mark { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:#e5eadf; color:#3a4726; font:700 25px Georgia,serif; flex:0 0 auto; }
