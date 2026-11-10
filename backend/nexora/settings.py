@@ -23,6 +23,7 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in (
     "true", "1", "yes"
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 )
 ALLOWED_HOSTS = ["nexoraa-1.onrender.com", "localhost", "127.0.0.1"]
 
