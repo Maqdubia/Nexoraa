@@ -1,97 +1,155 @@
+/* Recruiter login - Nexora sage theme */
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { loginUser } from "../services/api";
-import { getCurrentUser } from "../services/recruiterApi";
-import "./HRLogin.css";
-
-function HRLogin() {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        setLoading(true);
-        setMessage("");
-
-        try {
-            await loginUser({ email, password });
-            const user = await getCurrentUser();
-
-            if (user.role === "recruiter" || user.role === "admin") {
-                navigate("/hr/dashboard");
-            } else {
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh_token");
-                setMessage("This login is for authorized recruiters only.");
-            }
-        } catch (error) {
-            setMessage(
-                error.response?.data?.detail ||
-                "Unable to sign in. Check your credentials."
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <main className="hr-login-page">
-            <section className="hr-login-card">
-                <div className="hr-brand">NEXORA<span>.</span></div>
-                <p className="hr-login-label">RECRUITER PORTAL</p>
-                <h1>Welcome back.</h1>
-                <p className="hr-login-description">
-                    Sign in to manage opportunities and discover talent.
-                </p>
-
-                <form onSubmit={handleSubmit}>
-                    <label htmlFor="hr-email">Work email</label>
-                    <input
-                        id="hr-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@company.com"
-                        autoComplete="username"
-                        required
-                    />
-
-                    <label htmlFor="hr-password">Password</label>
-                    <input
-                        id="hr-password"
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter your password"
-                        autoComplete="current-password"
-                        required
-                    />
-
-                    {message && <p className="hr-login-error">{message}</p>}
-
-                    <button type="submit" disabled={loading}>
-                        {loading ? "Signing in..." : "Sign in to recruiter portal"}
-                    </button>
-                </form>
-
-                <button
-                    className="hr-back-button"
-                    onClick={() => navigate("/login")}
-                    type="button"
-                >
-                    Back to student login
-                </button>
-
-                <p className="hr-login-footer">
-                    Recruiter access is provided by the Nexora administrator.
-                </p>
-            </section>
-        </main>
-    );
+.hr-login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 24px 16px;
+    background: #F7F7F2;
+    color: #1C2418;
+    box-sizing: border-box;
 }
 
-export default HRLogin;
+.hr-login-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 38px 34px;
+    border: 1px solid #DDE1D6;
+    border-radius: 18px;
+    background: #FFFFFF;
+    box-shadow: 0 12px 36px rgba(28, 36, 24, 0.07);
+    box-sizing: border-box;
+}
+
+.hr-brand {
+    margin-bottom: 18px;
+    color: #1C2418;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+}
+
+.hr-brand span {
+    color: #7F8D63;
+}
+
+.hr-login-label {
+    margin: 0 0 8px;
+    color: #5B6E58;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+}
+
+.hr-login-card h1 {
+    margin: 0 0 8px;
+    color: #1C2418;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 30px;
+    font-weight: 600;
+}
+
+.hr-login-description {
+    margin: 0 0 24px;
+    color: #626858;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.hr-login-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hr-login-card label {
+    margin-top: 6px;
+    color: #1C2418;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.hr-login-card input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #DDE1D6;
+    border-radius: 10px;
+    background: #F7F7F2;
+    color: #1C2418;
+    font-size: 14px;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.hr-login-card input:focus {
+    border-color: #7F8D63;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(127, 141, 99, 0.25);
+}
+
+.hr-login-card form > button {
+    margin-top: 16px;
+    padding: 13px 16px;
+    border: 1px solid #3A4726;
+    border-radius: 10px;
+    background: #3A4726;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.hr-login-card form > button:hover:not(:disabled) {
+    background: #1C2418;
+    border-color: #1C2418;
+}
+
+.hr-login-card form > button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.hr-login-error {
+    margin: 6px 0 0;
+    padding: 10px 12px;
+    border: 1px solid #E8C9C4;
+    border-radius: 10px;
+    background: #FBEEEC;
+    color: #A13F35;
+    font-size: 13px;
+}
+
+.hr-back-button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px 16px;
+    border: 1px solid #CFD6C8;
+    border-radius: 10px;
+    background: transparent;
+    color: #3A4726;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.hr-back-button:hover {
+    background: #F3F5EC;
+}
+
+.hr-login-footer {
+    margin: 18px 0 0;
+    color: #77766C;
+    font-size: 12px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .hr-login-card {
+        padding: 28px 20px;
+    }
+}
