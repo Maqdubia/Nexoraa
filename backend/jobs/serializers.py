@@ -46,14 +46,18 @@ class JobSerializer(serializers.ModelSerializer):
         return obj.applications.count()
 
     def get_already_applied(self, obj):
-        request = self.context.get("request")
-        user = getattr(request, "user", None)
+    request = self.context.get("request")
+    user = getattr(request, "user", None)
 
-        if not user or not user.is_authenticated:
-            return False
+    if not user or not user.is_authenticated:
+        return False
 
-        return obj.applications.filter(user=user).exists()
+    # Use the value calculated by JobListView.
+    if hasattr(obj, "_already_applied_for_user"):
+        return obj._already_applied_for_user
 
+    # Fallback for individual job detail requests.
+    return obj.applications.filter(user=user).exists()
     def validate_title(self, value):
         value = value.strip()
 
