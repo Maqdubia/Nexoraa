@@ -14,7 +14,7 @@ from .serializers import JobSerializer, JobApplicationSerializer
 # Display all jobs and allow users to search
 class JobListView(generics.ListAPIView):
 
-    queryset = Job.objects.all().order_by("-created_at")
+    queryset = Job.objects.filter(is_published=True).order_by("-created_at")
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
 
@@ -53,7 +53,7 @@ class JobListView(generics.ListAPIView):
 # Display details of one job
 class JobDetailView(generics.RetrieveAPIView):
 
-    queryset = Job.objects.all()
+    queryset = Job.objects.filter(is_published=True)
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
 
@@ -84,7 +84,7 @@ class JobMatchView(APIView):
         results = []
 
         # Compare the user's skills with every job
-        for job in Job.objects.all().order_by("-created_at"):
+        for job in Job.objects.filter(is_published=True).order_by("-created_at"):
 
             required_skills = job.required_skills or []
 
@@ -128,6 +128,13 @@ class JobMatchView(APIView):
                 "company": job.company,
                 "location": job.location,
                 "description": job.description,
+                "responsibilities": job.responsibilities,
+                "requirements": job.requirements,
+                "benefits": job.benefits,
+                "work_mode": job.work_mode,
+                "vacancies": job.vacancies,
+                "application_deadline": job.application_deadline,
+                "application_url": job.application_url,
                 "required_skills": required,
                 "matched_skills": matched_skills,
                 "missing_skills": missing_skills,
