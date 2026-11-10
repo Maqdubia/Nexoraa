@@ -1,3 +1,4 @@
+
 from django.urls import path
 
 from .recruiter_views import (
@@ -5,6 +6,8 @@ from .recruiter_views import (
     RecruiterJobListCreateView,
     RecruiterJobDetailView,
     RecruiterApplicationsView,
+    RecruiterApplicationDetailView,
+    RecruiterBulkApplicationStatusView,
     RecruiterStatsView,
 )
 
@@ -18,7 +21,6 @@ from .views import (
 )
 
 urlpatterns = [
-    # HR and admin endpoints
     path(
         "hr/accounts/",
         HRAccountCreateView.as_view(),
@@ -39,7 +41,21 @@ urlpatterns = [
         RecruiterApplicationsView.as_view(),
         name="hr-applications",
     ),
-    path("hr/stats/", RecruiterStatsView.as_view(), name="hr-stats"),
+    path(
+        "hr/applications/bulk-status/",
+        RecruiterBulkApplicationStatusView.as_view(),
+        name="hr-applications-bulk-status",
+    ),
+    path(
+        "hr/applications/<int:pk>/",
+        RecruiterApplicationDetailView.as_view(),
+        name="hr-application-detail",
+    ),
+    path(
+        "hr/stats/",
+        RecruiterStatsView.as_view(),
+        name="hr-stats",
+    ),
 
     # Student job endpoints
     path("", JobListView.as_view(), name="job-list"),
