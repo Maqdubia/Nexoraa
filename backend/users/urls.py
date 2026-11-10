@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import (
 
 from .serializers import EmailTokenObtainPairSerializer
 
+from .auth_views import current_user
 from .views import (
     RegisterView,
     verify_email_otp,
@@ -49,6 +50,8 @@ urlpatterns = [
     path("verify-email-otp/", verify_email_otp, name="verify-email-otp"),
 
     path("login/", EmailTokenObtainPairView.as_view(), name="login"),
+
+    path("me/", current_user, name="current-user"),
 
     path("refresh/", TokenRefreshView.as_view(), name="refresh"),
 
