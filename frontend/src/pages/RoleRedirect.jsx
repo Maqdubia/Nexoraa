@@ -24,7 +24,7 @@ function RoleRedirect() {
         return <Navigate to="/hr/dashboard" replace />;
     }
 
-    if (role === "hr") {
+   if (role === "recruiter") {
         return <Navigate to="/hr/dashboard" replace />;
     }
 
