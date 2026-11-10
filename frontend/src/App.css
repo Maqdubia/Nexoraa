@@ -189,3 +189,5 @@ html {
 }
 
 }
+
+.role-route-loading { min-height:100vh; display:grid; place-items:center; padding:24px; color:#3a4726; background:#f7f7f2; font:500 15px Inter,Segoe UI,sans-serif; }
