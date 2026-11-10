@@ -1,3 +1,4 @@
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -46,18 +47,19 @@ class JobSerializer(serializers.ModelSerializer):
         return obj.applications.count()
 
     def get_already_applied(self, obj):
-    request = self.context.get("request")
-    user = getattr(request, "user", None)
+        request = self.context.get("request")
+        user = getattr(request, "user", None)
 
-    if not user or not user.is_authenticated:
-        return False
+        if not user or not user.is_authenticated:
+            return False
 
-    # Use the value calculated by JobListView.
-    if hasattr(obj, "_already_applied_for_user"):
-        return obj._already_applied_for_user
+        # Use the annotation added by JobListView.
+        if hasattr(obj, "_already_applied_for_user"):
+            return obj._already_applied_for_user
 
-    # Fallback for individual job detail requests.
-    return obj.applications.filter(user=user).exists()
+        # Fallback for job detail and nested serializer requests.
+        return obj.applications.filter(user=user).exists()
+
     def validate_title(self, value):
         value = value.strip()
 
@@ -98,8 +100,6 @@ class JobSerializer(serializers.ModelSerializer):
         return normalize_skills(value)
 
     def validate_application_deadline(self, value):
-        # Only block past dates when a deadline is new or changed, so a
-        # recruiter can still edit a job whose old deadline has passed.
         unchanged = (
             self.instance is not None
             and self.instance.application_deadline == value
