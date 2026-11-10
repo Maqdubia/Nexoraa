@@ -595,3 +595,62 @@ transition: none;
 }
 
 }
+
+
+/* ---------- Job details: facts, apply bar ---------- */
+
+.job-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin: 16px 0 6px;
+}
+
+.job-facts div {
+    padding: 9px 12px;
+    border: 1px solid #E1E4DA;
+    border-radius: 10px;
+    background: #F3F5EC;
+}
+
+.job-facts span {
+    display: block;
+    margin-bottom: 2px;
+    color: #77766C;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.job-facts strong {
+    color: #1C2418;
+    font-size: 13px;
+}
+
+.job-apply-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.job-apply-bar .job-apply-link {
+    margin-top: 0;
+}
+
+.job-secondary-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 11px 18px;
+    border: 1px solid #CFD6C8;
+    border-radius: 10px;
+    color: #3A4726;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.job-secondary-link:hover {
+    background: #F3F5EC;
+}
