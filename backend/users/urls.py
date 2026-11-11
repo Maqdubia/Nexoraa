@@ -1,4 +1,4 @@
-
+from .admin_user_management import AdminUserListView, AdminUserDeleteView
 from django.urls import path
 
 from rest_framework_simplejwt.views import (
@@ -40,7 +40,8 @@ urlpatterns = [
     path("google/", google_auth, name="google-auth"),
     path("me/", current_user, name="current-user"),
     path("initial-admin-setup/", initial_admin_setup, name="initial-admin-setup"),
-
+    path("admin/users/", AdminUserListView.as_view(), name="admin-user-list"),
+    path("admin/users/<int:user_id>/", AdminUserDeleteView.as_view(), name="admin-user-delete"),
     path("register/", RegisterView.as_view(), name="register"),
     path(
         "recruiter/register/",
