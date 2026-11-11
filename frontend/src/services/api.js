@@ -418,3 +418,27 @@ export const resetPassword = async (email, resetToken, newPassword) => {
 
     return response.data;
 };
+
+// =========================
+// ADMIN USER MANAGEMENT
+// =========================
+
+export const getAdminUsers = async () => {
+    const token = localStorage.getItem("access_token");
+
+    const response = await API.get("admin/users/", {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+};
+
+export const deleteAdminUser = async (userId) => {
+    const token = localStorage.getItem("access_token");
+
+    const response = await API.delete(`admin/users/${userId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    return response.data;
+};
