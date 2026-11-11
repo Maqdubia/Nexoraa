@@ -23,7 +23,7 @@ export default function NexoraBrand({
         >
             <img
                 className="nexora-brand__mark"
-                src="/nexora-mark-transparent.png"
+                src="/static/nexora-mark-transparent.png"
                 alt=""
                 onError={hideBrokenImage}
             />
@@ -33,7 +33,7 @@ export default function NexoraBrand({
                 <>
                     <img
                         className="nexora-brand__wordmark"
-                        src="/nexora-wordmark-transparent.png"
+                        src="/static/nexora-wordmark-transparent.png"
                         alt=""
                         onError={hideBrokenImage}
                     />
