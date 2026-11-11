@@ -1,0 +1,36 @@
+.nexora-brand {
+    --nexora-brand-mark-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    line-height: 0;
+    vertical-align: middle;
+}
+
+.nexora-brand__mark {
+    display: block;
+    width: auto;
+    height: var(--nexora-brand-mark-height);
+    max-width: calc(var(--nexora-brand-mark-height) * 1.2);
+    object-fit: contain;
+    flex: 0 0 auto;
+}
+
+.nexora-brand__wordmark {
+    display: block;
+    width: clamp(104px, 13vw, 158px);
+    height: auto;
+    max-height: 32px;
+    object-fit: contain;
+    object-position: left center;
+}
+
+.nexora-brand--compact { --nexora-brand-mark-height: 30px; gap: 8px; }
+.nexora-brand--large { --nexora-brand-mark-height: 54px; gap: 13px; }
+.nexora-brand--mark-only .nexora-brand__mark { max-width: none; }
+
+@media (max-width: 480px) {
+    .nexora-brand--large { --nexora-brand-mark-height: 42px; gap: 9px; }
+    .nexora-brand--large .nexora-brand__wordmark { width: 126px; }
+}
