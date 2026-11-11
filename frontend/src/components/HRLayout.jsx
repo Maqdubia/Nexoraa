@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/recruiterApi";
+import NexoraBrand from "./NexoraBrand";
 import "./HRLayout.css";
 
 const Icon = ({ name }) => {
@@ -93,11 +95,7 @@ function HRLayout({ title, subtitle, actions, children }) {
         <div className="hr-shell">
             <aside className={`hr-sidebar ${menuOpen ? "open" : ""}`}>
                 <div className="hr-brand">
-                    <img src="/static/nexora-icon.svg" alt="" width="38" height="38" />
-                    <span>
-                        <strong>NEXORA</strong>
-                        <small>RECRUITER WORKSPACE</small>
-                    </span>
+                    <NexoraBrand size="compact" />
                 </div>
 
                 <p className="hr-nav-label">MAIN MENU</p>
@@ -125,7 +123,11 @@ function HRLayout({ title, subtitle, actions, children }) {
                         </span>
                     </div>
 
-                    <button type="button" className="hr-logout" onClick={logout}>
+                    <button
+                        type="button"
+                        className="hr-logout"
+                        onClick={logout}
+                    >
                         <Icon name="logout" /> Sign out
                     </button>
                 </div>
@@ -154,7 +156,9 @@ function HRLayout({ title, subtitle, actions, children }) {
                         {subtitle && <p>{subtitle}</p>}
                     </div>
 
-                    {actions && <div className="hr-actions">{actions}</div>}
+                    {actions && (
+                        <div className="hr-actions">{actions}</div>
+                    )}
                 </header>
 
                 <div className="hr-content">{children}</div>
