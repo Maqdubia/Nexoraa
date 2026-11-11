@@ -54,3 +54,35 @@
         width: 126px;
     }
 }
+
+.nexora-brand__fallback-mark,
+.nexora-brand__fallback-text {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #29483a;
+    font-family: Arial, sans-serif;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.nexora-brand__fallback-mark {
+    width: var(--nexora-brand-mark-height);
+    height: var(--nexora-brand-mark-height);
+    border-radius: 12px;
+    background: #e5ebdf;
+    font-size: calc(var(--nexora-brand-mark-height) * 0.65);
+}
+
+.nexora-brand__fallback-text {
+    font-size: 23px;
+    letter-spacing: 2px;
+}
+
+.nexora-brand--compact .nexora-brand__fallback-text {
+    font-size: 19px;
+}
+
+.nexora-brand--large .nexora-brand__fallback-text {
+    font-size: 27px;
+}
