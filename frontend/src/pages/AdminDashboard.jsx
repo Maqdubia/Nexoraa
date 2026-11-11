@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAdminUsers, deleteAdminUser } from "../services/api";
-
+import NexoraBrand from "../components/NexoraBrand";
 function AdminDashboard() {
     const navigate = useNavigate();
 
@@ -174,14 +174,17 @@ function AdminDashboard() {
         <main style={styles.page}>
             <div style={styles.container}>
                 <header style={styles.header}>
-                    <div>
-                        <h1 style={{ margin: 0, letterSpacing: "3px" }}>
-                            NEXORA
-                        </h1>
-                        <p style={{ ...styles.muted, margin: "6px 0 0" }}>
-                            PLATFORM ADMINISTRATION
-                        </p>
-                    </div>
+                    <div style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: "8px"
+}}>
+    <NexoraBrand size="large" />
+    <p style={{ ...styles.muted, margin: 0 }}>
+        PLATFORM ADMINISTRATION
+    </p>
+</div>
 
                     <button style={styles.button} onClick={handleLogout}>
                         Sign out
