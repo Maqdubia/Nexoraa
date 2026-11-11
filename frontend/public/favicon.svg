@@ -1,6 +1,13 @@
-
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <image href="/nexora-mark-transparent.png"
-         x="2" y="2" width="60" height="60"
-         preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     viewBox="0 0 64 64">
+  <image
+    x="2"
+    y="2"
+    width="60"
+    height="60"
+    href="/nexora-mark-transparent.png"
+    xlink:href="/nexora-mark-transparent.png"
+    preserveAspectRatio="xMidYMid meet"
+  />
 </svg>
