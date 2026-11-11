@@ -1,6 +1,7 @@
+
 import "./NexoraBrand.css";
 
-/** Official Nexora brand lockup. Uses the supplied artwork without recreating it. */
+/** Official Nexora brand component */
 export default function NexoraBrand({
     className = "",
     markOnly = false,
@@ -8,20 +9,23 @@ export default function NexoraBrand({
 }) {
     return (
         <span
-            className={`nexora-brand nexora-brand--${size} ${markOnly ? "nexora-brand--mark-only" : ""} ${className}`.trim()}
+            className={`nexora-brand nexora-brand--${size} ${
+                markOnly ? "nexora-brand--mark-only" : ""
+            } ${className}`.trim()}
             aria-label="Nexora"
             role="img"
         >
             <img
                 className="nexora-brand__mark"
-                src="/nexora-mark.webp"
+                src="/nexora-mark-transparent.png"
                 alt=""
                 draggable="false"
             />
+
             {!markOnly && (
                 <img
                     className="nexora-brand__wordmark"
-                    src="/nexora-wordmark.webp"
+                    src="/nexora-wordmark-transparent.png"
                     alt=""
                     draggable="false"
                 />
