@@ -95,7 +95,8 @@ class PublicRecruiterRegistrationView(APIView):
 
                 profile, _ = UserProfile.objects.get_or_create(user=user)
                 profile.full_name = full_name
-                profile.save(update_fields=["full_name"])
+                profile.company = company
+                profile.save(update_fields=["full_name", "company"])
 
                 recruiter_group, _ = Group.objects.get_or_create(name="HR")
                 user.groups.add(recruiter_group)
