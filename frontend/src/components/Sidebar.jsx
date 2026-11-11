@@ -1,4 +1,4 @@
-
+import NexoraBrand from "./NexoraBrand";
 import { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import "./Sidebar.css";
@@ -182,27 +182,7 @@ function Sidebar({
                     onClick={onClose}
                     aria-label="Nexora home"
                 >
-                    <span className="sidebar-logo-mark">
-                        <svg
-                            viewBox="0 0 24 24"
-                            width="23"
-                            height="23"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <path d="M19 4c-8 0-13 4-13 11 0 3 2 5 5 5 7 0 10-7 8-16Z" />
-                            <path d="M4 21c2-5 5-8 10-11" />
-                        </svg>
-                    </span>
-
-                    <span className="sidebar-brand-text">
-                        <strong>Nexora.</strong>
-                        <small>Career Platform</small>
-                    </span>
+                    <NexoraBrand size="compact" />
                 </NavLink>
 
                 <nav className="sidebar-menu" aria-label="Application pages">
