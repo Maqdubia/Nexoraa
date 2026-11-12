@@ -9,13 +9,18 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Job, JobApplication
+from .permissions import IsStudent
 from .serializers import JobSerializer, JobApplicationSerializer
 
 
-# Display all jobs and allow users to search
+# ========================================
+# PUBLIC JOB LISTING
+# ========================================
+
 class JobListView(generics.ListAPIView):
     queryset = Job.objects.filter(
-        is_published=True
+        is_published=True,
+        is_archived=False,
     ).order_by("-created_at")
 
     serializer_class = JobSerializer
@@ -63,9 +68,15 @@ class JobListView(generics.ListAPIView):
         return queryset
 
 
-# Display details of one job
+# ========================================
+# PUBLIC JOB DETAILS
+# ========================================
+
 class JobDetailView(generics.RetrieveAPIView):
-    queryset = Job.objects.filter(is_published=True)
+    queryset = Job.objects.filter(
+        is_published=True,
+        is_archived=False,
+    )
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
 
@@ -91,7 +102,8 @@ class JobMatchView(APIView):
         results = []
 
         for job in Job.objects.filter(
-            is_published=True
+            is_published=True,
+            is_archived=False,
         ).order_by("-created_at"):
 
             required_skills = job.required_skills or []
@@ -364,7 +376,7 @@ class ImprovementRecommendationsView(APIView):
 
 class JobApplicationCreateView(generics.CreateAPIView):
     serializer_class = JobApplicationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStudent]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
