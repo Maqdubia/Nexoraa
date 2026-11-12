@@ -53,11 +53,9 @@ class JobSerializer(serializers.ModelSerializer):
         if not user or not user.is_authenticated:
             return False
 
-        # Use the annotation added by JobListView.
         if hasattr(obj, "_already_applied_for_user"):
             return obj._already_applied_for_user
 
-        # Fallback for job detail and nested serializer requests.
         return obj.applications.filter(user=user).exists()
 
     def validate_title(self, value):
@@ -137,7 +135,7 @@ class JobApplicationSerializer(serializers.ModelSerializer):
     def validate_job(self, value):
         user = self.context["request"].user
 
-        if not value.is_published:
+        if not value.is_published or value.is_archived:
             raise serializers.ValidationError(
                 "This job is no longer accepting applications."
             )
@@ -161,3 +159,54 @@ class JobApplicationSerializer(serializers.ModelSerializer):
             )
 
         return value
+
+    def create(self, validated_data):
+        user = validated_data["user"]
+
+        application = super().create(validated_data)
+
+        # Capture the latest resume at the exact time of application.
+        resume = user.resumes.order_by("-uploaded_at").first()
+
+        if not resume:
+            return application
+
+        analysis_snapshot = {}
+        analysis = getattr(resume, "analysis", None)
+
+        if analysis:
+            analysis_snapshot = {
+                "skills": analysis.skills or [],
+                "score": analysis.score,
+                "education": analysis.education or [],
+                "certifications": analysis.certifications or [],
+                "sections_found": analysis.sections_found or [],
+                "section_text": analysis.section_text or {},
+                "score_details": analysis.score_details or {},
+                "content_analysis": analysis.content_analysis or {},
+                "recommendations": analysis.recommendations or [],
+            }
+
+        application.resume_snapshot_title = resume.title or ""
+        application.resume_snapshot_file = (
+            resume.resume_file.name if resume.resume_file else ""
+        )
+        application.resume_snapshot_text = resume.resume_text or ""
+        application.resume_snapshot_score = resume.resume_score
+        application.resume_snapshot_skills = (
+            resume.extracted_skills or []
+        )
+        application.resume_snapshot_analysis = analysis_snapshot
+
+        application.save(
+            update_fields=[
+                "resume_snapshot_title",
+                "resume_snapshot_file",
+                "resume_snapshot_text",
+                "resume_snapshot_score",
+                "resume_snapshot_skills",
+                "resume_snapshot_analysis",
+            ]
+        )
+
+        return application
