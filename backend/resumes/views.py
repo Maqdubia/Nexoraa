@@ -1,4 +1,8 @@
 
+import shutil
+import tempfile
+from pathlib import Path
+
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
@@ -27,23 +31,47 @@ class ResumeListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
 
-        # Save uploaded resume
+        # Save the uploaded resume using the configured storage.
         resume = serializer.save(
             user=self.request.user
         )
 
-        # Analyze uploaded resume
-        analysis = analyze_resume(
-            resume.resume_file.path
-        )
+        # Copy the stored file into a temporary local file.
+        # This works with both local storage and Cloudinary.
+        suffix = Path(resume.resume_file.name).suffix.lower()
 
-        # Save analysis data inside Resume
+        with tempfile.NamedTemporaryFile(
+            mode="wb+",
+            suffix=suffix,
+        ) as temporary_file:
+
+            with resume.resume_file.open("rb") as stored_file:
+                shutil.copyfileobj(
+                    stored_file,
+                    temporary_file,
+                )
+
+            temporary_file.flush()
+
+            # Analyze the temporary copy.
+            analysis = analyze_resume(
+                temporary_file.name
+            )
+
+        # Save analysis data inside Resume.
         resume.resume_text = analysis["text"]
         resume.resume_score = analysis["score"]
         resume.extracted_skills = analysis["skills"]
-        resume.save()
+        resume.save(
+            update_fields=[
+                "resume_text",
+                "resume_score",
+                "extracted_skills",
+                "updated_at",
+            ]
+        )
 
-        # Save complete analysis results
+        # Save complete analysis results.
         ResumeAnalysis.objects.update_or_create(
             resume=resume,
             defaults={
@@ -53,12 +81,24 @@ class ResumeListCreateView(generics.ListCreateAPIView):
                 "score": analysis["score"],
                 "text_length": analysis["text_length"],
                 "education": analysis.get("education", []),
-                "certifications": analysis.get("certifications", []),
-                "sections_found": analysis.get("sections_found", []),
-                "section_text": analysis.get("section_text", {}),
-                "score_details": analysis.get("score_details", {}),
-                "content_analysis": analysis.get("content_analysis", {}),
-                "recommendations": analysis.get("recommendations", []),
+                "certifications": analysis.get(
+                    "certifications", []
+                ),
+                "sections_found": analysis.get(
+                    "sections_found", []
+                ),
+                "section_text": analysis.get(
+                    "section_text", {}
+                ),
+                "score_details": analysis.get(
+                    "score_details", {}
+                ),
+                "content_analysis": analysis.get(
+                    "content_analysis", {}
+                ),
+                "recommendations": analysis.get(
+                    "recommendations", []
+                ),
             }
         )
 
