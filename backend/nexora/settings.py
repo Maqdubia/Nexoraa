@@ -1,13 +1,15 @@
+
 """
 Django settings for nexora project.
 """
 
+import os
 from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent
+from datetime import timedelta
 
 from dotenv import load_dotenv
-import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 
@@ -23,10 +25,27 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() in (
     "true", "1", "yes"
-    
 )
+
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
-ALLOWED_HOSTS = ["nexoraa-1.onrender.com", "localhost", "127.0.0.1"]
+
+ALLOWED_HOSTS = [
+    "nexoraa-1.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+
+# =========================================================
+# CLOUDINARY CONFIGURATION
+# =========================================================
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+    "API_KEY": os.getenv("CLOUDINARY_API_KEY", ""),
+    "API_SECRET": os.getenv("CLOUDINARY_API_SECRET", ""),
+    "SECURE": True,
+}
 
 
 # =========================================================
@@ -44,12 +63,17 @@ INSTALLED_APPS = [
     "rest_framework",
     "corsheaders",
 
+    "cloudinary_storage",
+    "cloudinary",
+
     "users",
     "resumes",
     "jobs",
-     "interviews",
+    "interviews",
     "chatbot",
 ]
+
+
 # =========================================================
 # MIDDLEWARE
 # =========================================================
@@ -101,7 +125,6 @@ TEMPLATES = [
 # DATABASE - MYSQL
 # =========================================================
 
-
 DB_HOST = os.getenv("DB_HOST", "localhost")
 
 DB_OPTIONS = {}
@@ -124,6 +147,7 @@ DATABASES = {
     }
 }
 
+
 # =========================================================
 # PASSWORD VALIDATION
 # =========================================================
@@ -142,9 +166,11 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
+
 
 # =========================================================
 # INTERNATIONALIZATION
@@ -160,11 +186,7 @@ USE_TZ = True
 
 
 # =========================================================
-# STATIC FILES
-# =========================================================
-
-# =========================================================
-# STATIC FILES
+# STATIC AND MEDIA FILE STORAGE
 # =========================================================
 
 STATIC_URL = "/static/"
@@ -174,6 +196,22 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
     BASE_DIR.parent / "frontend" / "dist",
 ]
+
+MEDIA_URL = "/media/"
+
+# Django 5.2 storage configuration.
+# Resume PDFs and DOCX files are stored remotely as raw files.
+# Static files remain on the existing Django/WhiteNoise setup.
+
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
 
 # =========================================================
 # DEFAULT PRIMARY KEY
@@ -192,7 +230,9 @@ CORS_ALLOWED_ORIGINS = [
     "https://nexoraa-1.onrender.com",
 ]
 
-CSRF_TRUSTED_ORIGINS = ["https://nexoraa-1.onrender.com"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://nexoraa-1.onrender.com"
+]
 
 
 # =========================================================
@@ -207,23 +247,16 @@ REST_FRAMEWORK = {
         "recruiter_registration": "5/hour",
     },
 }
+
+
 # =========================================================
 # JWT
 # =========================================================
 
-from datetime import timedelta
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
-    
 }
-
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
-
-
 
 
 # =========================================================
@@ -240,11 +273,25 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+# =========================================================
+# LOGGING
+# =========================================================
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler"
+        }
+    },
     "loggers": {
-        "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
     },
 }
