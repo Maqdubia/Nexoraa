@@ -3,7 +3,9 @@ import os
 import re
 
 import requests
-from django.core.management.base import BaseCommand, CommandError
+
+from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from jobs.models import Job
 
@@ -12,7 +14,6 @@ ADZUNA_API_URL = (
     "https://api.adzuna.com/v1/api/jobs/in/search/1"
 )
 
-# Searches are repeated for Hyderabad and India-wide listings.
 SEARCH_TERMS = [
     "Python Developer",
     "React Developer",
@@ -25,7 +26,6 @@ LOCATIONS = [
     "India",
 ]
 
-# Basic skill extraction for Nexora's existing required_skills field.
 KNOWN_SKILLS = [
     "Python",
     "Django",
@@ -55,8 +55,11 @@ def extract_skills(title, description):
     found = []
 
     for skill in KNOWN_SKILLS:
-        # Avoid matching a skill inside an unrelated longer word.
-        pattern = r"(?<!\w)" + re.escape(skill.casefold()) + r"(?!\w)"
+        pattern = (
+            r"(?<!\w)"
+            + re.escape(skill.casefold())
+            + r"(?!\w)"
+        )
 
         if re.search(pattern, text):
             found.append(skill)
@@ -101,11 +104,14 @@ class Command(BaseCommand):
         app_key = os.getenv("ADZUNA_APP_KEY")
 
         if not app_id or not app_key:
-            raise CommandError(
-                "Adzuna credentials are missing. "
-                "Add ADZUNA_APP_ID and ADZUNA_APP_KEY "
-                "to backend/.env."
+            self.stdout.write(
+                self.style.WARNING(
+                    "Adzuna import skipped: ADZUNA_APP_ID or "
+                    "ADZUNA_APP_KEY is missing. The application "
+                    "will continue starting normally."
+                )
             )
+            return
 
         imported = 0
         updated = 0
@@ -147,24 +153,38 @@ class Command(BaseCommand):
                 except ValueError:
                     self.stderr.write(
                         self.style.WARNING(
-                            "Adzuna returned an invalid JSON response."
+                            "Adzuna returned invalid JSON."
                         )
                     )
                     continue
 
                 results = payload.get("results", [])
 
+                if not isinstance(results, list):
+                    self.stderr.write(
+                        self.style.WARNING(
+                            "Adzuna returned an unexpected results format."
+                        )
+                    )
+                    continue
+
                 for item in results:
-                    title = (item.get("title") or "").strip()
+                    title = (
+                        item.get("title") or ""
+                    ).strip()
 
                     company_data = item.get("company") or {}
+
                     company = (
-                        company_data.get("display_name") or "Unknown Company"
+                        company_data.get("display_name")
+                        or "Unknown Company"
                     ).strip()
 
                     location_data = item.get("location") or {}
+
                     job_location = (
-                        location_data.get("display_name") or location
+                        location_data.get("display_name")
+                        or location
                     ).strip()
 
                     description = (
@@ -175,11 +195,11 @@ class Command(BaseCommand):
                         item.get("redirect_url") or ""
                     ).strip()
 
-                    # Do not create records without essential information
-                    # or a usable URL for duplicate detection.
                     if (
                         not title
-                        or not application_url.startswith(("https://", "http://"))
+                        or not application_url.startswith(
+                            ("https://", "http://")
+                        )
                         or len(application_url) > 200
                     ):
                         skipped += 1
@@ -191,23 +211,44 @@ class Command(BaseCommand):
                         "location": job_location[:200],
                         "description": description,
                         "required_skills": extract_skills(
-                            title, description
+                            title,
+                            description,
                         ),
                         "salary": format_salary(item),
                         "job_type": clean_job_type(item)[:100],
                         "experience": "",
+                        "source": "adzuna",
                     }
 
                     try:
-                        job, created = Job.objects.update_or_create(
-                            application_url=application_url,
-                            defaults=defaults,
-                        )
+                        with transaction.atomic():
+                            job = (
+                                Job.objects
+                                .select_for_update()
+                                .filter(
+                                    application_url=application_url
+                                )
+                                .first()
+                            )
 
-                        if created:
-                            imported += 1
-                        else:
-                            updated += 1
+                            if job:
+                                # Never overwrite recruiter-owned jobs.
+                                if job.source == "recruiter" or job.created_by_id:
+                                    skipped += 1
+                                    continue
+
+                                for field, value in defaults.items():
+                                    setattr(job, field, value)
+
+                                job.save()
+                                updated += 1
+
+                            else:
+                                Job.objects.create(
+                                    application_url=application_url,
+                                    **defaults,
+                                )
+                                imported += 1
 
                     except Exception as exc:
                         skipped += 1
