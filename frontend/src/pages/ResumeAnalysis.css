@@ -1,79 +1,307 @@
 
-/* ==========================================
-   NEXORA — RESUME ANALYSIS THEME
-   ========================================== */
+/* =====================================================
+   NEXORA — PREMIUM RESUME INSIGHTS
+   Warm ivory • Forest green • Sage • Soft gold
+===================================================== */
 
 .analysis-page {
-  background: #f8f6ef !important;
-  color: #29291f;
+  min-height: calc(100vh - 65px);
+  padding: 38px 28px 60px;
+  background: #F7F7F2;
+  color: #293126;
   font-family: Inter, "Segoe UI", sans-serif;
 }
 
 .analysis-container {
-  max-width: 1180px;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.analysis-header {
+  margin-bottom: 30px;
 }
 
 .analysis-header h1 {
-  color: #29291f !important;
+  margin: 0 0 8px;
+  color: #263321;
   font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4vw, 40px);
   font-weight: 600;
-  letter-spacing: -0.6px;
+  letter-spacing: -1px;
 }
 
 .analysis-header p {
-  color: #77766c;
+  margin: 0;
+  color: #737B6D;
+  font-size: 14px;
+  line-height: 1.7;
 }
+
+/* SCORE OVERVIEW */
 
 .score-card {
-  background: #e9ecd9 !important;
-  color: #29291f !important;
-  border: 1px solid #e0e3d2;
-  border-radius: 12px;
-  box-shadow: none;
-}
-
-.score-card h1,
-.score-card h2,
-.score-card h3,
-.score-card p {
-  color: #29291f;
-}
-
-.analysis-page .score-card::before,
-.analysis-page .score-card::after {
-  display: none;
-}
-
-.analysis-page .analysis-container > div {
-  border-radius: 10px;
-}
-
-.analysis-page button {
-  border-radius: 7px;
-}
-
-.analysis-page input,
-.analysis-page textarea,
-.analysis-page select {
-  background: #fffefa;
-  border: 1px solid #e7e3d8;
-  color: #29291f;
-}
-
-.analysis-page .analysis-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  overflow: hidden;
   margin-bottom: 24px;
+  padding: 34px 38px;
+  border: 1px solid #DCE3D3;
+  border-radius: 20px;
+  background: linear-gradient(120deg, #E9EEDF, #F3F2E7);
+  box-shadow: 0 8px 25px rgba(40, 55, 35, 0.045);
 }
+
+.score-card h2 {
+  margin: 0 0 12px;
+  color: #34432D;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 600;
+}
+
+.score-card p {
+  max-width: 420px;
+  margin: 0;
+  color: #697360;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.score {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+  color: #354B2E;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(48px, 7vw, 68px);
+  font-weight: 700;
+  letter-spacing: -3px;
+}
+
+.score span {
+  margin-left: 5px;
+  color: #7B866F;
+  font-family: Inter, sans-serif;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+/* CONTENT GRID */
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.analysis-card {
+  min-width: 0;
+  margin-bottom: 18px;
+  padding: 25px 27px;
+  border: 1px solid #E4E7DE;
+  border-radius: 16px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 18px rgba(35, 45, 30, 0.035);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.analysis-grid .analysis-card {
+  margin-bottom: 0;
+}
+
+.analysis-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(35, 45, 30, 0.065);
+}
+
+.analysis-card h2 {
+  margin: 0 0 20px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #EDF0E9;
+  color: #34432D;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* DATA ROWS */
+
+.analysis-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 15px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #F8F9F5;
+}
+
+.analysis-item:last-child {
+  margin-bottom: 0;
+}
+
+.analysis-item strong {
+  color: #75806D;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.analysis-item span {
+  color: #303A2C;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* SKILLS */
+
+.skills-analysis {
+  background: linear-gradient(145deg, #FFFFFF, #FAFBF7);
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 9px 15px;
+  border: 1px solid #D9E3D1;
+  border-radius: 30px;
+  background: #EDF3E9;
+  color: #3E5936;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* NESTED DATA */
+
+.analysis-card ul {
+  margin: 10px 0;
+  padding-left: 22px;
+  color: #53604D;
+  line-height: 1.8;
+}
+
+.analysis-card li {
+  margin-bottom: 7px;
+  padding-left: 3px;
+}
+
+.analysis-card > div > .analysis-item {
+  margin-top: 10px;
+}
+
+.analysis-card > span {
+  color: #65705E;
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* RECOMMENDATIONS */
+
+.recommendations-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recommendations-list li {
+  position: relative;
+  margin: 0;
+  padding: 15px 17px 15px 42px;
+  border: 1px solid #E4E9DD;
+  border-radius: 11px;
+  background: #F7F9F3;
+  color: #46523F;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.recommendations-list li::before {
+  position: absolute;
+  top: 15px;
+  left: 16px;
+  color: #71865E;
+  content: "✦";
+  font-size: 15px;
+}
+
+/* LOADING AND ERROR */
+
+.analysis-loading,
+.analysis-error {
+  margin: 40px 0;
+  padding: 28px;
+  border: 1px solid #E1E6D9;
+  border-radius: 14px;
+  background: #FFFFFF;
+  color: #53604D;
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* RESPONSIVE */
 
 @media (max-width: 768px) {
   .analysis-page {
-    padding: 22px 14px 40px;
+    padding: 26px 18px 42px;
   }
 
   .score-card {
-    padding: 22px;
+    padding: 26px;
   }
 
-  .analysis-header h1 {
-    font-size: 30px;
+  .analysis-card {
+    padding: 21px;
+  }
+}
+
+@media (max-width: 600px) {
+  .analysis-page {
+    padding: 22px 14px 35px;
+  }
+
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .score-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 24px 21px;
+  }
+
+  .score {
+    font-size: 54px;
+  }
+
+  .analysis-card {
+    padding: 19px 17px;
+  }
+
+  .analysis-card h2 {
+    font-size: 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-card {
+    transition: none;
   }
 }
