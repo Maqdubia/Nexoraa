@@ -2,10 +2,40 @@
 from django.contrib import admin
 
 from .models import (
+    RazorpayPlan,
     Subscription,
     SubscriptionWebhookEvent,
     FeatureUsage,
 )
+
+
+@admin.register(RazorpayPlan)
+class RazorpayPlanAdmin(admin.ModelAdmin):
+    list_display = (
+        "plan",
+        "billing_cycle",
+        "amount",
+        "currency",
+        "razorpay_plan_id",
+        "is_active",
+        "created_at",
+    )
+
+    list_filter = (
+        "plan",
+        "billing_cycle",
+        "is_active",
+    )
+
+    search_fields = (
+        "razorpay_plan_id",
+    )
+
+    readonly_fields = (
+        "created_at",
+    )
+
+    ordering = ("plan", "billing_cycle")
 
 
 @admin.register(Subscription)
