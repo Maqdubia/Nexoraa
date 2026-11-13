@@ -216,32 +216,26 @@ def find_email(text):
 
 
 def find_phone(text):
-    # Supports Indian mobile numbers with spaces, hyphens,
-    # optional +91 / 91 / 0 prefixes.
+    """
+    Detect Indian mobile numbers even when digits are separated
+    by spaces, hyphens, brackets, or an optional country code.
+    """
     pattern = (
         r"(?<!\d)"
-        r"(?:(?:\+?91|0)[\s().-]*)?"
-        r"[6-9]\d{2,4}[\s().-]*\d{3,5}[\s().-]*\d{3,5}"
+        r"(?:\+?91[\s().-]*)?"
+        r"(?:0[\s().-]*)?"
+        r"([6-9](?:[\s().-]*\d){9})"
         r"(?!\d)"
     )
 
     for match in re.finditer(pattern, text):
-        digits = re.sub(r"\D", "", match.group(0))
+        digits = re.sub(r"\D", "", match.group(1))
 
         if len(digits) == 10 and digits[0] in "6789":
             return digits
 
-        if len(digits) == 12 and digits.startswith("91"):
-            number = digits[-10:]
-            if number[0] in "6789":
-                return number
-
-        if len(digits) == 11 and digits.startswith("0"):
-            number = digits[-10:]
-            if number[0] in "6789":
-                return number
-
     return None
+
 
 
 # =====================================================
