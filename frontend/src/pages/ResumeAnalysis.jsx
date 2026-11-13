@@ -4,6 +4,35 @@ import { Link, useParams } from "react-router-dom";
 import { getResumeAnalysis } from "../services/api";
 import "./ResumeAnalysis.css";
 
+function ScoreVisual({ score }) {
+    const value = Number.isFinite(Number(score))
+        ? Math.min(100, Math.max(0, Number(score)))
+        : 0;
+
+    const circumference = 2 * Math.PI * 48;
+    const offset = circumference - (value / 100) * circumference;
+
+    return (
+        <div className="score-visual">
+            <svg viewBox="0 0 112 112">
+                <circle className="score-track" cx="56" cy="56" r="48" />
+                <circle
+                    className="score-progress"
+                    cx="56"
+                    cy="56"
+                    r="48"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                />
+            </svg>
+            <div className="score-visual-value">
+                <strong>{value}</strong>
+                <span>/100</span>
+            </div>
+        </div>
+    );
+}
+
 function DataDisplay({ value }) {
     if (value === null || value === undefined || value === "") {
         return <span>Not available</span>;
@@ -51,48 +80,24 @@ function DataDisplay({ value }) {
     return <span>Not available</span>;
 }
 
-function ScoreVisual({ score }) {
-    const numericScore = Number(score);
-    const safeScore = Number.isFinite(numericScore)
-        ? Math.min(100, Math.max(0, numericScore))
-        : 0;
-
-    const circumference = 2 * Math.PI * 48;
-    const offset = circumference - (safeScore / 100) * circumference;
-
-    return (
-        <div className="score-visual" aria-label={`Resume score: ${safeScore} out of 100`}>
-            <svg viewBox="0 0 112 112" role="img">
-                <circle
-                    className="score-track"
-                    cx="56"
-                    cy="56"
-                    r="48"
-                />
-                <circle
-                    className="score-progress"
-                    cx="56"
-                    cy="56"
-                    r="48"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                />
-            </svg>
-
-            <div className="score-visual-value">
-                <strong>{safeScore}</strong>
-                <span>/100</span>
-            </div>
-        </div>
-    );
-}
-
 function SectionCard({ title, children }) {
     return (
         <section className="analysis-card">
             <h2>{title}</h2>
             {children}
         </section>
+    );
+}
+
+function DetailPanel({ title, children }) {
+    return (
+        <details className="analysis-detail-panel">
+            <summary>
+                <span>{title}</span>
+                <span className="detail-toggle">View details</span>
+            </summary>
+            <div className="analysis-detail-content">{children}</div>
+        </details>
     );
 }
 
@@ -112,15 +117,11 @@ function ResumeAnalysis() {
 
             try {
                 const data = await getResumeAnalysis(id);
-
                 if (active) setAnalysis(data);
             } catch (error) {
                 console.error("Resume analysis error:", error);
-
                 if (active) {
-                    setMessage(
-                        "We couldn't load this analysis. Please try again."
-                    );
+                    setMessage("We couldn't load this analysis. Please try again.");
                 }
             } finally {
                 if (active) setLoading(false);
@@ -169,18 +170,33 @@ function ResumeAnalysis() {
         );
     }
 
-    const skills = Array.isArray(analysis.skills)
-        ? analysis.skills
-        : [];
-
+    const skills = Array.isArray(analysis.skills) ? analysis.skills : [];
     const recommendations = Array.isArray(analysis.recommendations)
         ? analysis.recommendations
         : [];
 
-    const score = Number(analysis.score);
-    const safeScore = Number.isFinite(score)
-        ? Math.min(100, Math.max(0, score))
-        : 0;
+    const education = Array.isArray(analysis.education)
+        ? analysis.education
+        : [];
+
+    const certifications = Array.isArray(analysis.certifications)
+        ? analysis.certifications
+        : [];
+
+    const sections = Array.isArray(analysis.sections_found)
+        ? analysis.sections_found
+        : [];
+
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+
+    const sortedRecommendations = [...recommendations].sort(
+        (a, b) =>
+            (priorityOrder[String(a.priority || "").toLowerCase()] ?? 3) -
+            (priorityOrder[String(b.priority || "").toLowerCase()] ?? 3)
+    );
+
+    const topRecommendations = sortedRecommendations.slice(0, 3);
+    const remainingRecommendations = sortedRecommendations.slice(3);
 
     return (
         <div className="analysis-page">
@@ -194,27 +210,18 @@ function ResumeAnalysis() {
                 </div>
 
                 <header className="analysis-header">
-                    <div>
-                        <span className="analysis-eyebrow">
-                            YOUR CAREER DOCUMENT
-                        </span>
-                        <h1>Resume Insights</h1>
-                        <p>
-                            Understand your resume, identify strengths,
-                            and discover where you can improve.
-                        </p>
-                    </div>
+                    <span className="analysis-eyebrow">YOUR CAREER DOCUMENT</span>
+                    <h1>Resume Insights</h1>
+                    <p>A clear snapshot of your resume strengths and next steps.</p>
                 </header>
 
                 <section className="score-card">
                     <div className="score-card-copy">
-                        <span className="analysis-eyebrow">
-                            YOUR RESUME OVERVIEW
-                        </span>
+                        <span className="analysis-eyebrow">YOUR RESUME OVERVIEW</span>
                         <h2>Your career story, at a glance.</h2>
                         <p>
-                            Your score and the information extracted
-                            from your uploaded resume are summarized here.
+                            Your resume has been reviewed for its content,
+                            skills and structure.
                         </p>
 
                         <div className="score-facts">
@@ -223,26 +230,28 @@ function ResumeAnalysis() {
                                 <span>Skills detected</span>
                             </div>
                             <div>
-                                <strong>
-                                    {analysis.text_length ?? 0}
-                                </strong>
+                                <strong>{analysis.text_length ?? 0}</strong>
                                 <span>Characters extracted</span>
+                            </div>
+                            <div>
+                                <strong>{sections.length}</strong>
+                                <span>Sections found</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="score-card-result">
-                        <ScoreVisual score={safeScore} />
+                        <ScoreVisual score={analysis.score} />
                         <div>
                             <strong>Resume score</strong>
-                            <span>Based on the current analysis</span>
+                            <span>Rule-based checklist score</span>
                         </div>
                     </div>
                 </section>
 
                 <div className="analysis-section-heading">
                     <div>
-                        <span className="analysis-eyebrow">THE DETAILS</span>
+                        <span className="analysis-eyebrow">THE HIGHLIGHTS</span>
                         <h2>What we found</h2>
                     </div>
                 </div>
@@ -250,47 +259,36 @@ function ResumeAnalysis() {
                 <div className="analysis-grid">
                     <SectionCard title="Contact information">
                         <div className="analysis-item">
-                            <strong>Email address</strong>
+                            <strong>Email</strong>
                             <span>{analysis.email || "Not found"}</span>
                         </div>
                         <div className="analysis-item">
-                            <strong>Phone number</strong>
+                            <strong>Phone</strong>
                             <span>{analysis.phone || "Not found"}</span>
                         </div>
                     </SectionCard>
 
-                    <SectionCard title="Resume details">
-                        <div className="analysis-item">
-                            <strong>Text extracted</strong>
-                            <span>
-                                {analysis.text_length ?? 0} characters
-                            </span>
-                        </div>
-                        <div className="analysis-item">
-                            <strong>Skills detected</strong>
-                            <span>{skills.length}</span>
-                        </div>
+                    <SectionCard title="Resume profile">
                         <div className="analysis-item">
                             <strong>Last analyzed</strong>
                             <span>
                                 {analysis.analyzed_at
-                                    ? new Date(
-                                        analysis.analyzed_at
-                                    ).toLocaleString()
+                                    ? new Date(analysis.analyzed_at).toLocaleString()
                                     : "Not available"}
                             </span>
+                        </div>
+                        <div className="analysis-item">
+                            <strong>Document length</strong>
+                            <span>{analysis.text_length ?? 0} characters</span>
                         </div>
                     </SectionCard>
                 </div>
 
-                <SectionCard title="Your detected skills">
+                <SectionCard title={`Your skills (${skills.length})`}>
                     {skills.length ? (
                         <div className="skill-tags">
                             {skills.map((skill, index) => (
-                                <span
-                                    className="skill-tag"
-                                    key={`${skill}-${index}`}
-                                >
+                                <span className="skill-tag" key={`${skill}-${index}`}>
                                     {skill}
                                 </span>
                             ))}
@@ -302,49 +300,79 @@ function ResumeAnalysis() {
 
                 <div className="analysis-grid">
                     <SectionCard title="Education">
-                        <DataDisplay value={analysis.education} />
+                        <DataDisplay value={education} />
                     </SectionCard>
 
                     <SectionCard title="Certifications">
-                        <DataDisplay value={analysis.certifications} />
+                        <DataDisplay value={certifications} />
                     </SectionCard>
                 </div>
 
-                <SectionCard title="Resume sections detected">
-                    <DataDisplay value={analysis.sections_found} />
-                </SectionCard>
-
-                <SectionCard title="Extracted section details">
-                    <DataDisplay value={analysis.section_text} />
-                </SectionCard>
-
-                <SectionCard title="Score breakdown">
-                    <DataDisplay value={analysis.score_details} />
-                </SectionCard>
-
-                <SectionCard title="Content analysis">
-                    <DataDisplay value={analysis.content_analysis} />
+                <SectionCard title="Resume sections">
+                    {sections.length ? (
+                        <div className="skill-tags">
+                            {sections.map((section) => (
+                                <span className="skill-tag" key={section}>
+                                    {section.replace(/_/g, " ")}
+                                </span>
+                            ))}
+                        </div>
+                    ) : (
+                        <p>No clearly labelled sections were detected.</p>
+                    )}
                 </SectionCard>
 
                 <SectionCard title="Your improvement roadmap">
-                    {recommendations.length ? (
+                    {topRecommendations.length ? (
                         <ol className="recommendations-list">
-                            {recommendations.map((item, index) => (
+                            {topRecommendations.map((item, index) => (
                                 <li key={index}>
                                     <DataDisplay value={item} />
                                 </li>
                             ))}
                         </ol>
                     ) : (
-                        <p>
-                            No recommendations are available for this
-                            resume yet.
-                        </p>
+                        <p>No recommendations are available yet.</p>
+                    )}
+
+                    {remainingRecommendations.length > 0 && (
+                        <DetailPanel
+                            title={`${remainingRecommendations.length} more recommendations`}
+                        >
+                            <ol className="recommendations-list" start={4}>
+                                {remainingRecommendations.map((item, index) => (
+                                    <li key={index}>
+                                        <DataDisplay value={item} />
+                                    </li>
+                                ))}
+                            </ol>
+                        </DetailPanel>
                     )}
                 </SectionCard>
 
+                <div className="analysis-advanced">
+                    <span className="analysis-eyebrow">ADVANCED REPORT</span>
+                    <h2>Explore your detailed analysis</h2>
+                    <p>
+                        Open any section when you want to inspect the
+                        information extracted from your document.
+                    </p>
+
+                    <DetailPanel title="Extracted section details">
+                        <DataDisplay value={analysis.section_text} />
+                    </DetailPanel>
+
+                    <DetailPanel title="Score breakdown">
+                        <DataDisplay value={analysis.score_details} />
+                    </DetailPanel>
+
+                    <DetailPanel title="Content analysis">
+                        <DataDisplay value={analysis.content_analysis} />
+                    </DetailPanel>
+                </div>
+
                 <div className="analysis-footer">
-                    <span>Keep improving. Your next opportunity starts here.</span>
+                    <span>Your next opportunity starts with a stronger resume.</span>
                     <Link to="/resume">Return to resumes →</Link>
                 </div>
 
