@@ -20,20 +20,12 @@ class RazorpayPlan(models.Model):
         max_length=20,
         choices=BILLING_CHOICES,
     )
-
     amount = models.PositiveIntegerField(
         help_text="Amount in INR paise."
     )
-
     currency = models.CharField(max_length=3, default="INR")
-
-    razorpay_plan_id = models.CharField(
-        max_length=100,
-        unique=True,
-    )
-
+    razorpay_plan_id = models.CharField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -81,50 +73,39 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name="subscriptions",
     )
-
     plan = models.CharField(
         max_length=20,
         choices=PLAN_CHOICES,
         default="free",
     )
-
     billing_cycle = models.CharField(
         max_length=20,
         choices=BILLING_CHOICES,
         default="monthly",
     )
-
     amount = models.PositiveIntegerField(
         default=0,
         help_text="Subscription amount in INR paise.",
     )
-
     currency = models.CharField(max_length=3, default="INR")
-
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default="created",
         db_index=True,
     )
-
     razorpay_plan_id = models.CharField(max_length=100, blank=True)
-
     razorpay_subscription_id = models.CharField(
         max_length=100,
         unique=True,
         null=True,
         blank=True,
     )
-
     razorpay_payment_id = models.CharField(max_length=100, blank=True)
-
     current_start = models.DateTimeField(null=True, blank=True)
     current_end = models.DateTimeField(null=True, blank=True)
-
     cancel_at_cycle_end = models.BooleanField(default=False)
     cancelled_at = models.DateTimeField(null=True, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -177,6 +158,7 @@ class FeatureUsage(models.Model):
     FEATURE_CHOICES = [
         ("ats_generation", "ATS Resume Generation"),
         ("ats_download", "ATS Resume Download"),
+        ("text_interview", "Completed Text Interview"),
     ]
 
     user = models.ForeignKey(
@@ -184,12 +166,10 @@ class FeatureUsage(models.Model):
         on_delete=models.CASCADE,
         related_name="feature_usage",
     )
-
     feature = models.CharField(
         max_length=40,
         choices=FEATURE_CHOICES,
     )
-
     period_start = models.DateField()
     usage_count = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
