@@ -1,4 +1,3 @@
-
 # Generated for Nexora billing models.
 
 import django.db.models.deletion
