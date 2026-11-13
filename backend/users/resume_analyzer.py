@@ -6,9 +6,9 @@ from pypdf import PdfReader
 from docx import Document
 
 
-# =========================
+# =====================================================
 # SKILL DATABASE
-# =========================
+# =====================================================
 
 SKILL_ALIASES = {
     "Python": ["python"],
@@ -48,49 +48,63 @@ SKILL_ALIASES = {
     "Algorithms": ["algorithms"],
     "Unit Testing": ["unit testing", "pytest"],
     "CI/CD": ["ci/cd", "continuous integration", "continuous delivery"],
+    "Scikit-learn": ["scikit-learn", "sklearn"],
+    "Matplotlib": ["matplotlib"],
+    "Seaborn": ["seaborn"],
+    "Streamlit": ["streamlit"],
+    "Statistics": ["statistics", "statistical analysis"],
+    "Data Visualization": ["data visualization", "data visualisation"],
+    "Deep Learning": ["deep learning"],
+    "NLP": ["natural language processing", "nlp"],
+    "Generative AI": ["generative ai", "genai"],
 }
 
 SECTION_ALIASES = {
     "summary": [
-        "summary", "professional summary", "career objective",
-        "objective", "profile", "about me"
+        "professional summary", "career objective",
+        "summary", "objective", "profile", "about me",
     ],
     "skills": [
-        "skills", "technical skills", "core competencies",
-        "technologies", "technical expertise"
+        "technical skills", "core competencies",
+        "technical expertise", "skills", "technologies",
     ],
     "experience": [
-        "experience", "work experience", "professional experience",
-        "employment history", "internship", "internships",
-        "work history"
-    ],
-    "education": [
-        "education", "academic background", "qualifications",
-        "educational background"
+        "professional experience", "work experience",
+        "internship experience", "internships",
+        "employment history", "work history", "experience",
     ],
     "projects": [
-        "projects", "personal projects", "academic projects",
-        "key projects", "project experience"
+        "project experience", "personal projects",
+        "academic projects", "key projects", "projects",
+    ],
+    "education": [
+        "educational background", "academic background",
+        "qualifications", "education",
     ],
     "certifications": [
+        "licenses and certifications",
         "certifications", "certificates", "courses",
-        "licenses and certifications"
+    ],
+    "achievements": [
+        "achievements", "awards and achievements",
+        "awards", "accomplishments",
     ],
 }
 
 
-# =========================
-# PDF TEXT EXTRACTION
-# =========================
+# =====================================================
+# TEXT EXTRACTION
+# =====================================================
 
 def extract_pdf_text(file_path):
     reader = PdfReader(str(file_path))
-    return "\n".join(page.extract_text() or "" for page in reader.pages)
+    pages = []
 
+    for page in reader.pages:
+        pages.append(page.extract_text() or "")
 
-# =========================
-# DOCX TEXT EXTRACTION
-# =========================
+    return "\n".join(pages)
+
 
 def extract_docx_text(file_path):
     document = Document(str(file_path))
@@ -113,9 +127,56 @@ def extract_docx_text(file_path):
     return "\n".join(parts)
 
 
-# =========================
-# RESUME TEXT EXTRACTION
-# =========================
+def normalize_resume_text(text):
+    if not text:
+        return ""
+
+    text = text.replace("\x00", " ")
+    text = text.replace("\u00a0", " ")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Normalize repeated whitespace without destroying line breaks.
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n[ \t]*\n+", "\n", text)
+
+    # PDF extraction sometimes joins uppercase section headings
+    # to the previous paragraph. Separate recognizable headings.
+    inline_headings = [
+        "PROFESSIONAL SUMMARY",
+        "CAREER OBJECTIVE",
+        "TECHNICAL SKILLS",
+        "CORE COMPETENCIES",
+        "PROJECT EXPERIENCE",
+        "INTERNSHIP EXPERIENCE",
+        "WORK EXPERIENCE",
+        "PROFESSIONAL EXPERIENCE",
+        "EDUCATION",
+        "CERTIFICATIONS",
+        "ACHIEVEMENTS",
+        "PROJECTS",
+        "EXPERIENCE",
+        "SKILLS",
+    ]
+
+    for heading in sorted(inline_headings, key=len, reverse=True):
+        pattern = (
+            r"(?<![A-Za-z])"
+            + re.escape(heading)
+            + r"(?=\s*[:•]?\s+[A-Z0-9])"
+        )
+
+        text = re.sub(
+            pattern,
+            lambda match: "\n" + match.group(0),
+            text,
+        )
+
+    return "\n".join(
+        line.strip()
+        for line in text.splitlines()
+        if line.strip()
+    )
+
 
 def extract_resume_text(file_path):
     file_path = Path(file_path)
@@ -123,39 +184,28 @@ def extract_resume_text(file_path):
     if not file_path.exists():
         raise FileNotFoundError("Resume file not found.")
 
-    if file_path.suffix.lower() not in {".pdf", ".docx"}:
-        raise ValueError("Only PDF and DOCX resume files are allowed.")
+    suffix = file_path.suffix.lower()
 
-    if file_path.suffix.lower() == ".pdf":
+    if suffix == ".pdf":
         text = extract_pdf_text(file_path)
-    else:
+    elif suffix == ".docx":
         text = extract_docx_text(file_path)
+    else:
+        raise ValueError("Only PDF and DOCX resume files are supported.")
 
-    if not text or not text.strip():
+    text = normalize_resume_text(text)
+
+    if not text:
         raise ValueError(
-            "No readable text found in the resume. "
-            "The PDF may be scanned or image-based."
+            "No readable text found. The PDF may be scanned or image-based."
         )
 
     return text
 
 
-# =========================
-# TEXT MATCHING HELPER
-# =========================
-
-def _contains_term(text, term):
-    pattern = (
-        r"(?<![a-z0-9+#.])"
-        + re.escape(term.lower())
-        + r"(?![a-z0-9+#.])"
-    )
-    return bool(re.search(pattern, text.lower()))
-
-
-# =========================
-# EMAIL EXTRACTION
-# =========================
+# =====================================================
+# CONTACT EXTRACTION
+# =====================================================
 
 def find_email(text):
     match = re.search(
@@ -165,44 +215,72 @@ def find_email(text):
     return match.group(0) if match else None
 
 
-# =========================
-# PHONE EXTRACTION
-# =========================
-
 def find_phone(text):
-    match = re.search(
-        r"(?<!\d)(?:(?:\+?91|0)[\s-]?)?[6-9]\d{9}(?!\d)",
-        text,
+    # Supports Indian mobile numbers with spaces, hyphens,
+    # optional +91 / 91 / 0 prefixes.
+    pattern = (
+        r"(?<!\d)"
+        r"(?:(?:\+?91|0)[\s().-]*)?"
+        r"[6-9]\d{2,4}[\s().-]*\d{3,5}[\s().-]*\d{3,5}"
+        r"(?!\d)"
     )
 
-    if not match:
-        return None
+    for match in re.finditer(pattern, text):
+        digits = re.sub(r"\D", "", match.group(0))
 
-    digits = re.sub(r"\D", "", match.group(0))
-    return digits[-10:]
+        if len(digits) == 10 and digits[0] in "6789":
+            return digits
+
+        if len(digits) == 12 and digits.startswith("91"):
+            number = digits[-10:]
+            if number[0] in "6789":
+                return number
+
+        if len(digits) == 11 and digits.startswith("0"):
+            number = digits[-10:]
+            if number[0] in "6789":
+                return number
+
+    return None
 
 
-# =========================
+# =====================================================
 # SKILL EXTRACTION
-# =========================
+# =====================================================
+
+def contains_term(text, term):
+    pattern = (
+        r"(?<![a-z0-9+#.])"
+        + re.escape(term.lower())
+        + r"(?![a-z0-9+#.])"
+    )
+    return bool(re.search(pattern, text.lower()))
+
 
 def find_skills(text):
     found = []
 
     for skill, aliases in SKILL_ALIASES.items():
-        if any(_contains_term(text, alias) for alias in aliases):
+        if any(contains_term(text, alias) for alias in aliases):
             found.append(skill)
 
     return found
 
 
-# =========================
+# =====================================================
 # SECTION DETECTION
-# =========================
+# =====================================================
+
+def normalize_heading(line):
+    line = line.strip().lower()
+    line = re.sub(r"^[\s:|•\-*]+", "", line)
+    line = re.sub(r"[\s:|•\-*.,]+$", "", line)
+    return line.strip()
+
 
 def extract_sections(text):
     lookup = {
-        alias.lower(): section
+        normalize_heading(alias): section
         for section, aliases in SECTION_ALIASES.items()
         for alias in aliases
     }
@@ -212,64 +290,139 @@ def extract_sections(text):
 
     for line in text.splitlines():
         line = line.strip()
+
         if not line:
             continue
 
-        heading = re.sub(r"^[\s:|•\-]+", "", line.lower())
-        heading = re.sub(r"[\s:|•\-.,]+$", "", heading).strip()
+        heading = normalize_heading(line)
 
         if heading in lookup:
             current = lookup[heading]
             sections.setdefault(current, [])
+            continue
+
+        # Handle headings followed by content on the same line.
+        matched_heading = None
+        matched_section = None
+        remaining_text = line
+
+        for alias, section in sorted(
+            lookup.items(),
+            key=lambda item: len(item[0]),
+            reverse=True,
+        ):
+            pattern = (
+                r"^\s*"
+                + re.escape(alias)
+                + r"\s*[:|•\-]\s*(.*)$"
+            )
+            match = re.match(pattern, line, re.I)
+
+            if match:
+                matched_heading = alias
+                matched_section = section
+                remaining_text = match.group(1).strip()
+                break
+
+        if matched_heading:
+            current = matched_section
+            sections.setdefault(current, [])
+
+            if remaining_text:
+                sections[current].append(remaining_text)
         else:
             sections.setdefault(current, []).append(line)
 
     return {
-        name: "\n".join(lines)
+        name: "\n".join(lines).strip()
         for name, lines in sections.items()
     }
 
 
-# =========================
-# EDUCATION EXTRACTION
-# =========================
+def get_section_lines(sections, name):
+    value = sections.get(name, "")
 
-def find_education(text):
-    patterns = (
-        r"\bbachelor\b", r"\bmaster\b", r"\bb\.tech\b",
-        r"\bm\.tech\b", r"\bb\.sc\b", r"\bm\.sc\b",
-        r"\bb\.com\b", r"\bmca\b", r"\bbca\b", r"\bmba\b",
-        r"\buniversity\b", r"\bcollege\b", r"\bdiploma\b",
-        r"\bintermediate\b", r"\bssc\b",
-    )
+    if isinstance(value, list):
+        lines = value
+    else:
+        lines = str(value or "").splitlines()
 
     return [
+        line.strip(" \t•-*")
+        for line in lines
+        if line.strip()
+    ]
+
+
+# =====================================================
+# EDUCATION AND CERTIFICATIONS
+# =====================================================
+
+def find_education(text, sections):
+    education_lines = get_section_lines(sections, "education")
+
+    if education_lines:
+        return education_lines[:15]
+
+    # Fallback only when no Education heading was detected.
+    patterns = (
+        r"\bbachelor\b",
+        r"\bmaster\b",
+        r"\bb\.tech\b",
+        r"\bm\.tech\b",
+        r"\bb\.sc\b",
+        r"\bm\.sc\b",
+        r"\bb\.com\b",
+        r"\bmca\b",
+        r"\bbca\b",
+        r"\bmba\b",
+        r"\buniversity\b",
+        r"\bcollege\b",
+        r"\bdiploma\b",
+        r"\bintermediate\b",
+        r"\bssc\b",
+    )
+
+    matches = [
         line.strip()
         for line in text.splitlines()
         if any(re.search(pattern, line, re.I) for pattern in patterns)
-    ][:15]
+    ]
+
+    return matches[:10]
 
 
-# =========================
-# EXPERIENCE AND ACHIEVEMENTS
-# =========================
+def find_certifications(sections):
+    return get_section_lines(sections, "certifications")[:15]
+
+
+# =====================================================
+# CONTENT ANALYSIS
+# =====================================================
 
 def analyze_content(text, sections):
     action_verbs = [
-        "built", "developed", "created", "designed", "implemented",
-        "automated", "improved", "optimized", "delivered", "deployed",
-        "integrated", "reduced", "increased", "maintained", "tested",
-        "analyzed", "resolved", "managed", "launched",
+        "built", "developed", "created", "designed",
+        "implemented", "automated", "improved",
+        "optimized", "delivered", "deployed",
+        "integrated", "reduced", "increased",
+        "maintained", "tested", "analyzed",
+        "resolved", "managed", "launched",
     ]
 
     action_count = sum(
-        len(re.findall(r"\b" + re.escape(verb) + r"\b", text, re.I))
+        len(re.findall(
+            r"\b" + re.escape(verb) + r"\b",
+            text,
+            re.I,
+        ))
         for verb in action_verbs
     )
 
     quantified_count = len(re.findall(
-        r"\b\d+(?:\.\d+)?\s*%|\b\d+\s*(?:users|projects|"
-        r"customers|records|hours|days|months|years)\b|\b\d+x\b",
+        r"\b\d+(?:\.\d+)?\s*%"
+        r"|\b\d+\s*(?:users|projects|customers|records|hours|days|months|years)\b"
+        r"|\b\d+x\b",
         text,
         re.I,
     ))
@@ -277,7 +430,8 @@ def analyze_content(text, sections):
     years = sorted(set(re.findall(r"\b(?:19|20)\d{2}\b", text)))
 
     section_names = [
-        name for name in SECTION_ALIASES
+        name
+        for name in SECTION_ALIASES
         if sections.get(name, "").strip()
     ]
 
@@ -295,9 +449,9 @@ def analyze_content(text, sections):
     }
 
 
-# =========================
-# RESUME SCORE — MAXIMUM 100
-# =========================
+# =====================================================
+# RESUME SCORE
+# =====================================================
 
 def calculate_resume_score(email, phone, skills, sections, content):
     breakdown = {
@@ -318,31 +472,27 @@ def calculate_resume_score(email, phone, skills, sections, content):
         "readable_content": 10,
     }
 
-    raw_maximum = 100
-    score = round(sum(breakdown.values()) / raw_maximum * 100)
+    score = round(sum(breakdown.values()))
 
     return {
         "overall": min(100, score),
         "max": 100,
         "breakdown": breakdown,
         "note": (
-            "This is a rule-based resume checklist, not an official ATS "
-            "score or a guarantee of job selection."
+            "This is a rule-based resume checklist, not an official "
+            "ATS score or a guarantee of job selection."
         ),
     }
 
 
-# =========================
-# RESUME-SPECIFIC RECOMMENDATIONS
-# =========================
+# =====================================================
+# RECOMMENDATIONS
+# =====================================================
 
 def generate_recommendations(
     email, phone, skills, sections, content, text
 ):
     recommendations = []
-    text = text or ""
-    sections = sections or {}
-    skills = skills or []
 
     def add(priority, area, advice):
         recommendations.append({
@@ -351,214 +501,124 @@ def generate_recommendations(
             "advice": advice,
         })
 
-    def lines_for(section_name):
-        value = sections.get(section_name, "")
-        if isinstance(value, list):
-            lines = value
-        else:
-            lines = str(value or "").splitlines()
-
-        return [
-            line.strip(" \t•-*")
-            for line in lines
-            if line.strip()
-        ]
-
     def excerpt(line, limit=160):
         line = re.sub(r"\s+", " ", line).strip()
         if len(line) > limit:
             return line[:limit - 3].rstrip() + "..."
         return line
 
-    # Contact
     if not email:
         add(
-            "High", "Contact",
-            "No email address was detected in the extracted text. "
-            "Check the contact details and confirm that the email is "
-            "selectable text rather than an image."
+            "High",
+            "Contact",
+            "No email address was detected. Check the contact details "
+            "and confirm the email is selectable text.",
         )
 
     if not phone:
         add(
-            "High", "Contact",
+            "High",
+            "Contact",
             "No supported phone number was detected. Check the number "
-            "and verify that PDF/DOCX extraction preserved it correctly."
+            "and verify PDF/DOCX extraction preserved it correctly.",
         )
 
-    # Skills
-    skill_lines = lines_for("skills")
+    skill_lines = get_section_lines(sections, "skills")
 
     if not skill_lines:
         add(
-            "High", "Skills",
-            "No clearly labelled Skills section was detected. If your "
-            "skills appear elsewhere, use a clear Technical Skills heading."
+            "High",
+            "Skills",
+            "No clearly labelled Skills section was detected. "
+            "Use a clear Technical Skills heading.",
         )
     elif not skills:
         add(
-            "Medium", "Skills",
-            "A Skills section was detected, but the current skill dictionary "
-            "did not recognize any listed skills. Review the extracted text "
-            "and extend the dictionary for relevant technologies."
+            "Medium",
+            "Skills",
+            "A Skills section was found, but no supported skills were "
+            "recognized. Review the extracted text.",
         )
     elif len(skills) < 5:
         add(
-            "Low", "Skills",
-            "The analyzer recognized: " + ", ".join(skills) + ". "
-            "Check whether other skills already written in your resume "
-            "were missed. Add only skills you genuinely possess."
+            "Low",
+            "Skills",
+            "The analyzer recognized: " + ", ".join(skills)
+            + ". Check whether other genuine skills were missed.",
         )
 
-    # Projects
-    project_lines = lines_for("projects")
+    project_lines = get_section_lines(sections, "projects")
 
     if not project_lines:
         add(
-            "High", "Projects",
-            "No Projects section was detected. If you have relevant projects, "
-            "describe the problem, your contribution, the technologies used, "
-            "and the result. If the section exists, check its heading."
+            "High",
+            "Projects",
+            "No Projects section was detected. If relevant, describe "
+            "the problem, your contribution, technologies and results.",
         )
-    else:
-        short_projects = [
-            line for line in project_lines
-            if len(line.split()) < 5
-        ]
 
-        if short_projects:
-            add(
-                "Medium", "Projects",
-                "These short project entries may need more detail: "
-                + "; ".join(excerpt(line, 90) for line in short_projects[:2])
-                + ". Explain what you built and the outcome."
-            )
+    experience_lines = get_section_lines(sections, "experience")
 
-        project_action_lines = [
-            line for line in project_lines
-            if len(line.split()) >= 5
-            and not re.search(
-                r"\b(built|developed|created|designed|implemented|"
-                r"automated|improved|optimized|delivered|deployed|"
-                r"integrated|tested|analyzed|managed)\b",
-                line,
-                re.I,
-            )
-        ]
-
-        if project_action_lines:
-            add(
-                "Low", "Project descriptions",
-                "Review this project line for a clearer description of your "
-                "own contribution: "
-                + excerpt(project_action_lines[0])
-                + ". Use an accurate action verb where appropriate."
-            )
-
-    # Experience
-    experience_lines = lines_for("experience")
-
-    if not experience_lines and not content.get("has_experience_terms"):
+    if not experience_lines and not content["has_experience_terms"]:
         add(
-            "Medium", "Experience",
-            "No Experience section or common experience terms were detected. "
-            "If applicable, include internships, training, employment, or "
-            "practical work. Freshers can emphasize academic and personal projects."
-        )
-    elif experience_lines:
-        action_pattern = re.compile(
-            r"\b(built|developed|created|designed|implemented|automated|"
-            r"improved|optimized|delivered|deployed|integrated|reduced|"
-            r"increased|maintained|tested|analyzed|resolved|managed|launched)\b",
-            re.I,
+            "Medium",
+            "Experience",
+            "No Experience section or common experience terms were "
+            "detected. Freshers can highlight internships and projects.",
         )
 
-        weak_lines = [
-            line for line in experience_lines
-            if len(line.split()) >= 5 and not action_pattern.search(line)
-        ]
-
-        if weak_lines:
-            add(
-                "Medium", "Experience",
-                "Consider clarifying your contribution in this line: "
-                + excerpt(weak_lines[0])
-                + ". Explain what you did and the result, without inventing details."
-            )
-
-    # Education
-    education_lines = lines_for("education")
+    education_lines = get_section_lines(sections, "education")
 
     if not education_lines:
         add(
-            "Medium", "Education",
-            "No Education section was detected. Check the heading and ensure "
-            "your qualification and institution are represented in selectable text."
+            "Medium",
+            "Education",
+            "No Education section was detected. Check its heading and "
+            "ensure your qualification and institution are selectable text.",
         )
-    else:
-        education_text = "\n".join(education_lines)
 
-        if not re.search(
-            r"\b(19|20)\d{2}\b", education_text
-        ):
+    if not get_section_lines(sections, "certifications"):
+        if re.search(r"\b(certification|certificate|certified)\b", text, re.I):
             add(
-                "Low", "Education",
-                "No four-digit year was detected in the Education section. "
-                "Include a graduation year or expected graduation year if relevant."
+                "Low",
+                "Certifications",
+                "Certification-related text exists, but a separate "
+                "Certifications section was not detected. Check its heading.",
             )
 
-    # Achievements
-    if content.get("quantified_achievement_count", 0) == 0:
+    if content["quantified_achievement_count"] == 0:
         add(
-            "Low", "Achievements",
-            "No supported measurable result was detected by the current rules. "
-            "Where truthful, include verified outcomes, scale, or impact. "
-            "Do not invent numbers."
+            "Low",
+            "Achievements",
+            "No supported measurable result was detected. Where truthful, "
+            "include verified outcomes, scale or impact. Do not invent numbers.",
         )
 
-    if content.get("action_verb_count", 0) < 3:
-        add(
-            "Low", "Bullet points",
-            "Few recognized action verbs were found. Review project and "
-            "experience descriptions to make your individual contributions clear."
-        )
-
-    # Extraction quality
     if len(text.strip()) < 700:
         add(
-            "Medium", "Text extraction",
+            "Medium",
+            "Text extraction",
             "Only " + str(len(text.strip()))
-            + " characters were extracted. Compare the extracted text with "
-            "the original file to check whether content was missed."
+            + " characters were extracted. Compare the extracted text "
+            "with the original file to check for missing content.",
         )
 
-    # Remove duplicate recommendations
-    unique = []
-    seen = set()
-
-    for item in recommendations:
-        key = (item["area"], item["advice"])
-        if key not in seen:
-            seen.add(key)
-            unique.append(item)
-
-    if not unique:
-        unique.append({
+    if not recommendations:
+        recommendations.append({
             "priority": "Low",
             "area": "Final review",
             "advice": (
                 "No obvious issues were identified by these basic checks. "
-                "Compare the resume with the target job description for "
-                "role-specific gaps."
+                "Compare your resume with the target job description."
             ),
         })
 
-    return unique
+    return recommendations
 
 
-# =========================
+# =====================================================
 # MAIN RESUME ANALYSIS
-# =========================
+# =====================================================
 
 def analyze_resume(file_path):
     text = extract_resume_text(file_path)
@@ -567,17 +627,16 @@ def analyze_resume(file_path):
     phone = find_phone(text)
     skills = find_skills(text)
     sections = extract_sections(text)
+
     content = analyze_content(text, sections)
 
     score_details = calculate_resume_score(
-        email, phone, skills, sections, content
+        email,
+        phone,
+        skills,
+        sections,
+        content,
     )
-
-    certifications = [
-        line.strip(" •-\t")
-        for line in sections.get("certifications", "").splitlines()
-        if line.strip()
-    ][:15]
 
     return {
         "email": email,
@@ -589,18 +648,23 @@ def analyze_resume(file_path):
         "score_details": score_details,
         "sections_found": content["sections_found"],
         "section_text": sections,
-        "education": find_education(text),
-        "certifications": certifications,
+        "education": find_education(text, sections),
+        "certifications": find_certifications(sections),
         "content_analysis": content,
         "recommendations": generate_recommendations(
-            email, phone, skills, sections, content, text
+            email,
+            phone,
+            skills,
+            sections,
+            content,
+            text,
         ),
     }
 
 
-# =========================
+# =====================================================
 # JOB MATCHING
-# =========================
+# =====================================================
 
 def match_resume_to_jobs(resume_report, jobs, min_match_percentage=0):
     resume_skills = set(resume_report.get("skills", []))
@@ -609,6 +673,7 @@ def match_resume_to_jobs(resume_report, jobs, min_match_percentage=0):
 
     for job in jobs:
         description = str(job.get("description", ""))
+
         required_skills = (
             job.get("required_skills") or find_skills(description)
         )
@@ -625,12 +690,13 @@ def match_resume_to_jobs(resume_report, jobs, min_match_percentage=0):
 
         title = str(job.get("title", ""))
         title_words = set(re.findall(
-            r"[A-Za-z][A-Za-z+#.]{2,}", title.lower()
+            r"[A-Za-z][A-Za-z+#.]{2,}",
+            title.lower(),
         ))
 
         title_hits = sum(
             1 for word in title_words
-            if _contains_term(resume_text, word)
+            if contains_term(resume_text, word)
         )
 
         title_score = (
