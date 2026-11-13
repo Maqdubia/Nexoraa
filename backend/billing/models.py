@@ -4,6 +4,54 @@ from django.db import models
 from django.utils import timezone
 
 
+class RazorpayPlan(models.Model):
+    PLAN_CHOICES = [
+        ("starter", "Starter"),
+        ("pro", "Pro"),
+    ]
+
+    BILLING_CHOICES = [
+        ("monthly", "Monthly"),
+        ("annual", "Annual"),
+    ]
+
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    billing_cycle = models.CharField(
+        max_length=20,
+        choices=BILLING_CHOICES,
+    )
+
+    amount = models.PositiveIntegerField(
+        help_text="Amount in INR paise."
+    )
+
+    currency = models.CharField(max_length=3, default="INR")
+
+    razorpay_plan_id = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["plan", "billing_cycle"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["plan", "billing_cycle"],
+                name="unique_razorpay_plan_cycle",
+            ),
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.get_plan_display()} - "
+            f"{self.get_billing_cycle_display()}"
+        )
+
+
 class Subscription(models.Model):
     PLAN_CHOICES = [
         ("free", "Free"),
@@ -51,10 +99,7 @@ class Subscription(models.Model):
         help_text="Subscription amount in INR paise.",
     )
 
-    currency = models.CharField(
-        max_length=3,
-        default="INR",
-    )
+    currency = models.CharField(max_length=3, default="INR")
 
     status = models.CharField(
         max_length=20,
@@ -63,10 +108,7 @@ class Subscription(models.Model):
         db_index=True,
     )
 
-    razorpay_plan_id = models.CharField(
-        max_length=100,
-        blank=True,
-    )
+    razorpay_plan_id = models.CharField(max_length=100, blank=True)
 
     razorpay_subscription_id = models.CharField(
         max_length=100,
@@ -75,37 +117,16 @@ class Subscription(models.Model):
         blank=True,
     )
 
-    razorpay_payment_id = models.CharField(
-        max_length=100,
-        blank=True,
-    )
+    razorpay_payment_id = models.CharField(max_length=100, blank=True)
 
-    current_start = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
+    current_start = models.DateTimeField(null=True, blank=True)
+    current_end = models.DateTimeField(null=True, blank=True)
 
-    current_end = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
+    cancel_at_cycle_end = models.BooleanField(default=False)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
 
-    cancel_at_cycle_end = models.BooleanField(
-        default=False,
-    )
-
-    cancelled_at = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
@@ -138,31 +159,12 @@ class Subscription(models.Model):
 
 
 class SubscriptionWebhookEvent(models.Model):
-    event_id = models.CharField(
-        max_length=150,
-        unique=True,
-    )
-
-    event_type = models.CharField(
-        max_length=100,
-    )
-
-    payload = models.JSONField(
-        default=dict,
-    )
-
-    processed = models.BooleanField(
-        default=False,
-    )
-
-    received_at = models.DateTimeField(
-        auto_now_add=True,
-    )
-
-    processed_at = models.DateTimeField(
-        null=True,
-        blank=True,
-    )
+    event_id = models.CharField(max_length=150, unique=True)
+    event_type = models.CharField(max_length=100)
+    payload = models.JSONField(default=dict)
+    processed = models.BooleanField(default=False)
+    received_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["-received_at"]
@@ -189,14 +191,8 @@ class FeatureUsage(models.Model):
     )
 
     period_start = models.DateField()
-
-    usage_count = models.PositiveIntegerField(
-        default=0,
-    )
-
-    updated_at = models.DateTimeField(
-        auto_now=True,
-    )
+    usage_count = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-period_start"]
