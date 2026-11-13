@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "jobs",
     "interviews",
     "chatbot",
+    "billing.apps.BillingConfig",
 ]
 
 
@@ -129,7 +130,6 @@ DB_HOST = os.getenv("DB_HOST", "localhost")
 
 DB_OPTIONS = {}
 
-# Use Aiven's CA certificate for the hosted MySQL database.
 if DB_HOST not in ("localhost", "127.0.0.1"):
     DB_OPTIONS["ssl"] = {
         "ca": str(BASE_DIR / "certs" / "ca.pem")
@@ -199,10 +199,6 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = "/media/"
 
-# Django 5.2 storage configuration.
-# Resume PDFs and DOCX files are stored remotely as raw files.
-# Static files remain on the existing Django/WhiteNoise setup.
-
 STORAGES = {
     "default": {
         "BACKEND": "cloudinary_storage.storage.RawMediaCloudinaryStorage",
@@ -257,6 +253,15 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
+
+
+# =========================================================
+# RAZORPAY CONFIGURATION
+# =========================================================
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
+RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
 
 
 # =========================================================
