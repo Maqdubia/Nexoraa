@@ -17,7 +17,9 @@ urlpatterns = [
     path("api/jobs/", include("jobs.urls")),
     path("api/interviews/", include("interviews.url")),
     path("api/chatbot/", include("chatbot.urls")),
+    path("api/billing/", include("billing.urls")),
 ]
+
 
 # Serve uploaded media files during local development.
 if settings.DEBUG:
@@ -25,6 +27,7 @@ if settings.DEBUG:
         settings.MEDIA_URL,
         document_root=settings.MEDIA_ROOT,
     )
+
 
 # Location of the built React frontend.
 FRONTEND_DIST = Path(settings.BASE_DIR).parent / "frontend" / "dist"
@@ -34,7 +37,6 @@ FRONTEND_DIST = Path(settings.BASE_DIR).parent / "frontend" / "dist"
 def serve_frontend_asset(request, path):
     asset_path = (FRONTEND_DIST / "assets" / path).resolve()
 
-    # Prevent access to files outside the frontend build directory.
     try:
         asset_path.relative_to(FRONTEND_DIST.resolve())
     except ValueError:
