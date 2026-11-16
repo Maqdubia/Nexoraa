@@ -1,7 +1,10 @@
+
 import RecruiterRegister from "./pages/RecruiterRegister";
 import RecruiterVerifyEmailOTP from "./pages/RecruiterVerifyEmailOTP";
 import InitialAdminSetup from "./pages/InitialAdminSetup";
 import SupportChatbot from "./components/SupportChatbot";
+import Billing from "./pages/Billing";
+
 import { useCallback, useState } from "react";
 import {
     BrowserRouter,
@@ -42,6 +45,7 @@ import Sidebar from "./components/Sidebar";
 
 import "./App.css";
 
+
 function ProtectedPage({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -72,6 +76,7 @@ function ProtectedPage({ children }) {
     );
 }
 
+
 function App() {
     return (
         <BrowserRouter>
@@ -86,6 +91,7 @@ function App() {
                 <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/initial-admin-setup" element={<InitialAdminSetup />} />
+
                 {/* Student portal */}
                 <Route path="/dashboard" element={<ProtectedRoute><ProtectedPage><Dashboard /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProtectedPage><Profile /></ProtectedPage></ProtectedRoute>} />
@@ -99,6 +105,16 @@ function App() {
                 <Route path="/my-applications" element={<ProtectedRoute><ProtectedPage><MyApplications /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/ai-interview" element={<ProtectedRoute><ProtectedPage><AIInterview /></ProtectedPage></ProtectedRoute>} />
                 <Route path="/interview-history" element={<ProtectedRoute><ProtectedPage><InterviewHistory /></ProtectedPage></ProtectedRoute>} />
+
+                {/* Billing - student and recruiter */}
+                <Route
+                    path="/billing"
+                    element={
+                        <ProtectedRoute>
+                            <Billing />
+                        </ProtectedRoute>
+                    }
+                />
 
                 {/* Role-based portal routing */}
                 <Route path="/portal" element={<RoleRedirect />} />
@@ -117,6 +133,7 @@ function App() {
                 <Route path="/hr/login" element={<HRLogin />} />
                 <Route path="/hr/register" element={<RecruiterRegister />} />
                 <Route path="/hr/verify-email-otp" element={<RecruiterVerifyEmailOTP />} />
+
                 <Route
                     path="/hr/dashboard"
                     element={
@@ -125,6 +142,7 @@ function App() {
                         </RoleRoute>
                     }
                 />
+
                 <Route
                     path="/hr/jobs"
                     element={
@@ -133,6 +151,7 @@ function App() {
                         </RoleRoute>
                     }
                 />
+
                 <Route
                     path="/hr/candidates"
                     element={
@@ -144,6 +163,7 @@ function App() {
 
                 <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
+
             <SupportChatbot />
         </BrowserRouter>
     );
