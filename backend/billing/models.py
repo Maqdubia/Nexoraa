@@ -1,6 +1,6 @@
 
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils import timezone
 
 
@@ -10,12 +10,26 @@ class RazorpayPlan(models.Model):
         ("pro", "Pro"),
     ]
 
+    ROLE_CHOICES = [
+        ("student", "Student"),
+        ("recruiter", "Recruiter"),
+    ]
+
     BILLING_CYCLE_CHOICES = [
         ("monthly", "Monthly"),
         ("annual", "Annual"),
     ]
 
-    plan = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    target_role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="student",
+    )
+    plan = models.CharField(
+        max_length=20,
+        choices=PLAN_CHOICES,
+    )
+    display_name = models.CharField(max_length=100, blank=True)
     billing_cycle = models.CharField(
         max_length=20,
         choices=BILLING_CYCLE_CHOICES,
@@ -24,21 +38,28 @@ class RazorpayPlan(models.Model):
         help_text="Amount in INR paise."
     )
     currency = models.CharField(max_length=3, default="INR")
-    razorpay_plan_id = models.CharField(max_length=100, unique=True)
+    razorpay_plan_id = models.CharField(
+        max_length=100,
+        unique=True,
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["plan", "billing_cycle"]
+        ordering = ["target_role", "plan", "billing_cycle"]
         constraints = [
             models.UniqueConstraint(
-                fields=("plan", "billing_cycle"),
-                name="unique_razorpay_plan_cycle",
+                fields=("target_role", "plan", "billing_cycle"),
+                name="unique_razorpay_plan_audience_cycle",
             ),
         ]
 
     def __str__(self):
-        return f"{self.plan} - {self.billing_cycle}"
+        return (
+            f"{self.target_role.title()} · "
+            f"{self.display_name or self.plan.title()} · "
+            f"{self.billing_cycle}"
+        )
 
 
 class Subscription(models.Model):
@@ -46,6 +67,11 @@ class Subscription(models.Model):
         ("free", "Free"),
         ("starter", "Starter"),
         ("pro", "Pro"),
+    ]
+
+    ROLE_CHOICES = [
+        ("student", "Student"),
+        ("recruiter", "Recruiter"),
     ]
 
     BILLING_CYCLE_CHOICES = [
@@ -63,6 +89,7 @@ class Subscription(models.Model):
         ("cancelled", "Cancelled"),
         ("completed", "Completed"),
         ("expired", "Expired"),
+        ("failed", "Failed"),
     ]
 
     user = models.ForeignKey(
@@ -70,39 +97,78 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name="subscriptions",
     )
+
+    target_role = models.CharField(
+        max_length=20,
+        choices=ROLE_CHOICES,
+        default="student",
+    )
+
     plan = models.CharField(
         max_length=20,
         choices=PLAN_CHOICES,
         default="free",
     )
+
     billing_cycle = models.CharField(
         max_length=20,
         choices=BILLING_CYCLE_CHOICES,
         default="monthly",
     )
+
     amount = models.PositiveIntegerField(
         default=0,
         help_text="Subscription amount in INR paise.",
     )
+
     currency = models.CharField(max_length=3, default="INR")
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default="created",
         db_index=True,
     )
-    razorpay_plan_id = models.CharField(max_length=100, blank=True)
+
+    razorpay_plan_id = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
     razorpay_subscription_id = models.CharField(
         max_length=100,
         blank=True,
         null=True,
         unique=True,
     )
-    razorpay_payment_id = models.CharField(max_length=100, blank=True)
-    current_start = models.DateTimeField(null=True, blank=True)
-    current_end = models.DateTimeField(null=True, blank=True)
+
+    razorpay_payment_id = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    current_start = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    current_end = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     cancel_at_cycle_end = models.BooleanField(default=False)
-    cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    last_provider_event_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -130,16 +196,72 @@ class Subscription(models.Model):
         )
 
     def __str__(self):
-        return f"{self.user} - {self.plan} ({self.status})"
+        return (
+            f"{self.user} - "
+            f"{self.target_role}/{self.plan} ({self.status})"
+        )
+
+
+class SubscriptionPayment(models.Model):
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+
+    razorpay_payment_id = models.CharField(
+        max_length=100,
+        unique=True,
+    )
+
+    invoice_id = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    amount = models.PositiveIntegerField(default=0)
+
+    currency = models.CharField(max_length=3, default="INR")
+
+    method = models.CharField(max_length=40, blank=True)
+
+    status = models.CharField(
+        max_length=30,
+        default="captured",
+    )
+
+    raw_payload = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.razorpay_payment_id} · {self.status}"
 
 
 class SubscriptionWebhookEvent(models.Model):
-    event_id = models.CharField(max_length=150, unique=True)
+    event_id = models.CharField(
+        max_length=150,
+        unique=True,
+    )
+
     event_type = models.CharField(max_length=100)
+
     payload = models.JSONField(default=dict)
+
     processed = models.BooleanField(default=False)
+
     received_at = models.DateTimeField(auto_now_add=True)
-    processed_at = models.DateTimeField(null=True, blank=True)
+
+    processed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         ordering = ["-received_at"]
@@ -160,12 +282,16 @@ class FeatureUsage(models.Model):
         on_delete=models.CASCADE,
         related_name="feature_usage",
     )
+
     feature = models.CharField(
         max_length=40,
         choices=FEATURE_CHOICES,
     )
+
     period_start = models.DateField()
+
     usage_count = models.PositiveIntegerField(default=0)
+
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
