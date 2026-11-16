@@ -28,6 +28,12 @@ const Icon = ({ name }) => {
                 <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
             </>
         ),
+        billing: (
+            <>
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M2 10h20M6 15h4" />
+            </>
+        ),
         logout: (
             <>
                 <path d="M10 17l5-5-5-5M15 12H3" />
@@ -85,6 +91,8 @@ function HRLayout({ title, subtitle, actions, children }) {
     const logout = () => {
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
         navigate("/hr/login");
     };
 
@@ -104,11 +112,17 @@ function HRLayout({ title, subtitle, actions, children }) {
                     <NavLink to="/hr/dashboard" className={linkClass}>
                         <Icon name="dashboard" /> Dashboard
                     </NavLink>
+
                     <NavLink to="/hr/jobs" className={linkClass}>
                         <Icon name="jobs" /> Jobs
                     </NavLink>
+
                     <NavLink to="/hr/candidates" className={linkClass}>
                         <Icon name="people" /> Candidates
+                    </NavLink>
+
+                    <NavLink to="/billing" className={linkClass}>
+                        <Icon name="billing" /> Plans & Billing
                     </NavLink>
                 </nav>
 
