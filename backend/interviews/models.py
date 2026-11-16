@@ -30,6 +30,11 @@ class Interview(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
     def __str__(self):
         return f"{self.user} - {self.interview_type} Interview"
 
