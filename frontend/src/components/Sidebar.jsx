@@ -1,3 +1,4 @@
+
 import NexoraBrand from "./NexoraBrand";
 import { useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -15,6 +16,7 @@ const iconPaths = {
     applications: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M9 3.5h6M8 9h8M8 13h8M8 17h5" /></>,
     interview: <><rect x="3" y="5" width="18" height="14" rx="3" /><path d="m8 19-2 3M16 19l2 3M8 11h.01M12 11h.01M16 11h.01" /></>,
     history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></>,
+    billing: <><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20M6 15h4" /></>,
     logout: <><path d="M10 17l5-5-5-5M15 12H3" /><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" /></>,
 };
 
@@ -49,6 +51,7 @@ const navigation = [
     { to: "/my-applications", label: "My Applications", icon: "applications" },
     { to: "/ai-interview", label: "AI Interview", icon: "interview" },
     { to: "/interview-history", label: "Interview History", icon: "history" },
+    { to: "/billing", label: "Plans & Billing", icon: "billing" },
 ];
 
 function Sidebar({
@@ -94,8 +97,6 @@ function Sidebar({
                 className={`mobile-sidebar-toggle ${isOpen ? "is-hidden" : ""}`}
                 onClick={() => {
                     if (!isOpen) {
-                        // The parent owns the drawer state. This event
-                        // is handled by the callback supplied below.
                         onOpenSidebar();
                     }
                 }}
