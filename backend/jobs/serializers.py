@@ -44,6 +44,18 @@ class JobSerializer(serializers.ModelSerializer):
         ]
 
     def get_applications_count(self, obj):
+        # Use the count calculated by the database queryset.
+        # This avoids one additional count query for every job.
+        annotated_count = getattr(
+            obj,
+            "_applications_count",
+            None,
+        )
+
+        if annotated_count is not None:
+            return annotated_count
+
+        # Fallback for jobs loaded outside the annotated querysets.
         return obj.applications.count()
 
     def get_already_applied(self, obj):
@@ -72,7 +84,9 @@ class JobSerializer(serializers.ModelSerializer):
         value = value.strip()
 
         if not value:
-            raise serializers.ValidationError("Enter the company name.")
+            raise serializers.ValidationError(
+                "Enter the company name."
+            )
 
         return value
 
@@ -153,7 +167,10 @@ class JobApplicationSerializer(serializers.ModelSerializer):
                 "You cannot apply to a job you posted."
             )
 
-        if JobApplication.objects.filter(user=user, job=value).exists():
+        if JobApplication.objects.filter(
+            user=user,
+            job=value,
+        ).exists():
             raise serializers.ValidationError(
                 "You have already applied for this job."
             )
@@ -188,14 +205,18 @@ class JobApplicationSerializer(serializers.ModelSerializer):
             }
 
         application.resume_snapshot_title = resume.title or ""
+
         application.resume_snapshot_file = (
             resume.resume_file.name if resume.resume_file else ""
         )
+
         application.resume_snapshot_text = resume.resume_text or ""
         application.resume_snapshot_score = resume.resume_score
+
         application.resume_snapshot_skills = (
             resume.extracted_skills or []
         )
+
         application.resume_snapshot_analysis = analysis_snapshot
 
         application.save(
