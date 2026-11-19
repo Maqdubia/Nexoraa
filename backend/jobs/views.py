@@ -1,4 +1,10 @@
 
+import logging
+import requests
+
+from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.db.models import Exists, OuterRef
 
 from rest_framework import generics
@@ -11,6 +17,9 @@ from rest_framework import status
 from .models import Job, JobApplication
 from .permissions import IsStudent
 from .serializers import JobSerializer, JobApplicationSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 # ========================================
@@ -37,7 +46,6 @@ class JobListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = super().get_queryset()
 
-        # Calculate application status in the main database query.
         if self.request.user.is_authenticated:
             queryset = queryset.annotate(
                 _already_applied_for_user=Exists(
@@ -77,6 +85,7 @@ class JobDetailView(generics.RetrieveAPIView):
         is_published=True,
         is_archived=False,
     )
+
     serializer_class = JobSerializer
     permission_classes = [AllowAny]
 
@@ -371,7 +380,97 @@ class ImprovementRecommendationsView(APIView):
 
 
 # ========================================
-# JOB APPLICATIONS
+# NEXORA - N8N APPLICATION AUTOMATION
+# ========================================
+
+def notify_n8n_application_submitted(application):
+    """
+    Send a saved Nexora application to the n8n automation workflow.
+
+    Failure in n8n must not undo the application saved in Nexora.
+    """
+
+    webhook_url = getattr(
+        settings,
+        "N8N_APPLICATION_SUBMITTED_WEBHOOK_URL",
+        "",
+    )
+
+    webhook_secret = getattr(
+        settings,
+        "N8N_WEBHOOK_SECRET",
+        "",
+    )
+
+    if not webhook_url or not webhook_secret:
+        logger.warning(
+            "N8N webhook is not configured. Application %s was saved.",
+            application.pk,
+        )
+        return
+
+    user = application.user
+    job = application.job
+
+    try:
+        profile = user.profile
+    except ObjectDoesNotExist:
+        profile = None
+
+    candidate_name = (
+        (getattr(profile, "full_name", "") or "").strip()
+        or user.get_full_name().strip()
+        or user.username
+    )
+
+    candidate_email = (user.email or "").strip().lower()
+
+    if not candidate_email:
+        logger.warning(
+            "Application %s was saved, but the candidate has no email.",
+            application.pk,
+        )
+        return
+
+    payload = {
+        "application_key": f"nexora-application-{application.pk}",
+        "application_id": f"APP-{application.pk}",
+        "candidate_name": candidate_name,
+        "candidate_email": candidate_email,
+        "job_id": str(job.pk),
+        "job_title": job.title,
+        "company": job.company,
+        "applied_at": application.applied_at.isoformat(),
+        "application_url": job.application_url or "",
+    }
+
+    try:
+        response = requests.post(
+            webhook_url,
+            json=payload,
+            headers={
+                "X-Nexora-Webhook-Secret": webhook_secret,
+            },
+            timeout=(3.05, 10),
+        )
+
+        response.raise_for_status()
+
+        logger.info(
+            "N8N successfully received Nexora application %s.",
+            application.pk,
+        )
+
+    except requests.RequestException as exc:
+        logger.warning(
+            "N8N notification failed for application %s. Error: %s",
+            application.pk,
+            type(exc).__name__,
+        )
+
+
+# ========================================
+# JOB APPLICATION CREATION
 # ========================================
 
 class JobApplicationCreateView(generics.CreateAPIView):
@@ -379,8 +478,19 @@ class JobApplicationCreateView(generics.CreateAPIView):
     permission_classes = [IsStudent]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        application = serializer.save(
+            user=self.request.user
+        )
 
+        transaction.on_commit(
+            lambda: notify_n8n_application_submitted(application),
+            robust=True,
+        )
+
+
+# ========================================
+# MY APPLICATIONS
+# ========================================
 
 class MyApplicationsView(generics.ListAPIView):
     serializer_class = JobApplicationSerializer
