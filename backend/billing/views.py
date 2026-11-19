@@ -1,15 +1,16 @@
 
 import hashlib
 import hmac
+import json
 import logging
-import os
-from datetime import datetime, timezone as datetime_timezone
-
 import requests
+
+from datetime import datetime, timezone as datetime_timezone
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -38,23 +39,19 @@ def _current_role(user):
     return "student"
 
 
-def _razorpay_is_configured():
-    return bool(
-        settings.RAZORPAY_KEY_ID
-        and settings.RAZORPAY_KEY_SECRET
-    )
-
-
 def _razorpay_test_mode():
     return settings.RAZORPAY_KEY_ID.startswith("rzp_test_")
 
 
 def _razorpay_request(method, endpoint, payload=None):
-    if not _razorpay_is_configured():
-        raise ValueError("Razorpay API credentials are not configured.")
-
-    if not _razorpay_test_mode():
-        raise ValueError("Only Razorpay Test Mode is allowed during setup.")
+    if not (
+        settings.RAZORPAY_KEY_ID
+        and settings.RAZORPAY_KEY_SECRET
+        and _razorpay_test_mode()
+    ):
+        raise ValueError(
+            "Razorpay Test Mode credentials are not configured."
+        )
 
     try:
         response = requests.request(
@@ -68,8 +65,13 @@ def _razorpay_request(method, endpoint, payload=None):
             timeout=20,
         )
     except requests.RequestException as exc:
-        logger.error("Razorpay API connection failed: %s", type(exc).__name__)
-        raise ValueError("Unable to connect to Razorpay. Please try again.") from exc
+        logger.error(
+            "Razorpay connection failed: %s",
+            type(exc).__name__,
+        )
+        raise ValueError(
+            "Unable to connect to Razorpay. Please try again."
+        ) from exc
 
     try:
         result = response.json()
@@ -77,16 +79,21 @@ def _razorpay_request(method, endpoint, payload=None):
         result = {}
 
     if not response.ok:
-        error = result.get("error", {})
-        message = error.get("description", "Razorpay request failed.")
-        logger.warning("Razorpay API returned HTTP %s.", response.status_code)
-        raise ValueError(message[:250])
+        error_data = result.get("error", {})
+        message = (
+            error_data.get("description")
+            if isinstance(error_data, dict)
+            else None
+        )
+        raise ValueError(
+            message or "Razorpay rejected the request."
+        )
 
     return result
 
 
 def _from_razorpay_timestamp(value):
-    if not value:
+    if value is None:
         return None
 
     try:
@@ -98,25 +105,104 @@ def _from_razorpay_timestamp(value):
         return None
 
 
+def _apply_subscription_snapshot(subscription, entity):
+    remote_plan_id = entity.get("plan_id")
+
+    if (
+        remote_plan_id
+        and remote_plan_id != subscription.razorpay_plan_id
+    ):
+        raise ValueError(
+            "Razorpay subscription plan does not match the Nexora plan."
+        )
+
+    provider_status = entity.get("status")
+
+    if provider_status in dict(Subscription.STATUS_CHOICES):
+        subscription.status = provider_status
+
+    if "current_start" in entity:
+        subscription.current_start = _from_razorpay_timestamp(
+            entity.get("current_start")
+        )
+
+    if "current_end" in entity:
+        subscription.current_end = _from_razorpay_timestamp(
+            entity.get("current_end")
+        )
+
+    if subscription.status == "cancelled":
+        subscription.cancelled_at = (
+            _from_razorpay_timestamp(entity.get("ended_at"))
+            or subscription.cancelled_at
+            or timezone.now()
+        )
+
+    subscription.save()
+
+    return subscription
+
+
+def _save_subscription_payment(subscription, payment_data):
+    payment_id = payment_data.get("id")
+
+    if not payment_id:
+        return
+
+    payment_status = payment_data.get("status", "created")
+
+    SubscriptionPayment.objects.update_or_create(
+        razorpay_payment_id=payment_id,
+        defaults={
+            "subscription": subscription,
+            "invoice_id": payment_data.get("invoice_id") or "",
+            "amount": int(payment_data.get("amount") or 0),
+            "currency": payment_data.get("currency") or "INR",
+            "method": payment_data.get("method") or "",
+            "status": payment_status,
+            "raw_payload": payment_data,
+        },
+    )
+
+
+# =====================================================
+# PUBLIC BILLING CONFIGURATION
+# =====================================================
+
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def billing_config(request):
-    key_id = settings.RAZORPAY_KEY_ID
+    test_mode = _razorpay_test_mode()
 
     return Response({
-        "configured": bool(key_id and settings.RAZORPAY_KEY_SECRET),
-        "key_id": key_id if key_id.startswith("rzp_test_") else "",
-        "test_mode": key_id.startswith("rzp_test_"),
+        "configured": bool(
+            settings.RAZORPAY_KEY_ID
+            and settings.RAZORPAY_KEY_SECRET
+            and test_mode
+        ),
+        "key_id": (
+            settings.RAZORPAY_KEY_ID
+            if test_mode
+            else ""
+        ),
+        "test_mode": test_mode,
         "currency": "INR",
     })
 
+
+# =====================================================
+# AVAILABLE PLANS
+# =====================================================
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def billing_plans(request):
     target_role = request.query_params.get("role")
 
-    if target_role and target_role not in ("student", "recruiter"):
+    if target_role and target_role not in (
+        "student",
+        "recruiter",
+    ):
         return Response(
             {"detail": "Invalid plan category."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -143,6 +229,10 @@ def billing_plans(request):
     ])
 
 
+# =====================================================
+# CREATE SUBSCRIPTION
+# =====================================================
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_subscription(request):
@@ -150,7 +240,10 @@ def create_subscription(request):
 
     if role not in ("student", "recruiter"):
         return Response(
-            {"detail": "Administrator accounts cannot purchase plans."},
+            {
+                "detail":
+                "Administrator accounts cannot purchase plans."
+            },
             status=status.HTTP_403_FORBIDDEN,
         )
 
@@ -174,8 +267,27 @@ def create_subscription(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    # 120 monthly cycles or 10 annual cycles.
+    total_count = (
+        120 if plan.billing_cycle == "monthly" else 10
+    )
+
+    subscription = None
+
     try:
-        total_count = 120 if plan.billing_cycle == "monthly" else 10
+        # Create the local record first so the user and intended
+        # plan are already associated before checkout begins.
+        with transaction.atomic():
+            subscription = Subscription.objects.create(
+                user=request.user,
+                target_role=role,
+                plan=plan.plan,
+                billing_cycle=plan.billing_cycle,
+                amount=plan.amount,
+                currency=plan.currency,
+                status="created",
+                razorpay_plan_id=plan.razorpay_plan_id,
+            )
 
         razorpay_data = _razorpay_request(
             "POST",
@@ -188,6 +300,7 @@ def create_subscription(request):
                 "notes": {
                     "nexora_user_id": str(request.user.id),
                     "nexora_plan_id": str(plan.id),
+                    "nexora_role": role,
                 },
             },
         )
@@ -195,18 +308,23 @@ def create_subscription(request):
         remote_id = razorpay_data.get("id")
 
         if not remote_id:
-            raise ValueError("Razorpay did not return a subscription ID.")
+            raise ValueError(
+                "Razorpay did not return a subscription ID."
+            )
 
-        subscription = Subscription.objects.create(
-            user=request.user,
-            target_role=role,
-            plan=plan.plan,
-            billing_cycle=plan.billing_cycle,
-            amount=plan.amount,
-            currency=plan.currency,
-            status="created",
-            razorpay_plan_id=plan.razorpay_plan_id,
-            razorpay_subscription_id=remote_id,
+        subscription.razorpay_subscription_id = remote_id
+
+        provider_status = razorpay_data.get("status")
+
+        if provider_status in dict(Subscription.STATUS_CHOICES):
+            subscription.status = provider_status
+
+        subscription.save(
+            update_fields=[
+                "razorpay_subscription_id",
+                "status",
+                "updated_at",
+            ]
         )
 
         return Response(
@@ -219,8 +337,10 @@ def create_subscription(request):
                     plan.display_name or plan.plan.title()
                 ),
                 "prefill": {
-                    "name": request.user.get_full_name()
-                    or request.user.username,
+                    "name": (
+                        request.user.get_full_name()
+                        or request.user.username
+                    ),
                     "email": request.user.email,
                 },
             },
@@ -228,27 +348,42 @@ def create_subscription(request):
         )
 
     except ValueError as exc:
+        if subscription and not subscription.razorpay_subscription_id:
+            subscription.delete()
+
         return Response(
             {"detail": str(exc)},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
 
+# =====================================================
+# VERIFY CHECKOUT RESPONSE
+# =====================================================
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def verify_subscription(request):
     local_id = request.data.get("local_subscription_id")
+
     payment_id = str(
         request.data.get("razorpay_payment_id", "")
     ).strip()
+
     remote_id = str(
         request.data.get("razorpay_subscription_id", "")
     ).strip()
+
     received_signature = str(
         request.data.get("razorpay_signature", "")
     ).strip()
 
-    if not all((local_id, payment_id, remote_id, received_signature)):
+    if not all((
+        local_id,
+        payment_id,
+        remote_id,
+        received_signature,
+    )):
         return Response(
             {"detail": "All payment verification fields are required."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -265,7 +400,6 @@ def verify_subscription(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Always use the subscription ID stored on our server.
     if not hmac.compare_digest(
         subscription.razorpay_subscription_id or "",
         remote_id,
@@ -281,6 +415,8 @@ def verify_subscription(request):
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
+    # Razorpay subscription signature:
+    # payment_id + "|" + subscription_id
     message = (
         f"{payment_id}|{subscription.razorpay_subscription_id}"
     ).encode("utf-8")
@@ -300,25 +436,73 @@ def verify_subscription(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    subscription.razorpay_payment_id = payment_id
-    subscription.status = "authenticated"
-    subscription.save(
-        update_fields=[
-            "razorpay_payment_id",
-            "status",
-            "updated_at",
-        ]
-    )
+    try:
+        # Confirm the subscription directly with Razorpay.
+        remote_subscription = _razorpay_request(
+            "GET",
+            f"/subscriptions/{subscription.razorpay_subscription_id}",
+        )
+
+        remote_notes = remote_subscription.get("notes") or {}
+
+        if remote_notes.get("nexora_user_id") and (
+            str(remote_notes["nexora_user_id"])
+            != str(request.user.id)
+        ):
+            return Response(
+                {"detail": "Subscription account verification failed."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        _apply_subscription_snapshot(
+            subscription,
+            remote_subscription,
+        )
+
+        # Confirm that the payment belongs to this subscription.
+        payment_data = _razorpay_request(
+            "GET",
+            f"/payments/{payment_id}",
+        )
+
+        payment_subscription_id = payment_data.get(
+            "subscription_id"
+        )
+
+        if (
+            payment_subscription_id
+            and payment_subscription_id != remote_id
+        ):
+            return Response(
+                {"detail": "Payment does not belong to this subscription."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        _save_subscription_payment(
+            subscription,
+            payment_data,
+        )
+
+    except ValueError as exc:
+        return Response(
+            {"detail": str(exc)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     return Response({
         "verified": True,
-        "status": "authenticated",
+        "status": subscription.status,
+        "is_active": subscription.is_active,
         "message": (
-            "Authorization verified. Final activation will be "
-            "confirmed by Razorpay webhook."
+            "Checkout signature and Razorpay subscription details "
+            "were verified."
         ),
     })
 
+
+# =====================================================
+# CURRENT USER SUBSCRIPTIONS
+# =====================================================
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -346,10 +530,15 @@ def my_subscriptions(request):
     ])
 
 
+# =====================================================
+# CANCEL SUBSCRIPTION
+# =====================================================
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def cancel_subscription(request):
     local_id = request.data.get("subscription_id")
+
     cancel_at_cycle_end = (
         request.data.get("cancel_at_cycle_end", True) is True
     )
@@ -359,7 +548,10 @@ def cancel_subscription(request):
         user=request.user,
     ).first()
 
-    if not subscription or not subscription.razorpay_subscription_id:
+    if (
+        not subscription
+        or not subscription.razorpay_subscription_id
+    ):
         return Response(
             {"detail": "Subscription not found."},
             status=status.HTTP_404_NOT_FOUND,
@@ -387,21 +579,26 @@ def cancel_subscription(request):
             },
         )
 
+        _apply_subscription_snapshot(subscription, result)
+
         subscription.cancel_at_cycle_end = cancel_at_cycle_end
-
-        provider_status = result.get("status")
-        if provider_status in dict(Subscription.STATUS_CHOICES):
-            subscription.status = provider_status
-
-        if subscription.status == "cancelled":
-            subscription.cancelled_at = timezone.now()
-
-        subscription.save()
+        subscription.save(
+            update_fields=[
+                "status",
+                "current_start",
+                "current_end",
+                "cancelled_at",
+                "cancel_at_cycle_end",
+                "updated_at",
+            ]
+        )
 
         return Response({
             "cancelled": True,
             "status": subscription.status,
-            "cancel_at_cycle_end": subscription.cancel_at_cycle_end,
+            "cancel_at_cycle_end": (
+                subscription.cancel_at_cycle_end
+            ),
         })
 
     except ValueError as exc:
@@ -410,6 +607,10 @@ def cancel_subscription(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+
+# =====================================================
+# RAZORPAY WEBHOOK
+# =====================================================
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -422,12 +623,17 @@ def razorpay_webhook(request):
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
 
+    # Verify the original request bytes before parsing JSON.
     raw_body = request.body
+
     received_signature = request.headers.get(
-        "X-Razorpay-Signature", ""
+        "X-Razorpay-Signature",
+        "",
     )
+
     event_id = request.headers.get(
-        "X-Razorpay-Event-Id", ""
+        "X-Razorpay-Event-Id",
+        "",
     )
 
     expected_signature = hmac.new(
@@ -452,7 +658,7 @@ def razorpay_webhook(request):
         )
 
     try:
-        payload = __import__("json").loads(raw_body)
+        payload = json.loads(raw_body)
     except (ValueError, TypeError):
         return Response(
             {"detail": "Invalid webhook payload."},
@@ -460,11 +666,12 @@ def razorpay_webhook(request):
         )
 
     event_type = str(payload.get("event", "unknown"))
-    webhook_payload = payload.get("payload", {})
+    webhook_payload = payload.get("payload") or {}
 
     subscription_data = (
         webhook_payload.get("subscription", {}).get("entity", {})
     )
+
     payment_data = (
         webhook_payload.get("payment", {}).get("entity", {})
     )
@@ -478,7 +685,7 @@ def razorpay_webhook(request):
         payload.get("created_at")
     )
 
-    status_map = {
+    event_status_map = {
         "subscription.authenticated": "authenticated",
         "subscription.activated": "active",
         "subscription.charged": "active",
@@ -489,6 +696,7 @@ def razorpay_webhook(request):
         "subscription.cancelled": "cancelled",
         "subscription.completed": "completed",
         "subscription.expired": "expired",
+        "payment.authorized": "authenticated",
         "payment.failed": "pending",
     }
 
@@ -504,6 +712,7 @@ def razorpay_webhook(request):
                 )
             )
 
+            # Ignore duplicate deliveries that were already handled.
             if not created and event_record.processed:
                 return Response({
                     "received": True,
@@ -528,6 +737,18 @@ def razorpay_webhook(request):
                 )
 
             if subscription:
+                remote_plan_id = subscription_data.get("plan_id")
+
+                if (
+                    remote_plan_id
+                    and remote_plan_id
+                    != subscription.razorpay_plan_id
+                ):
+                    raise ValueError(
+                        "Webhook plan ID does not match the stored subscription."
+                    )
+
+                # Do not let an older event overwrite a newer state.
                 is_newer_event = (
                     subscription.last_provider_event_at is None
                     or event_time is None
@@ -535,54 +756,62 @@ def razorpay_webhook(request):
                 )
 
                 if is_newer_event:
-                    new_status = status_map.get(event_type)
-
                     provider_status = subscription_data.get("status")
-                    if (
-                        event_type.startswith("subscription.")
-                        and provider_status in dict(Subscription.STATUS_CHOICES)
-                    ):
-                        new_status = provider_status
 
-                    if new_status:
-                        subscription.status = new_status
+                    if provider_status in dict(
+                        Subscription.STATUS_CHOICES
+                    ):
+                        subscription.status = provider_status
+                    else:
+                        fallback_status = event_status_map.get(
+                            event_type
+                        )
+
+                        if fallback_status:
+                            subscription.status = fallback_status
 
                     if event_time:
                         subscription.last_provider_event_at = event_time
 
-                    current_start = _from_razorpay_timestamp(
-                        subscription_data.get("current_start")
-                    )
-                    current_end = _from_razorpay_timestamp(
-                        subscription_data.get("current_end")
-                    )
+                    if "current_start" in subscription_data:
+                        subscription.current_start = (
+                            _from_razorpay_timestamp(
+                                subscription_data.get("current_start")
+                            )
+                        )
 
-                    if current_start:
-                        subscription.current_start = current_start
-
-                    if current_end:
-                        subscription.current_end = current_end
+                    if "current_end" in subscription_data:
+                        subscription.current_end = (
+                            _from_razorpay_timestamp(
+                                subscription_data.get("current_end")
+                            )
+                        )
 
                     if subscription.status == "cancelled":
-                        subscription.cancelled_at = event_time or timezone.now()
+                        subscription.cancelled_at = (
+                            _from_razorpay_timestamp(
+                                subscription_data.get("ended_at")
+                            )
+                            or event_time
+                            or timezone.now()
+                        )
 
                     subscription.save()
 
-                payment_id = payment_data.get("id")
+                # Save payment attempts against the matched Nexora account.
+                _save_subscription_payment(
+                    subscription,
+                    payment_data,
+                )
 
-                if payment_id:
-                    SubscriptionPayment.objects.update_or_create(
-                        razorpay_payment_id=payment_id,
-                        defaults={
-                            "subscription": subscription,
-                            "invoice_id": payment_data.get("invoice_id", ""),
-                            "amount": payment_data.get("amount") or 0,
-                            "currency": payment_data.get("currency") or "INR",
-                            "method": payment_data.get("method", ""),
-                            "status": payment_data.get("status", "created"),
-                            "raw_payload": payment_data,
-                        },
-                    )
+            else:
+                # Hosted links and subscriptions created outside Nexora
+                # must never be assigned to an account just by email.
+                logger.warning(
+                    "Received Razorpay event %s for unlinked subscription %s.",
+                    event_type,
+                    remote_subscription_id or "unknown",
+                )
 
             event_record.processed = True
             event_record.processed_at = timezone.now()
@@ -591,7 +820,10 @@ def razorpay_webhook(request):
             )
 
     except Exception:
-        logger.exception("Razorpay webhook processing failed.")
+        logger.exception(
+            "Razorpay webhook processing failed."
+        )
+
         return Response(
             {"detail": "Webhook processing failed. Please retry."},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
