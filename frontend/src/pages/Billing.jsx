@@ -1,9 +1,89 @@
 
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Billing.css";
 
-const RAZORPAY_SCRIPT =
-    "https://checkout.razorpay.com/v1/checkout.js";
+const PLAN_CATALOG = {
+    student: [
+        {
+            id: "student-free",
+            name: "Student Free",
+            description: "Core Nexora career platform access.",
+            amount: 0,
+            billing: "Free forever",
+            features: [
+                "Access to the student workspace",
+                "Explore available jobs",
+                "Maintain your career profile",
+            ],
+            free: true,
+        },
+        {
+            id: "student-starter",
+            name: "Student Starter",
+            description: "Monthly Starter membership for Nexora students.",
+            amount: 499,
+            billing: "per month",
+            link: "https://rzp.io/rzp/PA73tGQ",
+            features: [
+                "Starter membership",
+                "Monthly recurring billing",
+            ],
+        },
+        {
+            id: "student-pro",
+            name: "Student Pro",
+            description: "Annual Pro membership for Nexora students.",
+            amount: 5739,
+            billing: "per year",
+            link: "https://rzp.io/rzp/di02cbs",
+            popular: true,
+            features: [
+                "Pro membership",
+                "Annual recurring billing",
+            ],
+        },
+    ],
+    recruiter: [
+        {
+            id: "recruiter-free",
+            name: "Recruiter Free",
+            description: "Core Nexora recruiter workspace access.",
+            amount: 0,
+            billing: "Free",
+            features: [
+                "Access to the recruiter workspace",
+                "Explore the hiring dashboard",
+            ],
+            free: true,
+        },
+        {
+            id: "recruiter-starter",
+            name: "Recruiter Starter",
+            description: "Monthly Starter membership for Nexora recruiters.",
+            amount: 499,
+            billing: "per month",
+            link: "https://rzp.io/rzp/KgN01bO",
+            features: [
+                "Starter recruiter membership",
+                "Monthly recurring billing",
+            ],
+        },
+        {
+            id: "recruiter-pro",
+            name: "Recruiter Pro",
+            description: "Annual Pro membership for Nexora recruiters.",
+            amount: 5739,
+            billing: "per year",
+            link: "https://rzp.io/rzp/tqRSLjk8",
+            popular: true,
+            features: [
+                "Pro recruiter membership",
+                "Annual recurring billing",
+            ],
+        },
+    ],
+};
 
 function getAccessToken() {
     return (
@@ -13,105 +93,50 @@ function getAccessToken() {
     );
 }
 
-async function apiRequest(path, options = {}) {
+async function apiRequest(path) {
     const token = getAccessToken();
 
     const response = await fetch(`/api/${path}`, {
-        ...options,
-        headers: {
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            ...options.headers,
-        },
+        headers: token
+            ? { Authorization: `Bearer ${token}` }
+            : {},
     });
 
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
         throw new Error(
-            data.detail ||
-            data.error ||
-            `Request failed (${response.status}).`
+            data.detail || `Request failed (${response.status}).`
         );
     }
 
     return data;
 }
 
-function loadRazorpayScript() {
-    return new Promise((resolve, reject) => {
-        if (window.Razorpay) {
-            resolve(true);
-            return;
-        }
-
-        const existingScript = document.querySelector(
-            `script[src="${RAZORPAY_SCRIPT}"]`
-        );
-
-        if (existingScript) {
-            existingScript.addEventListener(
-                "load",
-                () => resolve(true),
-                { once: true }
-            );
-            existingScript.addEventListener(
-                "error",
-                () => reject(new Error("Razorpay Checkout could not load.")),
-                { once: true }
-            );
-            return;
-        }
-
-        const script = document.createElement("script");
-        script.src = RAZORPAY_SCRIPT;
-        script.async = true;
-
-        script.onload = () => resolve(true);
-        script.onerror = () =>
-            reject(new Error("Razorpay Checkout could not load."));
-
-        document.body.appendChild(script);
-    });
-}
-
-function formatPrice(amount, currency = "INR") {
+function formatPrice(amount) {
     return new Intl.NumberFormat("en-IN", {
         style: "currency",
-        currency,
+        currency: "INR",
         maximumFractionDigits: 0,
-    }).format(Number(amount || 0) / 100);
+    }).format(amount);
 }
 
 function Billing() {
+    const navigate = useNavigate();
+
     const [role, setRole] = useState("");
-    const [plans, setPlans] = useState([]);
     const [subscriptions, setSubscriptions] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [busyPlan, setBusyPlan] = useState(null);
     const [error, setError] = useState("");
-    const [notice, setNotice] = useState("");
-    const [testMode, setTestMode] = useState(false);
-    const [configured, setConfigured] = useState(false);
-
-    const loadSubscriptions = useCallback(async () => {
-        try {
-            const data = await apiRequest("billing/subscriptions/me/");
-            setSubscriptions(Array.isArray(data) ? data : []);
-        } catch (err) {
-            setError(err.message);
-        }
-    }, []);
+    const [historyError, setHistoryError] = useState("");
 
     const loadBillingData = useCallback(async () => {
         setLoading(true);
         setError("");
+        setHistoryError("");
 
         try {
-            const [user, config] = await Promise.all([
-                apiRequest("auth/me/"),
-                apiRequest("billing/config/"),
-            ]);
+            const user = await apiRequest("auth/me/");
 
             if (!["student", "recruiter"].includes(user.role)) {
                 throw new Error(
@@ -120,20 +145,20 @@ function Billing() {
             }
 
             setRole(user.role);
-            setConfigured(Boolean(config.configured));
-            setTestMode(Boolean(config.test_mode));
 
-            const [planData, subscriptionData] = await Promise.all([
-                apiRequest(
-                    `billing/plans/?role=${encodeURIComponent(user.role)}`
-                ),
-                apiRequest("billing/subscriptions/me/"),
-            ]);
+            try {
+                const data = await apiRequest(
+                    "billing/subscriptions/me/"
+                );
 
-            setPlans(Array.isArray(planData) ? planData : []);
-            setSubscriptions(
-                Array.isArray(subscriptionData) ? subscriptionData : []
-            );
+                setSubscriptions(
+                    Array.isArray(data) ? data : []
+                );
+            } catch (err) {
+                setHistoryError(
+                    "Your subscription history is temporarily unavailable."
+                );
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -145,231 +170,171 @@ function Billing() {
         loadBillingData();
     }, [loadBillingData]);
 
-    const startSubscription = async (plan) => {
-        setBusyPlan(plan.id);
-        setError("");
-        setNotice("");
-
-        try {
-            await loadRazorpayScript();
-
-            const created = await apiRequest(
-                "billing/subscriptions/create/",
-                {
-                    method: "POST",
-                    body: JSON.stringify({ plan_id: plan.id }),
-                }
-            );
-
-            if (!created.subscription_id || !created.key_id) {
-                throw new Error(
-                    "The server did not return valid checkout details."
-                );
-            }
-
-            const checkout = new window.Razorpay({
-                key: created.key_id,
-                subscription_id: created.subscription_id,
-                name: created.name || "Nexora",
-                description: created.description || plan.display_name,
-                prefill: created.prefill || {},
-                theme: {
-                    color: "#315b43",
-                },
-                handler: async (paymentResponse) => {
-                    try {
-                        const verified = await apiRequest(
-                            "billing/subscriptions/verify/",
-                            {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    local_subscription_id:
-                                        created.local_subscription_id,
-                                    razorpay_payment_id:
-                                        paymentResponse.razorpay_payment_id,
-                                    razorpay_subscription_id:
-                                        paymentResponse.razorpay_subscription_id,
-                                    razorpay_signature:
-                                        paymentResponse.razorpay_signature,
-                                }),
-                            }
-                        );
-
-                        if (verified.verified) {
-                            setNotice(
-                                "Authorization verified. Razorpay will confirm subscription activation through its webhook."
-                            );
-                            await loadSubscriptions();
-                        }
-                    } catch (err) {
-                        setError(
-                            `Payment verification failed: ${err.message}`
-                        );
-                    }
-                },
-                modal: {
-                    ondismiss: () => {
-                        setNotice(
-                            "Checkout was closed. Your subscription has not been confirmed."
-                        );
-                    },
-                },
-            });
-
-            checkout.on("payment.failed", (event) => {
-                setError(
-                    event.error?.description ||
-                    "The payment authorization failed. Please try again."
-                );
-            });
-
-            checkout.open();
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setBusyPlan(null);
-        }
+    const continueFree = () => {
+        navigate(
+            role === "recruiter" ? "/hr/dashboard" : "/dashboard"
+        );
     };
 
-    const refreshStatus = async () => {
-        setError("");
-        setNotice("");
+    if (loading) {
+        return (
+            <main className="billing-page">
+                <div className="billing-container">
+                    <div className="billing-loading">
+                        Loading your Nexora plans...
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
-        try {
-            await loadSubscriptions();
-            setNotice("Subscription status refreshed.");
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+    if (error) {
+        return (
+            <main className="billing-page">
+                <div className="billing-container">
+                    <div className="billing-alert billing-alert-error">
+                        {error}
+                    </div>
+                    <button
+                        type="button"
+                        className="billing-refresh-button"
+                        onClick={loadBillingData}
+                    >
+                        Try again
+                    </button>
+                </div>
+            </main>
+        );
+    }
+
+    const plans = PLAN_CATALOG[role] || [];
 
     return (
         <main className="billing-page">
             <div className="billing-container">
                 <header className="billing-header">
                     <div>
-                        <p className="billing-eyebrow">NEXORA MEMBERSHIP</p>
+                        <p className="billing-eyebrow">
+                            NEXORA MEMBERSHIP
+                        </p>
+
                         <h1>Choose your plan</h1>
+
                         <p className="billing-subtitle">
                             {role === "recruiter"
-                                ? "Choose the plan that supports your hiring workflow."
-                                : "Unlock more tools to move your career forward."}
+                                ? "Choose a membership for your recruitment journey."
+                                : "Choose a membership for your career journey."}
                         </p>
                     </div>
 
-                    {testMode && (
-                        <span className="billing-test-badge">
-                            TEST MODE
-                        </span>
-                    )}
+                    <span className="billing-test-badge">
+                        RAZORPAY TEST MODE
+                    </span>
                 </header>
 
-                {error && (
-                    <div className="billing-alert billing-alert-error">
-                        {error}
-                    </div>
-                )}
+                <section className="billing-plans">
+                    {plans.map((plan) => (
+                        <article
+                            className={`billing-card ${
+                                plan.popular ? "billing-card-popular" : ""
+                            }`}
+                            key={plan.id}
+                        >
+                            {plan.popular && (
+                                <span className="billing-popular-label">
+                                    PRO PLAN
+                                </span>
+                            )}
 
-                {notice && (
-                    <div className="billing-alert billing-alert-success">
-                        {notice}
-                    </div>
-                )}
+                            {plan.free && (
+                                <span className="billing-free-label">
+                                    FREE ACCESS
+                                </span>
+                            )}
 
-                {loading ? (
-                    <div className="billing-loading">
-                        Loading your billing options...
-                    </div>
-                ) : !configured ? (
-                    <section className="billing-empty">
-                        <h2>Payment setup is not finished</h2>
-                        <p>
-                            Razorpay Test Mode credentials must be configured
-                            on the server before checkout can begin.
-                        </p>
-                    </section>
-                ) : !testMode ? (
-                    <section className="billing-empty">
-                        <h2>Test Mode is required</h2>
-                        <p>
-                            This setup is restricted to Razorpay Test Mode.
-                            Live credentials are not accepted.
-                        </p>
-                    </section>
-                ) : plans.length === 0 ? (
-                    <section className="billing-empty">
-                        <h2>No plans available yet</h2>
-                        <p>
-                            Add an active Razorpay plan for your account type
-                            in Django Admin before testing checkout.
-                        </p>
-                    </section>
-                ) : (
-                    <section className="billing-plans">
-                        {plans.map((plan) => (
-                            <article className="billing-card" key={plan.id}>
-                                <p className="billing-plan-cycle">
-                                    {plan.billing_cycle}
-                                </p>
+                            <p className="billing-plan-cycle">
+                                {plan.billing}
+                            </p>
 
-                                <h2>
-                                    {plan.display_name || plan.plan}
-                                </h2>
+                            <h2>{plan.name}</h2>
 
-                                <div className="billing-price">
-                                    {formatPrice(plan.amount, plan.currency)}
-                                    <span>
-                                        / {plan.billing_cycle === "annual"
-                                            ? "year"
-                                            : "month"}
-                                    </span>
-                                </div>
+                            <div className="billing-price">
+                                {formatPrice(plan.amount)}
+                                <span>
+                                    {plan.amount > 0
+                                        ? ` / ${plan.billing}`
+                                        : ""}
+                                </span>
+                            </div>
 
-                                <p className="billing-plan-description">
-                                    {role === "recruiter"
-                                        ? "Tools and capacity for your recruitment workflow."
-                                        : "Additional tools for your career preparation."}
-                                </p>
+                            <p className="billing-plan-description">
+                                {plan.description}
+                            </p>
 
+                            <ul className="billing-features">
+                                {plan.features.map((feature) => (
+                                    <li key={feature}>
+                                        <span aria-hidden="true">✓</span>
+                                        {feature}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            {plan.free ? (
                                 <button
                                     type="button"
-                                    className="billing-button"
-                                    onClick={() => startSubscription(plan)}
-                                    disabled={busyPlan !== null}
+                                    className="billing-button billing-button-free"
+                                    onClick={continueFree}
                                 >
-                                    {busyPlan === plan.id
-                                        ? "Opening checkout..."
-                                        : "Continue to payment"}
+                                    Continue with Free
                                 </button>
+                            ) : (
+                                <a
+                                    className="billing-button"
+                                    href={plan.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Continue to Razorpay
+                                </a>
+                            )}
 
+                            {plan.amount > 0 && (
                                 <p className="billing-secure-note">
-                                    Secure checkout powered by Razorpay
+                                    Recurring subscription · Razorpay checkout
                                 </p>
-                            </article>
-                        ))}
-                    </section>
-                )}
+                            )}
+                        </article>
+                    ))}
+                </section>
 
                 <section className="billing-history">
                     <div className="billing-history-heading">
                         <div>
                             <h2>Your subscriptions</h2>
-                            <p>View the latest status of your plans.</p>
+                            <p>
+                                Subscription records currently associated
+                                with your Nexora account.
+                            </p>
                         </div>
 
                         <button
                             type="button"
                             className="billing-refresh-button"
-                            onClick={refreshStatus}
-                            disabled={loading}
+                            onClick={loadBillingData}
                         >
-                            Refresh status
+                            Refresh
                         </button>
                     </div>
 
-                    {subscriptions.length === 0 ? (
+                    {historyError ? (
                         <p className="billing-muted">
-                            No subscriptions found.
+                            {historyError}
+                        </p>
+                    ) : subscriptions.length === 0 ? (
+                        <p className="billing-muted">
+                            No subscription records are linked to this
+                            account yet.
                         </p>
                     ) : (
                         <div className="billing-table-wrap">
@@ -382,25 +347,22 @@ function Billing() {
                                         <th>Status</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    {subscriptions.map((subscription) => (
-                                        <tr key={subscription.id}>
+                                    {subscriptions.map((item) => (
+                                        <tr key={item.id}>
                                             <td>
-                                                {subscription.target_role}{" "}
-                                                {subscription.plan}
+                                                {item.target_role} {item.plan}
                                             </td>
-                                            <td>
-                                                {subscription.billing_cycle}
-                                            </td>
+                                            <td>{item.billing_cycle}</td>
                                             <td>
                                                 {formatPrice(
-                                                    subscription.amount,
-                                                    subscription.currency
+                                                    item.amount / 100
                                                 )}
                                             </td>
                                             <td>
                                                 <span className="billing-status">
-                                                    {subscription.status}
+                                                    {item.status}
                                                 </span>
                                             </td>
                                         </tr>
@@ -410,6 +372,15 @@ function Billing() {
                         </div>
                     )}
                 </section>
+
+                <p className="billing-disclaimer">
+                    Razorpay hosted checkout opens in a separate tab.
+                    Completing checkout through these static links does
+                    not yet automatically connect the payment to your
+                    Nexora user account. Account verification and paid
+                    feature activation require the subscription-sync
+                    integration.
+                </p>
             </div>
         </main>
     );
