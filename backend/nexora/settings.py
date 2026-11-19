@@ -263,7 +263,19 @@ RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "")
 RAZORPAY_WEBHOOK_SECRET = os.getenv("RAZORPAY_WEBHOOK_SECRET", "")
 
+# =========================================================
+# N8N APPLICATION AUTOMATION
+# =========================================================
 
+N8N_APPLICATION_SUBMITTED_WEBHOOK_URL = os.getenv(
+    "N8N_APPLICATION_SUBMITTED_WEBHOOK_URL",
+    "",
+).strip()
+
+N8N_WEBHOOK_SECRET = os.getenv(
+    "N8N_WEBHOOK_SECRET",
+    "",
+).strip()
 # =========================================================
 # FORGOT PASSWORD EMAIL SETTINGS
 # =========================================================
