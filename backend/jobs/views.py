@@ -5,7 +5,7 @@ import requests
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Count, Exists, OuterRef
 
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -30,6 +30,8 @@ class JobListView(generics.ListAPIView):
     queryset = Job.objects.filter(
         is_published=True,
         is_archived=False,
+    ).annotate(
+        _applications_count=Count("applications", distinct=True),
     ).order_by("-created_at")
 
     serializer_class = JobSerializer
@@ -84,6 +86,8 @@ class JobDetailView(generics.RetrieveAPIView):
     queryset = Job.objects.filter(
         is_published=True,
         is_archived=False,
+    ).annotate(
+        _applications_count=Count("applications", distinct=True),
     )
 
     serializer_class = JobSerializer
@@ -215,7 +219,7 @@ class ImprovementRecommendationsView(APIView):
         },
         "react": {
             "priority": "High",
-            "reason": "React helps you build interactive frontend applications.",
+            "reason": "React helps you build interactive web applications.",
             "steps": [
                 "Practice components, props, and state.",
                 "Learn hooks, forms, and API integration.",
