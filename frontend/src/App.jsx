@@ -1,9 +1,9 @@
-
 import RecruiterRegister from "./pages/RecruiterRegister";
 import RecruiterVerifyEmailOTP from "./pages/RecruiterVerifyEmailOTP";
 import InitialAdminSetup from "./pages/InitialAdminSetup";
 import SupportChatbot from "./components/SupportChatbot";
 import Billing from "./pages/Billing";
+import ResumeScreening from "./pages/ResumeScreening";
 
 import { useCallback, useState } from "react";
 import {
@@ -157,6 +157,15 @@ function App() {
                     element={
                         <RoleRoute allow={["recruiter"]}>
                             <RecruiterCandidates />
+                        </RoleRoute>
+                    }
+                />
+
+                <Route
+                    path="/hr/screening"
+                    element={
+                        <RoleRoute allow={["recruiter"]}>
+                            <ResumeScreening />
                         </RoleRoute>
                     }
                 />
