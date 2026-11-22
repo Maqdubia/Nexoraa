@@ -1,8 +1,8 @@
 
 import logging
+import os
 import requests
 
-from django.conf import settings
 from django.utils import timezone
 
 
@@ -18,14 +18,12 @@ def notify_n8n_payment_verified(
     Send a verified successful Razorpay subscription payment to n8n.
     """
 
-    webhook_url = getattr(
-        settings,
+    webhook_url = os.getenv(
         "N8N_PAYMENT_VERIFIED_WEBHOOK_URL",
         "",
     ).strip()
 
-    webhook_secret = getattr(
-        settings,
+    webhook_secret = os.getenv(
         "N8N_WEBHOOK_SECRET",
         "",
     ).strip()
@@ -34,7 +32,7 @@ def notify_n8n_payment_verified(
         logger.warning(
             "N8N payment webhook is not configured."
         )
-        return
+        return False
 
     payment_status = str(
         payment_data.get("status", "")
@@ -44,7 +42,7 @@ def notify_n8n_payment_verified(
         logger.info(
             "Skipping unconfirmed Razorpay payment."
         )
-        return
+        return False
 
     user_email = (
         subscription.user.email or ""
@@ -58,7 +56,7 @@ def notify_n8n_payment_verified(
         logger.warning(
             "Missing customer email or subscription ID."
         )
-        return
+        return False
 
     try:
         amount_paise = int(
@@ -97,8 +95,11 @@ def notify_n8n_payment_verified(
             subscription.pk,
         )
 
+        return True
+
     except requests.RequestException as exc:
         logger.warning(
             "N8N payment notification failed: %s",
             type(exc).__name__,
         )
+        return False
