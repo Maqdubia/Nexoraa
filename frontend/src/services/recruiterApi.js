@@ -40,7 +40,13 @@ export const getCurrentUser = async () => {
     const response = await client.get("auth/me/");
     return response.data;
 };
-
+// Resume screening for a recruiter's own job.
+export const getResumeScreening = async (jobId) => {
+    const response = await client.get("jobs/hr/screening/", {
+        params: { job: jobId },
+    });
+    return response.data;
+};
 // ---------- Jobs ----------
 export const getRecruiterJobs = async () => {
     const response = await client.get("jobs/hr/jobs/");
