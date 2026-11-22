@@ -1,4 +1,3 @@
-
 from django.urls import path
 
 from .recruiter_views import (
@@ -10,6 +9,8 @@ from .recruiter_views import (
     RecruiterBulkStatusView,
     RecruiterStatsView,
 )
+
+from .screening import RecruiterResumeScreeningView
 
 from .views import (
     JobListView,
@@ -59,6 +60,11 @@ urlpatterns = [
         "hr/stats/",
         RecruiterStatsView.as_view(),
         name="hr-stats",
+    ),
+    path(
+        "hr/screening/",
+        RecruiterResumeScreeningView.as_view(),
+        name="hr-resume-screening",
     ),
 
     # Student job endpoints
