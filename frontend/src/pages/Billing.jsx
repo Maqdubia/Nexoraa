@@ -161,6 +161,15 @@ function Billing() {
         loadBillingData();
     }, [loadBillingData]);
 
+    // Return to the correct Nexora dashboard.
+    const goBack = () => {
+        navigate(
+            role === "recruiter"
+                ? "/hr/dashboard"
+                : "/dashboard"
+        );
+    };
+
     const startSubscription = async (plan) => {
         setBusyPlan(plan.id);
         setError("");
@@ -175,8 +184,6 @@ function Billing() {
 
             await loadRazorpayScript();
 
-            // The backend creates the subscription for this
-            // authenticated Nexora user and stores its local ID.
             const created = await apiRequest(
                 "billing/subscriptions/create/",
                 {
@@ -266,11 +273,7 @@ function Billing() {
     };
 
     const continueFree = () => {
-        navigate(
-            role === "recruiter"
-                ? "/hr/dashboard"
-                : "/dashboard"
-        );
+        goBack();
     };
 
     const refreshStatus = async () => {
@@ -327,8 +330,17 @@ function Billing() {
     return (
         <main className="billing-page">
             <div className="billing-container">
+
                 <header className="billing-header">
                     <div>
+                        <button
+                            type="button"
+                            className="billing-refresh-button"
+                            onClick={goBack}
+                        >
+                            ← Back to Dashboard
+                        </button>
+
                         <p className="billing-eyebrow">
                             NEXORA MEMBERSHIP
                         </p>
@@ -378,6 +390,7 @@ function Billing() {
                     </section>
                 ) : (
                     <section className="billing-plans">
+
                         <article className="billing-card">
                             <span className="billing-free-label">
                                 FREE ACCESS
@@ -497,6 +510,7 @@ function Billing() {
                                 </p>
                             </div>
                         )}
+
                     </section>
                 )}
 
@@ -567,6 +581,7 @@ function Billing() {
                     signature verification and Razorpay webhook
                     confirmation.
                 </p>
+
             </div>
         </main>
     );
