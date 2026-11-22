@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../services/recruiterApi";
@@ -26,6 +25,12 @@ const Icon = ({ name }) => {
                 <path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="10" cy="7" r="4" />
                 <path d="M20 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+            </>
+        ),
+        screening: (
+            <>
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m15.5 15.5 5 5M7.5 10.5h6M10.5 7.5v6" />
             </>
         ),
         billing: (
@@ -119,6 +124,10 @@ function HRLayout({ title, subtitle, actions, children }) {
 
                     <NavLink to="/hr/candidates" className={linkClass}>
                         <Icon name="people" /> Candidates
+                    </NavLink>
+
+                    <NavLink to="/hr/screening" className={linkClass}>
+                        <Icon name="screening" /> Resume Screening
                     </NavLink>
 
                     <NavLink to="/billing" className={linkClass}>
