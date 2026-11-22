@@ -16,7 +16,10 @@ function Jobs() {
     const [applyError, setApplyError] = useState(false);
     const [appliedIds, setAppliedIds] = useState(() => new Set());
 
-    // Fetch jobs from Django
+    // =========================================
+    // FETCH JOBS FROM DJANGO
+    // =========================================
+
     useEffect(() => {
         const fetchJobs = async () => {
             try {
@@ -26,8 +29,6 @@ function Jobs() {
                 const listUrl = `${API_URL}?search=${encodeURIComponent(search)}`;
                 const savedToken = localStorage.getItem("access_token");
 
-                // Send the login token so we know which jobs were already
-                // applied for. If the token has expired, load the list anyway.
                 let response = await fetch(
                     listUrl,
                     savedToken
@@ -35,6 +36,7 @@ function Jobs() {
                         : undefined
                 );
 
+                // If authentication expires, load public job listings.
                 if (response.status === 401) {
                     response = await fetch(listUrl);
                 }
@@ -50,6 +52,7 @@ function Jobs() {
                     : data.results || [];
 
                 setJobs(list);
+
                 setAppliedIds(
                     new Set(
                         list
@@ -58,6 +61,8 @@ function Jobs() {
                     )
                 );
             } catch (err) {
+                console.error("Jobs loading error:", err);
+
                 setError(
                     "Could not load jobs. Please check whether the Django server is running."
                 );
@@ -71,7 +76,10 @@ function Jobs() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Save application in Nexora, then open the employer's website
+    // =========================================
+    // SUBMIT APPLICATION IN NEXORA
+    // =========================================
+
     const handleApply = async (job) => {
         const token =
             localStorage.getItem("access_token") ||
@@ -112,13 +120,19 @@ function Jobs() {
                     "Could not save your application.";
 
                 if (response.status === 401) {
-                    message = "Your login session may have expired. Please log in again.";
+                    message =
+                        "Your login session may have expired. Please log in again.";
                 }
 
                 throw new Error(message);
             }
 
-            setAppliedIds((current) => new Set(current).add(job.id));
+            setAppliedIds((current) => {
+                const updated = new Set(current);
+                updated.add(job.id);
+                return updated;
+            });
+
             setApplyMessage(
                 "Application submitted. The recruiter can now see your profile, skills and resume score. You can track it in My Applications."
             );
@@ -130,8 +144,72 @@ function Jobs() {
         }
     };
 
+    // =========================================
+    // RECORD APPLICATION START
+    // =========================================
+
+    const handleStartExternalApplication = async (job) => {
+        // Do not create a Started event if already submitted.
+        if (appliedIds.has(job.id)) {
+            return;
+        }
+
+        const token =
+            localStorage.getItem("access_token") ||
+            localStorage.getItem("access");
+
+        if (!token) {
+            console.warn(
+                "Login is required to record an application start."
+            );
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${API_URL}start/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        job_id: job.id,
+                    }),
+                }
+            );
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail ||
+                    "Application start could not be recorded."
+                );
+            }
+
+            console.info(
+                "Nexora application start recorded:",
+                data.application_key
+            );
+
+        } catch (err) {
+            console.warn(
+                "Application tracking notification failed:",
+                err.message
+            );
+        }
+    };
+
+    // =========================================
+    // MAIN PAGE
+    // =========================================
+
     return (
         <div className="jobs-page">
+
+            {/* PAGE HEADER */}
             <div className="jobs-header">
                 <div>
                     <p className="jobs-eyebrow">
@@ -147,6 +225,7 @@ function Jobs() {
                 </div>
             </div>
 
+            {/* SEARCH */}
             <div className="jobs-search">
                 <span>⌕</span>
 
@@ -158,6 +237,7 @@ function Jobs() {
                 />
             </div>
 
+            {/* RESULTS HEADING */}
             <div className="jobs-results-heading">
                 <h2>Available Opportunities</h2>
 
@@ -166,14 +246,21 @@ function Jobs() {
                 )}
             </div>
 
+            {/* LOADING */}
             {loading && (
-                <p className="jobs-message">Loading jobs...</p>
+                <p className="jobs-message">
+                    Loading jobs...
+                </p>
             )}
 
+            {/* ERROR */}
             {error && (
-                <p className="jobs-error">{error}</p>
+                <p className="jobs-error">
+                    {error}
+                </p>
             )}
 
+            {/* EMPTY STATE */}
             {!loading && !error && jobs.length === 0 && (
                 <div className="jobs-empty">
                     <h3>No jobs found</h3>
@@ -183,9 +270,13 @@ function Jobs() {
                 </div>
             )}
 
+            {/* JOB CARDS */}
             <div className="jobs-grid">
                 {jobs.map((job) => (
-                    <article className="job-card" key={job.id}>
+                    <article
+                        className="job-card"
+                        key={job.id}
+                    >
                         <div className="job-card-top">
                             <div className="job-company-icon">
                                 {job.company?.charAt(0)?.toUpperCase() || "J"}
@@ -210,7 +301,9 @@ function Jobs() {
                             </span>
 
                             {job.salary && (
-                                <span>💰 {job.salary}</span>
+                                <span>
+                                    💰 {job.salary}
+                                </span>
                             )}
 
                             {job.experience && (
@@ -252,6 +345,7 @@ function Jobs() {
                 ))}
             </div>
 
+            {/* JOB DETAILS MODAL */}
             {selectedJob && (
                 <div
                     className="job-modal-overlay"
@@ -281,35 +375,43 @@ function Jobs() {
                             {selectedJob.company} · {selectedJob.location}
                         </p>
 
+                        {/* JOB FACTS */}
                         <div className="job-facts">
                             <div>
                                 <span>Job type</span>
-                                <strong>{selectedJob.job_type || "Not specified"}</strong>
+                                <strong>
+                                    {selectedJob.job_type || "Not specified"}
+                                </strong>
                             </div>
+
                             {selectedJob.work_mode && (
                                 <div>
                                     <span>Work mode</span>
                                     <strong>{selectedJob.work_mode}</strong>
                                 </div>
                             )}
+
                             {selectedJob.experience && (
                                 <div>
                                     <span>Experience</span>
                                     <strong>{selectedJob.experience}</strong>
                                 </div>
                             )}
+
                             {selectedJob.salary && (
                                 <div>
                                     <span>Salary</span>
                                     <strong>{selectedJob.salary}</strong>
                                 </div>
                             )}
+
                             {selectedJob.vacancies > 0 && (
                                 <div>
                                     <span>Openings</span>
                                     <strong>{selectedJob.vacancies}</strong>
                                 </div>
                             )}
+
                             {selectedJob.application_deadline && (
                                 <div>
                                     <span>Apply by</span>
@@ -322,10 +424,12 @@ function Jobs() {
                             )}
                         </div>
 
+                        {/* DESCRIPTION */}
                         <h3>About the role</h3>
 
                         <p className="job-full-description">
-                            {selectedJob.description || "No description available."}
+                            {selectedJob.description ||
+                                "No description available."}
                         </p>
 
                         {selectedJob.responsibilities && (
@@ -346,6 +450,7 @@ function Jobs() {
                             </>
                         )}
 
+                        {/* REQUIRED SKILLS */}
                         <h3>Required skills</h3>
 
                         <div className="job-skills">
@@ -359,6 +464,7 @@ function Jobs() {
                             ))}
                         </div>
 
+                        {/* BENEFITS */}
                         {selectedJob.benefits && (
                             <>
                                 <h3>Benefits</h3>
@@ -368,7 +474,10 @@ function Jobs() {
                             </>
                         )}
 
+                        {/* APPLICATION ACTIONS */}
                         <div className="job-apply-bar">
+
+                            {/* NEXORA APPLICATION */}
                             {appliedIds.has(selectedJob.id) ? (
                                 <button
                                     type="button"
@@ -382,7 +491,9 @@ function Jobs() {
                                     type="button"
                                     className="job-details-button job-apply-link"
                                     onClick={() => handleApply(selectedJob)}
-                                    disabled={applyingJobId === selectedJob.id}
+                                    disabled={
+                                        applyingJobId === selectedJob.id
+                                    }
                                 >
                                     {applyingJobId === selectedJob.id
                                         ? "Submitting..."
@@ -390,18 +501,25 @@ function Jobs() {
                                 </button>
                             )}
 
+                            {/* EXTERNAL COMPANY APPLICATION */}
                             {selectedJob.application_url && (
                                 <a
                                     className="job-secondary-link"
                                     href={selectedJob.application_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={() =>
+                                        handleStartExternalApplication(
+                                            selectedJob
+                                        )
+                                    }
                                 >
                                     Company website ↗
                                 </a>
                             )}
                         </div>
 
+                        {/* APPLICATION MESSAGE */}
                         {applyMessage && (
                             <p
                                 role="status"
