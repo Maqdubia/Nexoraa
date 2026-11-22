@@ -132,7 +132,7 @@ DB_OPTIONS = {}
 
 if DB_HOST not in ("localhost", "127.0.0.1"):
     DB_OPTIONS["ssl_mode"] = "REQUIRED"
-
+    
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
