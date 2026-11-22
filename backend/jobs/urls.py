@@ -1,3 +1,4 @@
+
 from django.urls import path
 
 from .recruiter_views import (
@@ -18,6 +19,9 @@ from .views import (
     JobApplicationCreateView,
     MyApplicationsView,
 )
+
+from .application_automation import JobApplicationStartView
+
 
 urlpatterns = [
     # HR and admin endpoints
@@ -64,6 +68,11 @@ urlpatterns = [
         "recommendations/",
         ImprovementRecommendationsView.as_view(),
         name="job-recommendations",
+    ),
+    path(
+        "start/",
+        JobApplicationStartView.as_view(),
+        name="job-application-start",
     ),
     path(
         "apply/",
