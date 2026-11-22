@@ -1,6 +1,3 @@
-STATICFILES_DIRS = [
-    BASE_DIR.parent / "frontend" / "dist",
-]
 """
 Django settings for nexora project.
 """
