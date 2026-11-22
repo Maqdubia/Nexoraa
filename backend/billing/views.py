@@ -7,6 +7,7 @@ import requests
 
 from datetime import datetime, timezone as datetime_timezone
 
+from .n8n import notify_n8n_payment_verified
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -818,6 +819,24 @@ def razorpay_webhook(request):
             event_record.save(
                 update_fields=["processed", "processed_at"]
             )
+            
+            # Notify n8n only after a verified subscription charge.
+            payment_status = str(
+                payment_data.get("status", "")
+            ).strip().lower()
+
+            if (
+                subscription
+                and event_type == "subscription.charged"
+                and payment_status in ("captured", "paid")
+            ):
+                transaction.on_commit(
+                    lambda: notify_n8n_payment_verified(
+                        subscription,
+                        payment_data.copy(),
+                        event_type,
+                    )
+                )
 
     except Exception:
         logger.exception(
