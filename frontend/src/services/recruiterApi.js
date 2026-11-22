@@ -58,8 +58,7 @@ export const updateRecruiterJob = async (id, jobData) => {
 };
 
 export const deleteRecruiterJob = async (id) => {
-    const response = await client.delete(`jobs/hr/jobs/${id}/`);
-    return response.data;
+    await client.delete(`jobs/hr/jobs/${id}/`);
 };
 
 // ---------- Candidates / applications ----------
@@ -92,6 +91,14 @@ export const bulkUpdateStatus = async (ids, status) => {
 
 export const getRecruiterStats = async () => {
     const response = await client.get("jobs/hr/stats/");
+    return response.data;
+};
+
+// Run explainable resume screening against one job owned by this recruiter.
+export const getResumeScreening = async (jobId) => {
+    const response = await client.get("jobs/hr/screening/", {
+        params: { job: jobId },
+    });
     return response.data;
 };
 
