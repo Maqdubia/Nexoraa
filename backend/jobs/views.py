@@ -437,7 +437,7 @@ def notify_n8n_application_submitted(application):
         return
 
     payload = {
-        "application_key": f"nexora-application-{application.pk}",
+       "application_key": f"nexora-user-{user.pk}-job-{job.pk}",
         "application_id": f"APP-{application.pk}",
         "candidate_name": candidate_name,
         "candidate_email": candidate_email,
