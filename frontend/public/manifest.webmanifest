@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "NEXORA",
+  "short_name": "NEXORA",
+  "description": "Your AI-powered career and recruitment platform.",
+  "start_url": "/login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F7F2",
+  "theme_color": "#1C2418",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/static/nexora-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/nexora-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
