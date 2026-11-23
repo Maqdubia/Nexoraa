@@ -1,0 +1,119 @@
+
+.nexora-install-container {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    right: max(12px, env(safe-area-inset-right));
+    z-index: 1200;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+
+.nexora-install-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: 1px solid #DDE1D6;
+    border-radius: 11px;
+    background: #F7F7F2;
+    color: #1C2418;
+    box-shadow: 0 3px 12px rgba(28, 36, 24, 0.09);
+    cursor: pointer;
+    transition: background 180ms ease, transform 180ms ease;
+}
+
+.nexora-install-icon:hover {
+    background: #CFD6C8;
+    transform: translateY(-1px);
+}
+
+.nexora-install-popover {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    width: min(330px, calc(100vw - 24px));
+    padding: 17px;
+    border: 1px solid #E1E4DA;
+    border-radius: 15px;
+    background: #FFFFFF;
+    box-shadow: 0 12px 35px rgba(28, 36, 24, 0.15);
+}
+
+.nexora-install-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.nexora-install-heading h3 {
+    margin: 0;
+    color: #1C2418;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.nexora-install-heading p {
+    margin: 5px 0 0;
+    color: #687060;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.nexora-install-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 27px;
+    height: 27px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #F2F3ED;
+    color: #1C2418;
+    font-size: 21px;
+    cursor: pointer;
+}
+
+.nexora-install-content {
+    margin-top: 15px;
+}
+
+.nexora-install-content p {
+    margin: 0 0 13px;
+    color: #626858;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.nexora-install-action {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 15px;
+    border: 0;
+    border-radius: 9px;
+    background: #3A4726;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.nexora-install-action:hover {
+    background: #1C2418;
+}
+
+.nexora-install-icon:focus-visible,
+.nexora-install-close:focus-visible,
+.nexora-install-action:focus-visible {
+    outline: 2px solid #7F8D63;
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .nexora-install-icon,
+    .nexora-install-action {
+        transition: none;
+    }
+}
