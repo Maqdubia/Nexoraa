@@ -26,9 +26,37 @@ const INTERVIEW_API = axios.create({
 
 const API_INSTANCES = [API, RESUME_API, JOBS_API, INTERVIEW_API];
 
+
 // =====================================================
 // JWT TOKEN REFRESH
 // =====================================================
+
+// Public authentication endpoints must never receive an old JWT.
+const PUBLIC_AUTH_ENDPOINTS = new Set([
+    "login/",
+    "google/",
+    "register/",
+    "verify-email-otp/",
+    "forgot-password/",
+    "verify-reset-otp/",
+    "reset-password/",
+    "recruiter/register/",
+    "refresh/",
+]);
+
+const normalizeEndpointPath = (url = "") => {
+    let path = String(url)
+        .split("?")[0]
+        .replace(/^https?:\/\/[^/]+/i, "")
+        .replace(/^\/+/, "");
+
+    path = path.replace(/^api\/auth\//i, "");
+
+    return path.endsWith("/") ? path : `${path}/`;
+};
+
+const isPublicAuthRequest = (url) =>
+    PUBLIC_AUTH_ENDPOINTS.has(normalizeEndpointPath(url));
 
 let refreshPromise = null;
 
@@ -66,7 +94,6 @@ const refreshAccessToken = async () => {
 
                 localStorage.setItem("access_token", newAccessToken);
 
-                // Store a rotated refresh token if the backend returns one.
                 if (response.data.refresh) {
                     localStorage.setItem(
                         "refresh_token",
@@ -88,10 +115,23 @@ const refreshAccessToken = async () => {
     return refreshPromise;
 };
 
-// Attach the latest access token to every API request.
+// Attach JWTs only to protected API requests.
 API_INSTANCES.forEach((instance) => {
     instance.interceptors.request.use(
         (config) => {
+            if (isPublicAuthRequest(config.url)) {
+                if (config.headers?.delete) {
+                    config.headers.delete("Authorization");
+                }
+
+                if (config.headers) {
+                    delete config.headers.Authorization;
+                    delete config.headers.authorization;
+                }
+
+                return config;
+            }
+
             const token = getAccessToken();
 
             if (token) {
@@ -116,11 +156,7 @@ API_INSTANCES.forEach((instance) => {
                 error.response?.status !== 401 ||
                 !originalRequest ||
                 originalRequest._retry ||
-                originalRequest.url?.includes("refresh/") ||
-                originalRequest.url?.includes("login/") ||
-                originalRequest.url?.includes("google/") ||
-                originalRequest.url?.includes("register/") ||
-                originalRequest.url?.includes("verify-email-otp/")
+                isPublicAuthRequest(originalRequest.url)
             ) {
                 return Promise.reject(error);
             }
