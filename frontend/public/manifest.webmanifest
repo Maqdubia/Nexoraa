@@ -1,3 +1,4 @@
+
 {
   "id": "/",
   "name": "NEXORA",
@@ -12,8 +13,14 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/static/nexora-mark-transparent.png",
-      "sizes": "431x368",
+      "src": "/static/pwa-192/nexora-mark-transparent.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/pwa-512/nexora-mark-transparent.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     }
