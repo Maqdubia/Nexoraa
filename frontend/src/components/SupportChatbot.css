@@ -377,6 +377,142 @@
 .support-chat-input button.support-chat-mic-button.is-listening {
     background: #596d55;
     color: white;
+    /* Chatbot voice reply and response feedback */
+
+.support-message-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 0 3px;
+}
+
+.support-speak-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid #dce3d6;
+    border-radius: 18px;
+    background: white;
+    color: #40543e;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.support-speak-button:hover {
+    background: #e9eee5;
+}
+
+.support-feedback {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.support-feedback span {
+    color: #737b70;
+    font-size: 11px;
+}
+
+.support-feedback button {
+    width: 32px;
+    height: 30px;
+    border: 1px solid #dce3d6;
+    background: white;
+    color: #596d55;
+    cursor: pointer;
+}
+
+.support-feedback button:first-of-type {
+    border-radius: 16px 0 0 16px;
+}
+
+.support-feedback button:last-of-type {
+    border-radius: 0 16px 16px 0;
+    margin-left: -8px;
+}
+
+.support-feedback button:hover,
+.support-feedback button.is-selected {
+    background: #e9eee5;
+    border-color: #819477;
+}
+
+.support-feedback button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.support-feedback-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid #dce3d6;
+    border-radius: 12px;
+    background: white;
+    color: #40543e;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.support-feedback-panel strong {
+    font-size: 12px;
+}
+
+.support-feedback-panel > button:not(:last-of-type) {
+    padding: 7px 12px;
+    border: 1px solid #dce3d6;
+    border-radius: 18px;
+    background: white;
+    color: #40543e;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.support-feedback-panel > button.is-selected,
+.support-feedback-panel > button:not(:last-of-type):hover {
+    background: #e9eee5;
+    border-color: #819477;
+}
+
+.support-feedback-panel > button:last-of-type {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 18px;
+    background: #596d55;
+    color: white;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.support-feedback-panel > button:last-of-type:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.support-feedback-panel p {
+    color: #a13d36;
+    font-size: 11px;
+}
+
+.support-message small {
+    color: #596d55;
+    font-size: 11px;
+}
+
+@media (max-width: 480px) {
+    .support-message-tools {
+        align-items: flex-start;
+    }
+
+    .support-feedback {
+        gap: 6px;
+    }
+}
     box-shadow: 0 0 0 4px rgba(89, 109, 85, 0.18);
 }
 
