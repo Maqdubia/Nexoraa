@@ -1,4 +1,3 @@
-
 import uuid
 
 from django.conf import settings
@@ -39,24 +38,15 @@ class SupportTicket(models.Model):
         related_name="support_tickets",
     )
 
-    customer_name = models.CharField(
-        max_length=150,
-        blank=True,
-    )
-
-    email = models.EmailField(
-        blank=True,
-    )
+    customer_name = models.CharField(max_length=150, blank=True)
+    email = models.EmailField(blank=True)
 
     category = models.CharField(
         max_length=30,
         choices=CATEGORY_CHOICES,
     )
 
-    issue = models.CharField(
-        max_length=200,
-    )
-
+    issue = models.CharField(max_length=200)
     description = models.TextField()
 
     status = models.CharField(
@@ -65,12 +55,9 @@ class SupportTicket(models.Model):
         default="open",
     )
 
-    admin_response = models.TextField(
-        blank=True,
-    )
+    admin_response = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
@@ -87,7 +74,8 @@ class SupportTicket(models.Model):
         verbose_name = "Support Ticket"
         verbose_name_plural = "Support Tickets"
 
-    class ChatbotFeedback(models.Model):
+
+class ChatbotFeedback(models.Model):
 
     RATING_CHOICES = [
         ("positive", "Positive"),
