@@ -353,4 +353,31 @@
     }
 }
 
+.support-chat-voice-status {
+    padding: 5px 15px;
+    background: white;
+    color: #596d55;
+    font-size: 11px;
+}
+
+.support-chat-voice-status:empty {
+    display: none;
+}
+
+.support-chat-input button.support-chat-mic-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e9eee5;
+    color: #40543e;
+    border: 1px solid #cfd9c9;
+}
+
+.support-chat-input button.support-chat-mic-button.is-listening {
+    background: #596d55;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(89, 109, 85, 0.18);
+}
+
 
