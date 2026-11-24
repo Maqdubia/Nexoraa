@@ -115,6 +115,10 @@ function SupportChatbot() {
     const [customerName, setCustomerName] = useState("");
     const [email, setEmail] = useState("");
     const [issue, setIssue] = useState("");
+    const recognitionRef = useRef(null);
+const speechBaseTextRef = useRef("");
+const [isListening, setIsListening] = useState(false);
+const [speechError, setSpeechError] = useState("");
 
     // Automatically scroll to the newest message
     useEffect(() => {
