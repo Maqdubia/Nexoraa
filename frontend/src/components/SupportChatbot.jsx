@@ -120,6 +120,119 @@ const speechBaseTextRef = useRef("");
 const [isListening, setIsListening] = useState(false);
 const [speechError, setSpeechError] = useState("");
 
+const stopVoiceInput = () => {
+    const recognition = recognitionRef.current;
+
+    if (recognition) {
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.warn("Voice input could not stop:", error);
+        }
+
+        recognitionRef.current = null;
+    }
+
+    setIsListening(false);
+};
+
+const handleVoiceInput = () => {
+    if (isListening) {
+        stopVoiceInput();
+        return;
+    }
+
+    const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        setSpeechError(
+            "Voice input is not supported here. Please try Google Chrome."
+        );
+        return;
+    }
+
+    if (!window.isSecureContext) {
+        setSpeechError("Voice input requires a secure HTTPS connection.");
+        return;
+    }
+
+    setSpeechError("");
+    speechBaseTextRef.current = input;
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-IN";
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+        setIsListening(true);
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+            .map(result => result[0]?.transcript || "")
+            .join(" ")
+            .trim();
+
+        const base = speechBaseTextRef.current.trimEnd();
+
+        setInput([base, transcript].filter(Boolean).join(" "));
+    };
+
+    recognition.onerror = (event) => {
+        setIsListening(false);
+
+        const errors = {
+            "not-allowed": "Please allow microphone access for Nexora.",
+            "audio-capture": "No microphone was found.",
+            "no-speech": "No speech detected. Please try again.",
+            network: "Voice input needs an internet connection.",
+            "service-not-allowed": "Speech recognition service unavailable.",
+        };
+
+        if (event.error !== "aborted") {
+            setSpeechError(
+                errors[event.error] || "Voice input failed. Please try again."
+            );
+        }
+    };
+
+    recognition.onend = () => {
+        setIsListening(false);
+
+        if (recognitionRef.current === recognition) {
+            recognitionRef.current = null;
+        }
+    };
+
+    recognitionRef.current = recognition;
+
+    try {
+        recognition.start();
+    } catch (error) {
+        recognitionRef.current = null;
+        setIsListening(false);
+        setSpeechError("Could not start the microphone. Try again.");
+    }
+};
+
+useEffect(() => {
+    if (!isOpen && recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
+        setIsListening(false);
+    }
+}, [isOpen]);
+
+useEffect(() => {
+    return () => {
+        recognitionRef.current?.abort();
+    };
+}, []);
+
     // Automatically scroll to the newest message
     useEffect(() => {
         if (isOpen) {
@@ -565,7 +678,11 @@ Selected issue: ${message}`,
 
                         <div ref={messagesEndRef} />
                     </div>
-
+                    <div className="support-chat-voice-status" role="status" aria-live="polite">
+    {isListening
+        ? "Listening... speak now."
+        : speechError}
+</div>
                     <form
                         className="support-chat-input"
                         onSubmit={(event) => {
@@ -590,12 +707,43 @@ Selected issue: ${message}`,
                             disabled={loading}
                         />
 
-                        <button
-                            type="submit"
-                            disabled={loading || !input.trim()}
-                        >
-                            ➤
-                        </button>
+                       
+<button
+    type="button"
+    className={
+        "support-chat-mic-button" +
+        (isListening ? " is-listening" : "")
+    }
+    onClick={handleVoiceInput}
+    disabled={loading}
+    aria-label={isListening ? "Stop voice input" : "Start voice input"}
+    title={isListening ? "Stop voice input" : "Speak to Nexora"}
+    aria-pressed={isListening}
+>
+    <svg
+        viewBox="0 0 24 24"
+        width="19"
+        height="19"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <rect x="9" y="2" width="6" height="12" rx="3" />
+        <path d="M5 10a7 7 0 0 0 14 0" />
+        <path d="M12 17v5" />
+        <path d="M8 22h8" />
+    </svg>
+</button>
+
+<button
+    type="submit"
+    disabled={loading || !input.trim()}
+>
+    ➤
+</button>
+
                     </form>
 
                     <footer className="support-chat-footer">
