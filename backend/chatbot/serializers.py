@@ -1,6 +1,6 @@
-
 from rest_framework import serializers
-from .models import SupportTicket
+
+from .models import SupportTicket, ChatbotFeedback
 from .catalog import SUPPORT_CATEGORIES
 
 
@@ -76,3 +76,31 @@ class SupportTicketSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
+class ChatbotFeedbackSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ChatbotFeedback
+        fields = [
+            "rating",
+            "reason",
+            "category",
+        ]
+
+    def validate(self, attrs):
+        rating = attrs.get("rating")
+        reason = attrs.get("reason")
+
+        if rating == "positive":
+            allowed_reasons = dict(ChatbotFeedback.POSITIVE_REASONS)
+        elif rating == "negative":
+            allowed_reasons = dict(ChatbotFeedback.NEGATIVE_REASONS)
+        else:
+            allowed_reasons = {}
+
+        if reason not in allowed_reasons:
+            raise serializers.ValidationError({
+                "reason": "Please choose a feedback reason that matches your rating."
+            })
+
+        return attrs
