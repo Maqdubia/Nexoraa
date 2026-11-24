@@ -1,12 +1,14 @@
-
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
 from .ai_service import get_chatbot_response
-from .models import SupportTicket
-from .serializers import SupportTicketSerializer
+from .models import SupportTicket, ChatbotFeedback
+from .serializers import (
+    SupportTicketSerializer,
+    ChatbotFeedbackSerializer,
+)
 from .catalog import SUPPORT_CATEGORIES
 from .notifications import notify_ticket_created
 
@@ -44,6 +46,24 @@ class SupportTicketCreateView(generics.CreateAPIView):
 
         # Email delivery failures must not undo a saved ticket.
         notify_ticket_created(ticket)
+
+
+# =========================================
+# SAVE CHATBOT FEEDBACK
+# =========================================
+
+class ChatbotFeedbackCreateView(generics.CreateAPIView):
+    queryset = ChatbotFeedback.objects.all()
+    serializer_class = ChatbotFeedbackSerializer
+    permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        if user and user.is_authenticated:
+            serializer.save(user=user)
+        else:
+            serializer.save()
 
 
 # =========================================
