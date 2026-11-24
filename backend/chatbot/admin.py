@@ -1,7 +1,6 @@
-
 from django.contrib import admin
 
-from .models import SupportTicket
+from .models import SupportTicket, ChatbotFeedback
 from .notifications import notify_ticket_reply
 
 
@@ -62,3 +61,30 @@ class SupportTicketAdmin(admin.ModelAdmin):
             and current_response != previous_response.strip()
         ):
             notify_ticket_reply(obj)
+
+
+@admin.register(ChatbotFeedback)
+class ChatbotFeedbackAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "rating",
+        "reason",
+        "category",
+        "user",
+        "created_at",
+    )
+
+    list_filter = (
+        "rating",
+        "reason",
+        "category",
+        "created_at",
+    )
+
+    readonly_fields = (
+        "rating",
+        "reason",
+        "category",
+        "user",
+        "created_at",
+    )
