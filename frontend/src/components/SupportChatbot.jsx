@@ -4,7 +4,20 @@ import axios from "axios";
 import "./SupportChatbot.css";
 
 const API_URL = "/api/chatbot/";
-
+const feedbackReasons = {
+    positive: [
+        { value: "helpful", label: "Helpful" },
+        { value: "clear", label: "Clear" },
+        { value: "accurate", label: "Accurate" },
+        { value: "solved_issue", label: "Solved my issue" },
+    ],
+    negative: [
+        { value: "incorrect", label: "Incorrect" },
+        { value: "not_relevant", label: "Not relevant" },
+        { value: "incomplete", label: "Incomplete" },
+        { value: "unclear", label: "Unclear" },
+    ],
+};
 const categories = [
     {
         id: "account",
@@ -119,7 +132,15 @@ function SupportChatbot() {
 const speechBaseTextRef = useRef("");
 const [isListening, setIsListening] = useState(false);
 const [speechError, setSpeechError] = useState("");
+const [speakingMessageIndex, setSpeakingMessageIndex] = useState(null);
+const speechUtteranceRef = useRef(null);
 
+const [feedbackOpenFor, setFeedbackOpenFor] = useState(null);
+const [feedbackRatings, setFeedbackRatings] = useState({});
+const [feedbackReasonsByMessage, setFeedbackReasonsByMessage] = useState({});
+const [feedbackSubmittingFor, setFeedbackSubmittingFor] = useState(null);
+const [feedbackSubmittedFor, setFeedbackSubmittedFor] = useState({});
+const [feedbackErrors, setFeedbackErrors] = useState({});
 const stopVoiceInput = () => {
     const recognition = recognitionRef.current;
 
@@ -218,7 +239,123 @@ const handleVoiceInput = () => {
         setSpeechError("Could not start the microphone. Try again.");
     }
 };
+const stopSpeechOutput = () => {
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
 
+    speechUtteranceRef.current = null;
+    setSpeakingMessageIndex(null);
+};
+
+const handleSpeakMessage = (text, index) => {
+    if (
+        !("speechSynthesis" in window) ||
+        !("SpeechSynthesisUtterance" in window)
+    ) {
+        setSpeechError("Read-aloud is not supported in this browser.");
+        return;
+    }
+
+    if (speakingMessageIndex === index) {
+        stopSpeechOutput();
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+
+    const englishVoice =
+        voices.find((voice) => /^en-IN$/i.test(voice.lang)) ||
+        voices.find((voice) => /^en-GB$/i.test(voice.lang)) ||
+        voices.find((voice) => /^en-US$/i.test(voice.lang)) ||
+        voices.find((voice) => /^en/i.test(voice.lang));
+
+    if (englishVoice) {
+        utterance.voice = englishVoice;
+        utterance.lang = englishVoice.lang;
+    } else {
+        utterance.lang = "en-IN";
+    }
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+
+    utterance.onend = () => {
+        if (speechUtteranceRef.current === utterance) {
+            speechUtteranceRef.current = null;
+            setSpeakingMessageIndex(null);
+        }
+    };
+
+    utterance.onerror = () => {
+        if (speechUtteranceRef.current === utterance) {
+            speechUtteranceRef.current = null;
+            setSpeakingMessageIndex(null);
+            setSpeechError("Could not play the voice response.");
+        }
+    };
+
+    speechUtteranceRef.current = utterance;
+    setSpeechError("");
+    setSpeakingMessageIndex(index);
+
+    window.speechSynthesis.speak(utterance);
+};
+
+const handleFeedbackRating = (index, rating) => {
+    setFeedbackOpenFor(index);
+
+    setFeedbackRatings((previous) => ({
+        ...previous,
+        [index]: rating,
+    }));
+
+    setFeedbackReasonsByMessage((previous) => ({
+        ...previous,
+        [index]: "",
+    }));
+
+    setFeedbackErrors((previous) => ({
+        ...previous,
+        [index]: "",
+    }));
+};
+
+const submitFeedback = async (index) => {
+    const rating = feedbackRatings[index];
+    const reason = feedbackReasonsByMessage[index];
+
+    if (!rating || !reason || feedbackSubmittingFor !== null) {
+        return;
+    }
+
+    setFeedbackSubmittingFor(index);
+
+    try {
+        await axios.post(`${API_URL}feedback/`, {
+            rating,
+            reason,
+            category: selectedCategory?.id || "other",
+        });
+
+        setFeedbackSubmittedFor((previous) => ({
+            ...previous,
+            [index]: true,
+        }));
+
+        setFeedbackOpenFor(null);
+    } catch (error) {
+        setFeedbackErrors((previous) => ({
+            ...previous,
+            [index]: "Feedback could not be sent. Please try again.",
+        }));
+    } finally {
+        setFeedbackSubmittingFor(null);
+    }
+};
 useEffect(() => {
     if (!isOpen && recognitionRef.current) {
         recognitionRef.current.abort();
@@ -303,9 +440,10 @@ Selected issue: ${message}`,
                     (item) => item.type !== "loading"
                 ),
                 {
-                    sender: "bot",
-                    text: response.data.reply,
-                },
+    sender: "bot",
+    text: response.data.reply,
+    type: "ai-reply",
+},
                 {
                     sender: "bot",
                     text: "Did this resolve your issue?",
@@ -446,7 +584,13 @@ Selected issue: ${message}`,
         setCustomerName("");
         setEmail("");
         setInput("");
-        setLoading(false);
+        setLoading(false);stopSpeechOutput();
+setFeedbackOpenFor(null);
+setFeedbackRatings({});
+setFeedbackReasonsByMessage({});
+setFeedbackSubmittingFor(null);
+setFeedbackSubmittedFor({});
+setFeedbackErrors({});
     };
 
     return (
@@ -599,7 +743,115 @@ Selected issue: ${message}`,
                                 <div className="support-message-bubble">
                                     {message.text}
                                 </div>
+                                {message.sender === "bot" &&
+    message.type === "ai-reply" && (
+        <>
+            <div className="support-message-tools">
+                <button
+                    type="button"
+                    className="support-speak-button"
+                    onClick={() =>
+                        handleSpeakMessage(message.text, index)
+                    }
+                >
+                    {speakingMessageIndex === index ? "■ Stop" : "🔊 Listen"}
+                </button>
 
+                <div className="support-feedback">
+                    <span>Was this helpful?</span>
+
+                    <button
+                        type="button"
+                        className={
+                            feedbackRatings[index] === "positive"
+                                ? "is-selected"
+                                : ""
+                        }
+                        onClick={() =>
+                            handleFeedbackRating(index, "positive")
+                        }
+                        disabled={Boolean(feedbackSubmittedFor[index])}
+                        aria-label="Thumbs up"
+                    >
+                        👍
+                    </button>
+
+                    <button
+                        type="button"
+                        className={
+                            feedbackRatings[index] === "negative"
+                                ? "is-selected"
+                                : ""
+                        }
+                        onClick={() =>
+                            handleFeedbackRating(index, "negative")
+                        }
+                        disabled={Boolean(feedbackSubmittedFor[index])}
+                        aria-label="Thumbs down"
+                    >
+                        👎
+                    </button>
+                </div>
+            </div>
+
+            {feedbackOpenFor === index &&
+                !feedbackSubmittedFor[index] && (
+                    <div className="support-feedback-panel">
+                        <strong>
+                            {feedbackRatings[index] === "positive"
+                                ? "What worked well?"
+                                : "What could be improved?"}
+                        </strong>
+
+                        {feedbackReasons[feedbackRatings[index]].map(
+                            (reason) => (
+                                <button
+                                    key={reason.value}
+                                    type="button"
+                                    className={
+                                        feedbackReasonsByMessage[index] ===
+                                        reason.value
+                                            ? "is-selected"
+                                            : ""
+                                    }
+                                    onClick={() =>
+                                        setFeedbackReasonsByMessage(
+                                            (previous) => ({
+                                                ...previous,
+                                                [index]: reason.value,
+                                            })
+                                        )
+                                    }
+                                >
+                                    {reason.label}
+                                </button>
+                            )
+                        )}
+
+                        {feedbackErrors[index] && (
+                            <p>{feedbackErrors[index]}</p>
+                        )}
+
+                        <button
+                            type="button"
+                            onClick={() => submitFeedback(index)}
+                            disabled={
+                                !feedbackReasonsByMessage[index] ||
+                                feedbackSubmittingFor === index
+                            }
+                        >
+                            {feedbackSubmittingFor === index
+                                ? "Sending..."
+                                : "Submit feedback"}
+                        </button>
+                    </div>
+                )}
+
+            {feedbackSubmittedFor[index] && (
+                <small>Thank you for your feedback!</small>
+            )}
+        </>
+    )}
                                 {message.type === "welcome" && (
                                     <div className="support-options">
                                         {categories.map((category) => (
