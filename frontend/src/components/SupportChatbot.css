@@ -377,6 +377,10 @@
 .support-chat-input button.support-chat-mic-button.is-listening {
     background: #596d55;
     color: white;
+    box-shadow: 0 0 0 4px rgba(89, 109, 85, 0.18);
+}
+
+/* Chatbot voice reply and response feedback */
     /* Chatbot voice reply and response feedback */
 
 .support-message-tools {
@@ -513,7 +517,4 @@
         gap: 6px;
     }
 }
-    box-shadow: 0 0 0 4px rgba(89, 109, 85, 0.18);
-}
-
-
+  
