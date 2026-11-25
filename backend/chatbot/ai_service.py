@@ -1,7 +1,8 @@
-
 import os
+
 from google import genai
 from google.genai import types
+
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -31,22 +32,24 @@ Rules:
 7. Politely redirect unrelated questions to Nexora support.
 """
 
+
 def get_chatbot_response(message):
+
     if not API_KEY:
-        return "Support chat is temporarily unavailable. Please create a support ticket."
+        raise RuntimeError("GEMINI_API_KEY is not configured.")
 
-    try:
-        client = genai.Client(api_key=API_KEY)
+    client = genai.Client(api_key=API_KEY)
 
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=message,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION
-            ),
-        )
+    response = client.models.generate_content(
+        model="gemini-3.8-flash",
+        contents=message,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION,
+            max_output_tokens=512,
+        ),
+    )
 
-        return response.text or "I couldn't generate an answer. Please try again."
+    if not response.text:
+        raise RuntimeError("Gemini returned an empty response.")
 
-    except Exception:
-        return "I'm unable to process your request right now. Please try again or create a support ticket."
+    return response.text
