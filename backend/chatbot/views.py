@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -73,13 +74,38 @@ class ChatbotFeedbackCreateView(generics.CreateAPIView):
 class ChatbotMessageView(APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
+       def post(self, request):
         message = request.data.get("message", "")
 
         if not isinstance(message, str) or not message.strip():
             return Response(
                 {"error": "Please enter a message."},
                 status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(message) > 2000:
+            return Response(
+                {"error": "Message must be 2000 characters or fewer."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            reply = get_chatbot_response(message.strip())
+
+            return Response({
+                "reply": reply
+            })
+
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Nexora chatbot Gemini request failed"
+            )
+
+            return Response(
+                {
+                    "error": "The support assistant is temporarily unavailable. Please try again or create a support ticket."
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         if len(message) > 2000:
