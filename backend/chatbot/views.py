@@ -1,4 +1,5 @@
 import logging
+
 from rest_framework import status, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,10 +15,6 @@ from .catalog import SUPPORT_CATEGORIES
 from .notifications import notify_ticket_created
 
 
-# =========================================
-# GET SUPPORT CATEGORIES
-# =========================================
-
 class SupportCategoriesView(APIView):
     permission_classes = [AllowAny]
 
@@ -27,10 +24,6 @@ class SupportCategoriesView(APIView):
             "categories": SUPPORT_CATEGORIES,
         })
 
-
-# =========================================
-# CREATE SUPPORT TICKET
-# =========================================
 
 class SupportTicketCreateView(generics.CreateAPIView):
     queryset = SupportTicket.objects.all()
@@ -45,13 +38,8 @@ class SupportTicketCreateView(generics.CreateAPIView):
         else:
             ticket = serializer.save()
 
-        # Email delivery failures must not undo a saved ticket.
         notify_ticket_created(ticket)
 
-
-# =========================================
-# SAVE CHATBOT FEEDBACK
-# =========================================
 
 class ChatbotFeedbackCreateView(generics.CreateAPIView):
     queryset = ChatbotFeedback.objects.all()
@@ -67,14 +55,10 @@ class ChatbotFeedbackCreateView(generics.CreateAPIView):
             serializer.save()
 
 
-# =========================================
-# SUPPORT CHATBOT
-# =========================================
-
 class ChatbotMessageView(APIView):
     permission_classes = [AllowAny]
 
-       def post(self, request):
+    def post(self, request):
         message = request.data.get("message", "")
 
         if not isinstance(message, str) or not message.strip():
@@ -103,19 +87,10 @@ class ChatbotMessageView(APIView):
 
             return Response(
                 {
-                    "error": "The support assistant is temporarily unavailable. Please try again or create a support ticket."
+                    "error": (
+                        "The support assistant is temporarily unavailable. "
+                        "Please try again or create a support ticket."
+                    )
                 },
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-
-        if len(message) > 2000:
-            return Response(
-                {"error": "Message must be 2000 characters or fewer."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        reply = get_chatbot_response(message.strip())
-
-        return Response({
-            "reply": reply
-        })
