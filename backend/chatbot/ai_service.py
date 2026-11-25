@@ -1,10 +1,17 @@
 import os
+import logging
 
 from google import genai
-from google.genai import types
+from google.genai import errors, types
 
+
+logger = logging.getLogger(__name__)
 
 API_KEY = os.getenv("GEMINI_API_KEY")
+
+PRIMARY_MODEL = "gemini-3.8-flash"
+FALLBACK_MODEL = "gemini-3.5-flash-lite"
+
 
 SYSTEM_INSTRUCTION = """
 You are Nexora's official website support assistant.
@@ -38,18 +45,58 @@ def get_chatbot_response(message):
     if not API_KEY:
         raise RuntimeError("GEMINI_API_KEY is not configured.")
 
-    client = genai.Client(api_key=API_KEY)
+    retry_options = types.HttpRetryOptions(
+        attempts=2,
+        initial_delay=1.0,
+        max_delay=4.0,
+        exp_base=2.0,
+        jitter=0.5,
+        http_status_codes=[503],
+    )
 
-    response = client.models.generate_content(
-        model="gemini-3.8-flash",
-        contents=message,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
-            max_output_tokens=512,
+    client = genai.Client(
+        api_key=API_KEY,
+        http_options=types.HttpOptions(
+            timeout=45000,
+            retry_options=retry_options,
         ),
     )
 
+    config = types.GenerateContentConfig(
+        system_instruction=SYSTEM_INSTRUCTION,
+        max_output_tokens=512,
+    )
+
+    try:
+        response = client.models.generate_content(
+            model=PRIMARY_MODEL,
+            contents=message,
+            config=config,
+        )
+
+        if response.text:
+            return response.text
+
+        raise RuntimeError("Primary model returned an empty response.")
+
+    except errors.APIError as error:
+
+        if error.code != 503:
+            raise
+
+        logger.warning(
+            "%s is overloaded. Trying fallback model %s.",
+            PRIMARY_MODEL,
+            FALLBACK_MODEL,
+        )
+
+    response = client.models.generate_content(
+        model=FALLBACK_MODEL,
+        contents=message,
+        config=config,
+    )
+
     if not response.text:
-        raise RuntimeError("Gemini returned an empty response.")
+        raise RuntimeError("Fallback model returned an empty response.")
 
     return response.text
