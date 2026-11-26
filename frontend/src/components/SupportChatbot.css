@@ -518,3 +518,104 @@
     }
 }
   
+/* Nexora themed voice and feedback controls */
+
+.support-message-tools {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 2px 3px;
+}
+
+.support-speak-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 7px 12px;
+    border: 1px solid #dce3d6;
+    border-radius: 20px;
+    background: #fffefa;
+    color: #596d55;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.support-speak-button svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.support-speak-button:hover,
+.support-speak-button.is-speaking {
+    background: #e9eee5;
+    border-color: #a8b79a;
+}
+
+.support-feedback {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.support-feedback span {
+    color: #737b70;
+    font-size: 11px;
+}
+
+.support-feedback-rating {
+    display: inline-flex;
+    align-items: center;
+    overflow: hidden;
+    border: 1px solid #dce3d6;
+    border-radius: 20px;
+    background: #fffefa;
+}
+
+.support-feedback-rating button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 35px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #596d55;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.support-feedback-rating button + button {
+    border-left: 1px solid #e4e8df;
+}
+
+.support-feedback-rating svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.support-feedback-rating button:hover,
+.support-feedback-rating button.is-selected {
+    background: #e5eadf;
+    color: #354b32;
+}
+
+.support-feedback-rating button:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
