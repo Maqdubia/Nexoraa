@@ -1,19 +1,18 @@
 import os
 import logging
 
-from google import genai
-from google.genai import errors, types
 from groq import Groq
+from google import genai
+from google.genai import types
 
 
 logger = logging.getLogger(__name__)
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-PRIMARY_MODEL = "gemini-3.8-flash"
-FALLBACK_MODEL = "gemini-3.5-flash-lite"
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-20b"
+GEMINI_MODEL = "gemini-3.8-flash"
 
 
 SYSTEM_INSTRUCTION = """
@@ -37,26 +36,9 @@ Rules:
 3. Never invent platform features or troubleshooting steps.
 4. If reliable information is unavailable, offer a support ticket.
 5. Never request passwords, OTPs, or API keys.
-6. Keep answers clear and concise.
+6. Keep answers clear, concise, and step-by-step.
 7. Politely redirect unrelated questions to Nexora support.
 """
-
-
-def generate_gemini_response(client, model, message):
-
-    response = client.models.generate_content(
-        model=model,
-        contents=message,
-        config=types.GenerateContentConfig(
-            system_instruction=SYSTEM_INSTRUCTION,
-            max_output_tokens=512,
-        ),
-    )
-
-    if response.text:
-        return response.text
-
-    raise RuntimeError(f"{model} returned an empty response.")
 
 
 def generate_groq_response(message):
@@ -66,8 +48,8 @@ def generate_groq_response(message):
 
     client = Groq(
         api_key=GROQ_API_KEY,
-        timeout=20.0,
-        max_retries=1,
+        timeout=12.0,
+        max_retries=0,
     )
 
     response = client.chat.completions.create(
@@ -82,8 +64,8 @@ def generate_groq_response(message):
                 "content": message,
             },
         ],
-        max_tokens=512,
-        temperature=0.3,
+        max_completion_tokens=512,
+        reasoning_effort="low",
     )
 
     answer = response.choices[0].message.content
@@ -94,40 +76,56 @@ def generate_groq_response(message):
     return answer.strip()
 
 
+def generate_gemini_response(message):
+
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY is not configured.")
+
+    client = genai.Client(
+        api_key=GEMINI_API_KEY,
+        http_options=types.HttpOptions(
+            timeout=10000,
+            retry_options=types.HttpRetryOptions(
+                attempts=1,
+            ),
+        ),
+    )
+
+    response = client.models.generate_content(
+        model=GEMINI_MODEL,
+        contents=message,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM_INSTRUCTION,
+            max_output_tokens=512,
+        ),
+    )
+
+    if not response.text:
+        raise RuntimeError("Gemini returned an empty response.")
+
+    return response.text
+
+
 def get_chatbot_response(message):
 
+    if GROQ_API_KEY:
+        try:
+            logger.info("Trying Groq as primary chatbot provider.")
+            return generate_groq_response(message)
+
+        except Exception:
+            logger.exception(
+                "Groq failed. Switching to Gemini."
+            )
+
     if GEMINI_API_KEY:
+        try:
+            logger.info("Trying Gemini as backup chatbot provider.")
+            return generate_gemini_response(message)
 
-        retry_options = types.HttpRetryOptions(
-            attempts=2,
-            initial_delay=1.0,
-            max_delay=3.0,
-            exp_base=2.0,
-            http_status_codes=[503],
-        )
+        except Exception:
+            logger.exception("Gemini backup failed.")
 
-        client = genai.Client(
-            api_key=GEMINI_API_KEY,
-            http_options=types.HttpOptions(
-                timeout=15000,
-                retry_options=retry_options,
-            ),
-        )
-
-        for model in [PRIMARY_MODEL, FALLBACK_MODEL]:
-            try:
-                return generate_gemini_response(
-                    client,
-                    model,
-                    message,
-                )
-
-            except Exception:
-                logger.exception(
-                    "Gemini model %s failed. Checking next provider.",
-                    model,
-                )
-
-    logger.warning("Switching Nexora chatbot to Groq.")
-
-    return generate_groq_response(message)
+    raise RuntimeError(
+        "All configured chatbot providers are unavailable."
+    )
