@@ -740,72 +740,78 @@ setFeedbackErrors({});
                                 key={index}
                                 className={`support-message ${message.sender}`}
                             >
-                                <div className="support-message-bubble">
-                                    {message.text}
-                                <div className="support-message-tools">
-    <button
-        type="button"
-        className={
-            "support-speak-button" +
-            (speakingMessageIndex === index ? " is-speaking" : "")
-        }
-        onClick={() => handleSpeakMessage(message.text, index)}
-        aria-label={
-            speakingMessageIndex === index
-                ? "Stop reading response"
-                : "Read response aloud"
-        }
-    >
-        {speakingMessageIndex === index ? (
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-            </svg>
-        ) : (
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 10v4h3l5 4V6l-5 4H4z" />
-                <path d="M16 9a5 5 0 0 1 0 6" />
-                <path d="M18.5 6.5a9 9 0 0 1 0 11" />
-            </svg>
-        )}
-        <span>
-            {speakingMessageIndex === index ? "Stop" : "Listen"}
-        </span>
-    </button>
-
-    <div className="support-feedback">
-        <span>Was this helpful?</span>
-
-        <div className="support-feedback-rating">
-            <button
-                type="button"
-                className={feedbackRatings[index] === "positive" ? "is-selected" : ""}
-                onClick={() => handleFeedbackRating(index, "positive")}
-                disabled={Boolean(feedbackSubmittedFor[index])}
-                aria-label="Thumbs up"
-            >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z" />
-                    <path d="M7 10l5-8c2 0 3 1 3 3l-1 5h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7z" />
-                </svg>
-            </button>
-
-            <button
-                type="button"
-                className={feedbackRatings[index] === "negative" ? "is-selected" : ""}
-                onClick={() => handleFeedbackRating(index, "negative")}
-                disabled={Boolean(feedbackSubmittedFor[index])}
-                aria-label="Thumbs down"
-            >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <g transform="rotate(180 12 12)">
-                        <path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z" />
-                        <path d="M7 10l5-8c2 0 3 1 3 3l-1 5h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7z" />
-                    </g>
-                </svg>
-            </button>
-        </div>
-    </div>
+           <div className="support-message-bubble">
+    {message.text}
 </div>
+
+{message.sender === "bot" &&
+    message.type === "ai-reply" && (
+        <>
+            <div className="support-message-tools">
+                <button
+                    type="button"
+                    className={
+                        "support-speak-button" +
+                        (speakingMessageIndex === index ? " is-speaking" : "")
+                    }
+                    onClick={() => handleSpeakMessage(message.text, index)}
+                    aria-label={
+                        speakingMessageIndex === index
+                            ? "Stop reading response"
+                            : "Read response aloud"
+                    }
+                >
+                    {speakingMessageIndex === index ? (
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="6" y="6" width="12" height="12" rx="2" />
+                        </svg>
+                    ) : (
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 10v4h3l5 4V6l-5 4H4z" />
+                            <path d="M16 9a5 5 0 0 1 0 6" />
+                            <path d="M18.5 6.5a9 9 0 0 1 0 11" />
+                        </svg>
+                    )}
+                    <span>
+                        {speakingMessageIndex === index ? "Stop" : "Listen"}
+                    </span>
+                </button>
+
+                <div className="support-feedback">
+                    <span>Was this helpful?</span>
+
+                    <div className="support-feedback-rating">
+                        <button
+                            type="button"
+                            className={feedbackRatings[index] === "positive" ? "is-selected" : ""}
+                            onClick={() => handleFeedbackRating(index, "positive")}
+                            disabled={Boolean(feedbackSubmittedFor[index])}
+                            aria-label="Thumbs up"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z" />
+                                <path d="M7 10l5-8c2 0 3 1 3 3l-1 5h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7z" />
+                            </svg>
+                        </button>
+
+                        <button
+                            type="button"
+                            className={feedbackRatings[index] === "negative" ? "is-selected" : ""}
+                            onClick={() => handleFeedbackRating(index, "negative")}
+                            disabled={Boolean(feedbackSubmittedFor[index])}
+                            aria-label="Thumbs down"
+                        >
+                            <svg viewBox="0 0 24 24" aria-hidden="true">
+                                <g transform="rotate(180 12 12)">
+                                    <path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3z" />
+                                    <path d="M7 10l5-8c2 0 3 1 3 3l-1 5h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7z" />
+                                </g>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {feedbackOpenFor === index &&
                 !feedbackSubmittedFor[index] && (
                     <div className="support-feedback-panel">
@@ -815,30 +821,25 @@ setFeedbackErrors({});
                                 : "What could be improved?"}
                         </strong>
 
-                        {feedbackReasons[feedbackRatings[index]].map(
-                            (reason) => (
-                                <button
-                                    key={reason.value}
-                                    type="button"
-                                    className={
-                                        feedbackReasonsByMessage[index] ===
-                                        reason.value
-                                            ? "is-selected"
-                                            : ""
-                                    }
-                                    onClick={() =>
-                                        setFeedbackReasonsByMessage(
-                                            (previous) => ({
-                                                ...previous,
-                                                [index]: reason.value,
-                                            })
-                                        )
-                                    }
-                                >
-                                    {reason.label}
-                                </button>
-                            )
-                        )}
+                        {feedbackReasons[feedbackRatings[index]].map((reason) => (
+                            <button
+                                key={reason.value}
+                                type="button"
+                                className={
+                                    feedbackReasonsByMessage[index] === reason.value
+                                        ? "is-selected"
+                                        : ""
+                                }
+                                onClick={() =>
+                                    setFeedbackReasonsByMessage((previous) => ({
+                                        ...previous,
+                                        [index]: reason.value,
+                                    }))
+                                }
+                            >
+                                {reason.label}
+                            </button>
+                        ))}
 
                         {feedbackErrors[index] && (
                             <p>{feedbackErrors[index]}</p>
