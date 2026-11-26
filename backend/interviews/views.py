@@ -1,7 +1,9 @@
-
 import json
+import logging
+import os
 import re
-import requests
+
+from groq import Groq
 
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -12,65 +14,102 @@ from .models import Interview, InterviewAnswer
 from .serializers import InterviewSerializer
 
 
-OLLAMA_URL = "http://127.0.0.1:11434/api/generate"
-OLLAMA_MODEL = "llama3.2"
+logger = logging.getLogger(__name__)
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 
-def ask_ollama(prompt):
+def ask_ai(prompt):
     """
-    Send a prompt to the local Ollama model.
-    The model is asked to return JSON.
+    Generate structured interview content using Groq.
+    This works with the deployed Django service without local Ollama.
     """
-    try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "format": "json",
-            },
-            timeout=120,
+
+    if not GROQ_API_KEY:
+        raise RuntimeError(
+            "GROQ_API_KEY is missing from the Render environment."
         )
 
-        response.raise_for_status()
-        result = response.json()
-        content = result.get("response", "").strip()
+    try:
+        client = Groq(
+            api_key=GROQ_API_KEY,
+            timeout=25.0,
+            max_retries=0,
+        )
 
-        # Remove optional Markdown fences if the model adds them.
+        response = client.chat.completions.create(
+            model=GROQ_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Nexora's professional AI interview coach. "
+                        "Generate accurate, role-specific interview content. "
+                        "Return only a valid JSON object without Markdown."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": prompt,
+                },
+            ],
+            response_format={"type": "json_object"},
+            max_completion_tokens=1000,
+            reasoning_effort="low",
+            include_reasoning=False,
+        )
+
+        content = response.choices[0].message.content
+
+        if not content:
+            raise RuntimeError("The AI returned an empty response.")
+
+        content = content.strip()
         content = re.sub(r"^```(?:json)?\s*", "", content)
         content = re.sub(r"\s*```$", "", content)
 
-        return json.loads(content)
+        try:
+            result = json.loads(content)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", content, re.DOTALL)
 
-    except requests.exceptions.ConnectionError:
+            if not match:
+                raise RuntimeError(
+                    "The AI returned an invalid JSON response."
+                )
+
+            result = json.loads(match.group(0))
+
+        if not isinstance(result, dict):
+            raise RuntimeError("The AI returned an invalid response.")
+
+        return result
+
+    except RuntimeError:
+        raise
+
+    except Exception as error:
+        logger.exception("Groq interview request failed.")
         raise RuntimeError(
-            "Ollama is not running. Start Ollama and try again."
-        )
-    except requests.exceptions.Timeout:
-        raise RuntimeError(
-            "The AI request timed out. Please try again."
-        )
-    except requests.exceptions.RequestException:
-        raise RuntimeError(
-            "Could not connect to the AI service."
-        )
-    except (ValueError, json.JSONDecodeError):
-        raise RuntimeError(
-            "The AI returned an invalid response. Please try again."
-        )
+            "The AI interview service is currently unavailable. "
+            "Please try again."
+        ) from error
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def generate_question(request):
+
     role = str(request.data.get("role", "")).strip()
     level = str(request.data.get("level", "Fresher")).strip()
     interview_type = str(
         request.data.get("interview_type", "Technical")
     ).strip()
 
-    previous_questions = request.data.get("previous_questions", [])
+    previous_questions = request.data.get(
+        "previous_questions", []
+    )
 
     if not role:
         return Response(
@@ -91,37 +130,36 @@ def generate_question(request):
         )
 
     previous_text = "\n".join(
-        str(question)[:500] for question in previous_questions[-10:]
+        str(question)[:500]
+        for question in previous_questions[-10:]
     ) or "None"
 
     prompt = f"""
-You are an interview coach for a career platform.
+Generate exactly ONE useful interview question.
 
-Generate exactly one useful interview question.
-
-Target role: {role}
+Target job role: {role}
 Experience level: {level}
 Interview type: {interview_type}
 
 Previously asked questions:
 {previous_text}
 
-Do not repeat any previously asked question.
+Do not repeat previously asked questions.
 
-Return only a JSON object with these keys:
+Return this JSON structure:
 {{
-  "question": "The interview question",
-  "tip": "A short hint to help the candidate prepare"
+    "question": "The interview question",
+    "tip": "A short preparation hint"
 }}
 
-Keep the question appropriate for the stated experience level.
+Keep the question relevant to the role and experience level.
 """
 
     try:
-        result = ask_ollama(prompt)
+        result = ask_ai(prompt)
 
         question = result.get("question")
-        tip = result.get("tip")
+        tip = result.get("tip", "")
 
         if not isinstance(question, str) or not question.strip():
             return Response(
@@ -141,16 +179,25 @@ Keep the question appropriate for the stated experience level.
         )
 
 
-
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def evaluate_answer(request):
+
     interview_id = request.data.get("interview_id")
     question = str(request.data.get("question", "")).strip()
     answer = str(request.data.get("answer", "")).strip()
-    role = str(request.data.get("role", "Software Developer"))
-    level = str(request.data.get("level", "Fresher"))
+
+    role = str(
+        request.data.get("role", "Software Developer")
+    ).strip()
+
+    level = str(
+        request.data.get("level", "Fresher")
+    ).strip()
+
+    interview_type = str(
+        request.data.get("interview_type", "Technical")
+    ).strip()
 
     if not interview_id:
         return Response(
@@ -176,35 +223,47 @@ def evaluate_answer(request):
         )
 
     prompt = f"""
-    Evaluate this mock interview answer for a {level} candidate
-    applying for {role}.
+Evaluate the candidate's interview answer professionally.
 
-    Question: {question}
-    Candidate answer: {answer}
+Target role: {role}
+Experience level: {level}
+Interview type: {interview_type}
 
-    Return ONLY valid JSON in this format:
-    {{
-        "score": 7,
-        "strengths": ["Good explanation"],
-        "improvements": ["Add a practical example"],
-        "sample_answer": "A clear example answer"
-    }}
+Interview question:
+{question}
 
-    Score must be a number from 0 to 10.
-    """
+Candidate's answer:
+{answer}
+
+Evaluate accuracy, relevance, clarity and completeness.
+
+Return ONLY this JSON structure:
+{{
+    "score": 7,
+    "strengths": [
+        "A strength demonstrated by the candidate"
+    ],
+    "improvements": [
+        "A practical area to improve"
+    ],
+    "sample_answer": "A strong example answer"
+}}
+
+Rules:
+- Score must be between 0 and 10.
+- Be constructive and fair.
+- Do not give a high score to an incorrect answer.
+- Keep feedback specific to the candidate's answer.
+"""
 
     try:
-        result = ask_ollama(prompt)
+        result = ask_ai(prompt)
 
-        if isinstance(result, str):
-            match = re.search(r"\{.*\}", result, re.DOTALL)
+        try:
+            score = int(round(float(result.get("score", 0))))
+        except (TypeError, ValueError):
+            raise ValueError("Invalid evaluation score.")
 
-            if not match:
-                raise ValueError("AI response is not valid JSON.")
-
-            result = json.loads(match.group(0))
-
-        score = int(round(float(result.get("score", 0))))
         score = max(0, min(10, score))
 
         strengths = result.get("strengths", [])
@@ -218,8 +277,10 @@ def evaluate_answer(request):
             improvements = [str(improvements)]
 
         feedback = (
-            "Strengths: " + "; ".join(map(str, strengths))
-            + "\nImprovements: " + "; ".join(map(str, improvements))
+            "Strengths: "
+            + "; ".join(map(str, strengths))
+            + "\nImprovements: "
+            + "; ".join(map(str, improvements))
         )
 
         InterviewAnswer.objects.create(
@@ -233,6 +294,7 @@ def evaluate_answer(request):
         interview.total_score = sum(
             interview.answers.values_list("score", flat=True)
         )
+
         interview.save(update_fields=["total_score"])
 
         return Response({
@@ -245,32 +307,46 @@ def evaluate_answer(request):
             "answers_saved": interview.answers.count(),
         })
 
+    except RuntimeError as error:
+        return Response(
+            {"error": str(error)},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
     except (ValueError, TypeError, KeyError):
+        logger.exception("Interview evaluation response was invalid.")
+
         return Response(
-            {"error": "Could not process the AI evaluation. Please try again."},
+            {"error": "Could not process the AI evaluation."},
             status=status.HTTP_502_BAD_GATEWAY,
         )
+
     except Exception:
+        logger.exception("Interview evaluation failed.")
+
         return Response(
-            {"error": "Interview evaluation failed. Check that Ollama is running."},
-            status=status.HTTP_502_BAD_GATEWAY,
+            {"error": "Interview evaluation failed. Please try again."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def interview_history(request):
+
     interviews = Interview.objects.filter(
         user=request.user
     ).order_by("-created_at")
 
     serializer = InterviewSerializer(interviews, many=True)
-    return Response(serializer.data)
 
+    return Response(serializer.data)
 
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def start_interview(request):
+
     interview_type = str(
         request.data.get("interview_type", "Python")
     ).strip()
