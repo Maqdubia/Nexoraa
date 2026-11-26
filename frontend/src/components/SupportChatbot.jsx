@@ -441,7 +441,7 @@ Selected issue: ${message}`,
                 ),
                 {
     sender: "bot",
-    text: response.data.reply,
+   text: String(response.data.reply || "").replace(/\*\*/g, ""),
     type: "ai-reply",
 },
                 {
